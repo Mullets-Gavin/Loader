@@ -170,7 +170,7 @@ end
 function DataSync:GetFile(index)
 	assert(self._key,DataSync._Error.."':GetFile' can only be used with a store")
 	
-	if not index and Manager.IsClient then
+	if not index and Manager.IsClient and Players.LocalPlayer then
 		index = tostring(Players.LocalPlayer.UserId)
 	end
 	
@@ -188,7 +188,7 @@ function DataSync:GetFile(index)
 	
 	DataSync._Sessions[index] = true
 	
-	local index,player = GetPlayer(index)
+	local player; index,player = GetPlayer(index)
 	
 	if not DataSync._Cache[self._key][index] and Manager.IsServer and not self._sesh then
 		self._sesh = true
