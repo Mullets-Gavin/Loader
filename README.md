@@ -1,7 +1,7 @@
 <div align="center">
 <h1>Loader</h1>
 
-By [Mullet Mafia Dev](https://www.roblox.com/groups/5018486/Mullet-Mafia-Dev#!/about) | [Download](https://www.roblox.com/library/5653863543/Loader) | [Source](https://github.com/Mullets-Gavin/Loader)
+By [Mullet Mafia Dev](https://www.roblox.com/groups/5018486/Mullet-Mafia-Dev#!/about) | [Download](https://www.roblox.com/library/6015052447/Loader) | [Source](https://github.com/Mullets-Gavin/Loader)
 </div>
 
 Loader is a Roblox Luau lazy library loader. This module can act as a require replacement with complete capabilities. Loader features a set of tools with included libraries to help.
