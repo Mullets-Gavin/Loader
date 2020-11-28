@@ -404,7 +404,7 @@ function Loader.import(service)
 end
 
 --[=[
-	Create a custom enum library on 'shared'
+	Create a custom enum library on `shared`
 	
 	@param name string -- the name & index of the enum
 	@param members table -- list of all the enum members
