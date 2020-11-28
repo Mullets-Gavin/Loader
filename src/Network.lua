@@ -105,6 +105,7 @@ local Container = ReplicatedStorage:FindFirstChild(Network._Name..'_FOLDER'); do
 	if Manager.IsServer and not Container then
 		local Folder = Instance.new('Folder')
 		Folder.Name = Network._Name..'_FOLDER'
+		Folder.Archivable = false
 		Folder.Parent = ReplicatedStorage
 		Container = Folder
 	elseif not Container then
