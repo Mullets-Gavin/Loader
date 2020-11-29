@@ -84,7 +84,9 @@
 
 local Network = {}
 Network._Events = {}
+Network._Functions = {}
 Network._Bindables = {}
+Network._Invocables = {}
 
 Network._Name = string.upper(script.Name)
 Network._Error = '['.. Network._Name ..']: '
@@ -293,6 +295,7 @@ end
 	Unhook a RemoteEvent
 	
 	@oaram name string -- the name of the remote
+	@return boolean
 ]=]
 function Network:UnhookEvent(name)
 	assert(typeof(name) == 'string')
@@ -300,7 +303,10 @@ function Network:UnhookEvent(name)
 	local connection = Network._Events[name]
 	if connection then
 		connection:Disconnect()
+		return true
 	end
+	
+	return false
 end
 
 --[=[
@@ -317,7 +323,7 @@ function Network:HookFunction(name,code)
 	local remote = GetRemote(name,Network.Enums.Function)
 	local callbackKey = Manager.IsClient and 'OnClientInvoke' or 'OnServerInvoke'
 	remote[callbackKey] = code
-	Network._Events[name] = remote
+	Network._Functions[name] = remote
 	
 	return remote
 end
@@ -325,15 +331,20 @@ end
 --[=[
 	Unhook a RemoteFunction
 	
-	@oaram name string -- the name of the remote
+	@param name string -- the name of the remote
+	@return boolean
 ]=]
 function Network:UnhookFunction(name)
 	assert(typeof(name) == 'string')
 	
-	local connection = Network._Events[name]
+	local connection = Network._Functions[name]
 	if connection then
-		connection:Disconnect()
+		local callbackKey = Manager.IsClient and 'OnClientInvoke' or 'OnServerInvoke'
+		connection[callbackKey] = nil
+		return true
 	end
+	
+	return false
 end
 
 --[=[
@@ -513,6 +524,7 @@ end
 	Unbind a BindableEvent
 	
 	@param name string -- the name of the bindable
+	@return boolean
 ]=]
 function Network:UnbindEvent(name)
 	assert(typeof(name) == 'string')
@@ -520,7 +532,10 @@ function Network:UnbindEvent(name)
 	local connection = Network._Bindables[name]
 	if connection then
 		connection:Disconnect()
+		return true
 	end
+	
+	return false
 end
 
 --[=[
@@ -535,22 +550,28 @@ function Network:BindFunction(name,code)
 	assert(typeof(code) == 'function')
 	
 	local bindable = GetBindable(name,Network.Enums.Function)
-	bindable.Invoke = code
-	Network._Bindables[name] = bindable
+	bindable.OnInvoke = code
+	Network._Invocables[name] = bindable
+	
+	return bindable
 end
 
 --[=[
 	Unbind a BindableFunction
 	
 	@param name string -- the name of the bindable
+	@return boolean
 ]=]
 function Network:UnbindFunction(name)
 	assert(typeof(name) == 'string')
 	
-	local connection = Network._Bindables[name]
+	local connection = Network._Invocables[name]
 	if connection then
-		connection:Disconnect()
+		connection.OnInvoke = nil
+		return true
 	end
+	
+	return false
 end
 
 --[=[
@@ -562,7 +583,7 @@ end
 function Network:FireBindable(name,...)
 	assert(typeof(name) == 'string')
 	
-	local bindable = GetBindable(name)
+	local bindable = GetBindable(name,Network.Enums.Event)
 	bindable:Fire(...)
 end
 
@@ -575,7 +596,7 @@ end
 ]=]
 function Network:InvokeBindable(name,...)
 	assert(typeof(name) == 'string')
-	local bindable = GetBindable(name)
+	local bindable = GetBindable(name,Network.Enums.Function)
 	return bindable:Invoke(...)
 end
 
