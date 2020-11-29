@@ -60,8 +60,8 @@ return {
 			local get = file:GetData('Dictionary')
 			get[data.value] = data.number
 			
-			local result = file:UpdateData('Table',get):GetData('Dictionary')
-			assert(typeof(result) == 'table',"Failed to set table, got '"..typeof(result).."'")
+			local result = file:UpdateData('Dictionary',get):GetData('Dictionary')
+			assert(typeof(result) == 'table',"Failed to set dictionary, got '"..typeof(result).."'")
 		end;
 		
 		['save'] = function(profiler,plr,file,data)
@@ -73,5 +73,14 @@ return {
 			local remove = file:RemoveData()
 			assert(getmetatable(remove) == nil,"Failed to destroy file")
 		end;
+
+		['complete'] = function(profiler,plr,file,data)
+			local result = file:IncrementData('Number',data.number)
+				:UpdateData('Boolean',data.boolean)
+				:IncrementData('Number',-data.number)
+				:UpdateData('Table',table.insert(file:GetData('Table'),data.value))
+				:RemoveData()
+			assert(typeof(result) == 'table' and getmetatable(result) == nil,"Failed to run a complete session")
+		end
 	};
 }
