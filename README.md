@@ -56,7 +56,7 @@ local SomeServer = Loader.server('SomeServer')
 -- Services Example --
 ----------------------
 local RunService = Loader['RunService']
-local PlayerService = Loader['PlayerService']
+local PlayerService = Loader.import('PlayerService')
 
 ------------------------
 -- Enumerator Example --
