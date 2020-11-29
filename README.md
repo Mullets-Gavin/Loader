@@ -3,7 +3,7 @@
 
 [![version](https://img.shields.io/badge/version-v1.0.0-red)](https://github.com/Mullets-Gavin/Loader/releases/tag/v1.0.0) [![tests: passing](https://img.shields.io/badge/tests-passing-brightgreen)](https://github.com/Mullets-Gavin/Loader/tree/master/tests) [![chat](https://img.shields.io/discord/281959162470989834?color=blue)](https://discord.gg/dZYyvBu)
 
-A Roblox Luau lazy-library loader with built-in libraries.
+A Roblox Luau lazy-library loader with built-in libraries and functions.
 </div>
 
 ## Installation
@@ -56,13 +56,15 @@ local SomeServer = Loader.server('SomeServer')
 -- Services Example --
 ----------------------
 local RunService = Loader['RunService']
-local PlayerService = Loader.import('PlayerService')
+local PlayerService = Loader.import('Players')
 
 ------------------------
 -- Enumerator Example --
 ------------------------
 local Enums = Loader.enum('Example',{'this','is','a','test'})
-print(shared.Example.this)
+print(shared.Example.this) --> this
+print(shared.Example.is == shared.Example.a) --> false
+print(shared.Example.test == shared.Example.test) --> true
 ```
 
 ## API
