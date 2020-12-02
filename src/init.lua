@@ -404,7 +404,7 @@ function Loader.import(service)
 end
 
 --[=[
-	Create a custom enum library on `shared`
+	Create a custom enum library on 'shared'
 	
 	@param name string -- the name & index of the enum
 	@param members table -- list of all the enum members
@@ -452,6 +452,15 @@ function Loader:__index(service)
 end
 
 --[=[
+	Provides the Loader version when called tostring()
+	
+	@return FormattedVersion
+]=]
+function Loader:__tostring()
+	return 'Loader '..Loader.__version()
+end
+
+--[=[
 	Returns the current version of Loader
 	
 	@return FormattedVersion
@@ -471,7 +480,7 @@ do
 		print('Loader by Mullet Mafia Dev initialized','|',Loader.VERSION)
 	end
 	
-	if IsClient then
+	if IsClient and not IsStudio then
 		while not game:IsLoaded() do
 			game.Loaded:Wait()
 		end
