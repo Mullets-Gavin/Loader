@@ -4,6 +4,7 @@ base = "lua52"
 [rules]
 incorrect_standard_library_use = "allow"
 parenthese_conditions = "allow"
+if_same_then_else = "allow"
 unused_variable = "allow"
 global_usage = "allow"
 shadowing = "allow"
