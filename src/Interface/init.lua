@@ -102,24 +102,24 @@
 
 local Interface = {}
 Interface.__index = Interface
-setmetatable(Interface,Interface)
-
 Interface._Name = string.upper(script.Name)
 Interface._Error = '['.. Interface._Name ..']: '
-
+Interface._ComponentCode = {}
+Interface._ComponentCache = {}
 Interface._AssignSizesCache = {}
 Interface._AssignSizesOveride = false
+setmetatable(Interface,Interface)
 
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
 local Manager = Loader('Manager')
 local Input = Loader(script:WaitForChild('Input'))
-
+local Components = Loader(script:WaitForChild('Components'))
+local Animator = Loader(script:WaitForChild('Animator'))
 local Workspace = Loader['Workspace']
 local GuiService = Loader['GuiService']
 local Players = Loader['Players']
 local UserInputService = Loader['UserInputService']
-
+local CollectionService = Loader['CollectionService']
 local Camera = Workspace.CurrentCamera
 local Container
 
@@ -190,6 +190,29 @@ local function ResizeContainer(element,scale,min,max)
 			ResizeContainer(element,scale * 2,min,max)
 		end
 	end
+end
+
+--[=[
+	Bind & create a component with an element
+	
+	@param tag string -- the tag used
+	@param element GuiObject -- the object used for the component
+]=]
+local function BindComponent(tag,element)
+	if Interface._ComponentCache[tag][element] then return end
+	
+	local Player = Players.LocalPlayer
+	local PlayerGui = Player.PlayerGui
+	
+	if not element:IsDescendantOf(PlayerGui) then
+		return
+	end
+	
+	local code = Interface._ComponentCode[tag]
+	local create = Components.new(element)
+	Interface._ComponentCache[tag][element] = create
+	
+	Manager.wrap(code,create)
 end
 
 --[=[
@@ -682,7 +705,7 @@ end
 	@param name string -- the name of the keybind
 	@param code function -- a callback function when there is a tap
 ]=]
-function Input:Tapped(name,code)
+function Interface:Tapped(name,code)
 	assert(typeof(name) == 'string')
 	assert(typeof(code) == 'function')
 	
@@ -693,12 +716,95 @@ function Input:Tapped(name,code)
 end
 
 --[=[
-	Allows you to require Interface & immediately replicate
+	Play an animation located in the Animator lib
 	
-	@return Interface
+	@param name string -- an animation name & function in Animator
+	@param element GuiObject -- a GuiObject to animate
+	@param async boolean -- if the animation should yield or not
 ]=]
-function Interface:__call()
-	return Interface.Replicate()
+function Interface:Play(name,element,async)
+	assert(Animator[name] ~= nil)
+	
+	local code = Animator[name]
+	if async then
+		code(element)
+	else
+		Manager.wrap(code,element)
+	end
+end
+
+--[=[
+	Return a component on an element
+	
+	@param element GuiObject -- the element to get a component from
+]=]
+function Interface:Get(element)
+	assert(typeof(element) == 'Instance' and element:IsA('GuiObject'),"element is not a gui object")
+	
+	for tag,data in pairs(Interface._ComponentCache) do
+		for index,obj in pairs(data) do
+			if index ~= element then continue end
+			return obj
+		end
+	end
+end
+
+--[=[
+	Returns all the components on a tag in PlayerGui
+	
+	@param tag string -- the tag to get from
+]=]
+function Interface:GetAll(tag)
+	assert(typeof(tag) == 'string',"tag is not a string")
+	
+	return Interface._ComponentCache[tag]
+end
+
+--[=[
+	Fires a function with the tag
+	
+	@param name string -- the name of the binding
+	@param ...? any -- optional parameters to pass
+]=]
+function Interface:Fire(name,...)
+	assert(Components._Bindings[name],"no binding is connected to fire")
+	
+	local code = Components._Bindings[name]
+	Manager.wrap(code,...)
+end
+
+--[=[
+	Create a component out of a collection service tag!
+	
+	@param tag string -- the CollectionService tag to track
+	@param code function -- the function to run when you get a component
+]=]
+function Interface:Create(tag,code)
+	assert(Interface._ComponentCache[tag] == nil,"tag is claimed")
+	assert(typeof(tag) == 'string',"tag is not a string")
+	assert(typeof(code) == 'function',"function passed aint a function bud")
+	
+	Interface._ComponentCache[tag] = {}
+	Interface._ComponentCode[tag] = code
+	
+	CollectionService:GetInstanceAddedSignal(tag):Connect(function(component)
+		BindComponent(tag,component)
+	end)
+	
+	local tagged = CollectionService:GetTagged(tag)
+	for index,component in pairs(tagged) do
+		BindComponent(tag,component)
+	end
+end
+
+--[=[
+	Redirects to Interface:Create(), streamlines shortcutting to Interface()
+	
+	@param tag string -- the CollectionService tag to track
+	@param code function -- the function to run when you get a component
+]=]
+function Interface:__call(tag,code)
+	Interface:Create(tag,code)
 end
 
 Manager.wrap(function()
