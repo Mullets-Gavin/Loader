@@ -4,5 +4,8 @@
         "incorrect-call-arguments",
         "set-for-state",
         "unused-local"
+    ],
+    "Lua.diagnostics.ignore": [
+        "Connect"
     ]
 }
