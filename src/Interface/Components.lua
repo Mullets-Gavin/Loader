@@ -15,9 +15,10 @@ local RunService = Loader['RunService']
 --[=[
 	Construct a new component out of a pre-existing element
 	
-	@param element GuiObject 
+	@param element GuiObject -- the main component
+	@return Class
 ]=]
-function Components.new(element: GuiObject)
+function Components.new(element: GuiObject): Class
 	local config = element:FindFirstChildWhichIsA('Configuration') do
 		if not config then
 			config = Instance.new('Configuration')
@@ -63,7 +64,7 @@ end
 	@return nil
 ]=]
 function Components:Fire(name: string, ...): nil
-	assert(Components._Bindings[name],Components._Error.."Attempted to fire a non-existant binding on '"..name.."'")
+	assert(Components._Bindings[name],"Attempted to fire a non-existant binding on '"..name.."'")
 	
 	Manager.wrap(Components._Bindings[name],...)
 end
@@ -72,9 +73,9 @@ end
 	Get an attribute value on the component. Checks for value objects first
 	
 	@param name string -- name of the attribute
-	@return Value any
+	@return Value any?
 ]=]
-function Components:Get(name: string): any
+function Components:Get(name: string): any?
 	local obj = self.config:FindFirstChild(name)
 	
 	if obj then
@@ -91,7 +92,7 @@ end
 	@param value any -- the value to set on an attribute
 	@return Value any
 ]=]
-function Components:Set(name: string, value: any)
+function Components:Set(name: string, value: any): any?
 	local obj = self.config:FindFirstChild(name)
 	
 	if obj then
@@ -110,7 +111,7 @@ end
 	@param value any -- the value to update on an attribute
 	@return Value any
 ]=]
-function Components:Update(name: string, value: any)
+function Components:Update(name: string, value: any): any
 	local get = self:Get(name)
 	
 	assert(get ~= nil,Components._Error.."Attempted to update nil attribute '"..name.."'")
@@ -188,7 +189,7 @@ end
 	@param code function -- the function to run
 	@return RBXScriptSignal
 ]=]
-function Components:Lifecycle(name: string, code: (number) -> nil)
+function Components:Lifecycle(name: string, code: (number) -> nil): RBXScriptSignal
 	local signal = RunService.RenderStepped:Connect(function(delta)
 		if self.element.Visible then
 			code(delta)
@@ -204,8 +205,9 @@ end
 	Destroys all the signals connected to a name no matter the type
 	
 	@param name string -- name of the signal key connected
+	@return nil
 ]=]
-function Components:Destroy(name: string)
+function Components:Destroy(name: string): nil
 	Manager:DisconnectKey('attribute_'..name)
 	Manager:DisconnectKey('connection_'..name)
 	Manager:DisconnectKey('lifecycle_'..name)
@@ -217,7 +219,7 @@ end
 	@param index any -- the index being called on the component
 	@return any?
 ]=]
-function Components:__index(index: any)
+function Components:__index(index: any): any?
 	if Components[index] then
 		return Components[index]
 	end
@@ -230,7 +232,7 @@ function Components:__index(index: any)
 		return self.element[index]
 	end
 	
-	error(Components._Error..index..' is not a valid member of '..self.element:GetFullName()..' "'..self.element.ClassName..'"',2)
+	error(index..' is not a valid member of '..self.element:GetFullName()..' "'..self.element.ClassName..'"',2)
 end
 
 --[=[
@@ -239,7 +241,7 @@ end
 	@param name string -- name of the component
 	@return Value any
 ]=]
-function Components:__call(name: string)
+function Components:__call(name: string): any?
 	return self:Get(name)
 end
 
