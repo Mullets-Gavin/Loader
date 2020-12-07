@@ -645,7 +645,7 @@ end
 	@param code? function -- a callback function made on completion
 	@return boolean
 ]=]
-function Roblox:PreloadAssets(assets: Instance | table, code: () -> nil): boolean
+function Roblox:PreloadAssets(assets: Instance | table, code: () -> ()): boolean
 	assert(Manager.IsClient)
 	assets = typeof(assets) == 'table' and assets or {assets}
 	

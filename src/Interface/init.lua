@@ -132,9 +132,9 @@ local Container
 local function FormatColor(color: Color3): string
 	return string.format(
 		'rgb(%i,%i,%i)',
-		math.floor(color.R * 255),
-		math.floor(color.G * 255),
-		math.floor(color.B * 255)
+		math.floor(color.r * 255),
+		math.floor(color.g * 255),
+		math.floor(color.b * 255)
 	)
 end
 
@@ -319,7 +319,7 @@ function Interface.AssignSizes(element: GuiObject, scale: number, min: number, m
 		return control
 	end
 	
-	function control:Changed(code: () -> nil): typeof(control)
+	function control:Changed(code: () -> ()): typeof(control)
 		local file = Interface._AssignSizesCache[element]
 		
 		if file ~= nil then
@@ -546,7 +546,7 @@ function Interface.Keybind(name: string): typeof(Interface.Keybind())
 		control._Verify()
 	end
 	
-	function control:Hook(code: () -> nil): nil
+	function control:Hook(code: () -> ()): nil
 		if Input._InputCache[name]['Function'] then
 			Input._InputCache[name]['Function'] = nil
 		end

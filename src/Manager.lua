@@ -1029,7 +1029,7 @@ function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 		return setmetatable(control,nil)
 	end
 	
-	function control:Queue(code: () -> nil): nil
+	function control:Queue(code: () -> ()): nil
 		if not control.CodeQueue then return end
 		control.CodeQueue[#control.CodeQueue + 1] = code
 		
