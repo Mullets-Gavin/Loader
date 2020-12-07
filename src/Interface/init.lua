@@ -132,9 +132,9 @@ local Container
 local function FormatColor(color: Color3): string
 	return string.format(
 		'rgb(%i,%i,%i)',
-		math.floor(color.r * 255),
-		math.floor(color.g * 255),
-		math.floor(color.b * 255)
+		math.floor(color.R * 255),
+		math.floor(color.G * 255),
+		math.floor(color.B * 255)
 	)
 end
 
