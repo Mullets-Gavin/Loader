@@ -3,9 +3,11 @@
         "trailing-space",
         "incorrect-call-arguments",
         "set-for-state",
-        "unused-local"
+        "unused-local",
+        "redefined-local",
+        "missing-module-return"
     ],
     "Lua.diagnostics.ignore": [
-        "Connect"
+        "Connect",
     ]
 }
