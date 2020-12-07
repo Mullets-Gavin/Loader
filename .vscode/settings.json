@@ -5,9 +5,10 @@
         "set-for-state",
         "unused-local",
         "redefined-local",
-        "missing-module-return"
+        "missing-module-return",
+        "undefined-rbx-member"
     ],
     "Lua.diagnostics.ignore": [
-        "Connect",
+        "Connect"
     ]
 }
