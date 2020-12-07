@@ -77,28 +77,25 @@
 ]=]
 
 local Loader = {}
-setmetatable(Loader,Loader)
-
 Loader._ModuleCache = {}
 Loader._ServiceCache = {}
-
 Loader._Timeout = 0.5
 Loader._Initialized = false
 Loader._Filter = false
 Loader._Name = string.upper(script.Name)
 Loader._Error = '['.. Loader._Name ..']: '
+Loader._Containers = {'PlayerScripts','PlayerGui','Backpack'};
 Loader._Version = {
 	['MAJOR'] = 1;
-	['MINOR'] = 0;
+	['MINOR'] = 1;
 	['PATCH'] = 0;
 }
-
-Loader._Containers = {'PlayerScripts','PlayerGui','Backpack'};
 Loader._Services = {
 	['Client'] = {'ReplicatedFirst'};
 	['Server'] = {'ServerScriptService','ServerStorage'};
 	['Shared'] = {'ReplicatedStorage','Chat','Lighting'};
 }
+setmetatable(Loader,Loader)
 
 Loader.MaxRetryTime = 5
 
@@ -108,7 +105,6 @@ local Services = setmetatable({}, {__index = function(cache, service)
 end})
 
 local RunService = Services['RunService']
-
 local IsStudio = RunService:IsStudio() and 'Studio'
 local IsServer = RunService:IsServer() and 'Server'
 local IsClient = RunService:IsClient() and 'Client'
@@ -116,15 +112,16 @@ local IsClient = RunService:IsClient() and 'Client'
 --[=[
 	Validates a module script instance
 	
-	@param module Instance | string | number -- provided module type
+	@param module ModuleScript | string | number -- provided module type
 	@return boolean
 	@private
 ]=]
-local function IsValidModule(module)
+local function IsValidModule(module: ModuleScript | string | number): boolean
 	if typeof(module) == 'Instance' then
 		if not module:IsA('ModuleScript') then
 			return false
 		end
+		
 		return true
 	elseif typeof(module) == 'string' or typeof(module) == 'number' then
 		return true
@@ -137,10 +134,10 @@ end
 	Validates and returns a Roblox service
 	
 	@param service string -- String to check for a service
-	@return boolean & boolean
+	@return boolean
 	@private
 ]=]
-local function IsValidService(service)
+local function IsValidService(service: string): boolean
 	return pcall(function()
 		return game:FindService(service)
 	end)
@@ -151,10 +148,10 @@ end
 	
 	@param module Instance -- required module
 	@param requirer Instance -- the source script requiring this
-	@return RequiredModule?
+	@return table?
 	@private
 ]=]
-local function SafeRequire(module,requirer)
+local function SafeRequire(module: ModuleScript, requirer: Script): table?
 	local time = os.clock()
 	local event; event = Services['RunService'].Stepped:Connect(function()
 		if os.clock() >= time + Loader._Timeout then
@@ -192,10 +189,10 @@ end
 	
 	@param name string -- the name of the module
 	@param list table -- the list of instances to filter
-	@return Module?
+	@return ModuleScript?
 	@private
 ]=]
-local function DeepSearch(name,list)
+local function DeepSearch(name: string, list: table): ModuleScript?
 	for count,asset in ipairs(list) do
 		if not asset:IsA('ModuleScript') then continue end
 		if Loader._Filter and asset.Parent:IsA('ModuleScript') then continue end
@@ -211,12 +208,12 @@ end
 --[=[
 	The internal require function which searches the built-in library & all containers per-environment
 	
-	@param module string | number | Instance -- the module to require
-	@param requirer Instance -- the script that required this function to simulate require()
-	@return RequiredModule?
+	@param module string | number | ModuleScript -- the module to require
+	@param requirer Script -- the script that required this function to simulate require()
+	@return table?
 	@private
 ]=]
-function Loader.__require(module,requirer)
+function Loader.__require(module: ModuleScript, requirer: Script): table?
 	local clock = os.clock()
 	local name = string.lower(typeof(module) == 'Instance' and module.Name or module)
 	
@@ -277,7 +274,7 @@ end
 	@return RequiredModule?
 	@private
 ]=]
-function Loader.__server(module,requirer)
+function Loader.__server(module: ModuleScript, requirer: Script): table?
 	local name = string.lower(typeof(module) == 'Instance' and module.Name or module)
 	
 	if Loader._ModuleCache[name] then
@@ -305,7 +302,7 @@ end
 	@return RequiredModule?
 	@private
 ]=]
-function Loader.__client(module,requirer,__disabled)
+function Loader.__client(module: ModuleScript, requirer: Script, __disabled: boolean?): table?
 	local clock = os.clock()
 	local name = string.lower(typeof(module) == 'Instance' and module.Name or module)
 	
@@ -351,9 +348,7 @@ end
 	@param module string | number | Instance -- the module type to require
 	@return RequiredModule?
 ]=]
-function Loader.require(module)
-	assert(IsValidModule(module),Loader._Error.."Expected module or module name, got '".. typeof(module) .."'")
-	
+function Loader.require(module: ModuleScript | string | number): table?
 	local requirer = getfenv(2).script	
 	return Loader.__require(module,requirer)
 end
@@ -364,9 +359,8 @@ end
 	@param module string | number | Instance -- the module type to require
 	@return RequiredModule?
 ]=]
-function Loader.server(module)
+function Loader.server(module: ModuleScript | string | number): table?
 	assert(IsServer,Loader._Error.."Attempted to access .server from the client")
-	assert(IsValidModule(module),Loader._Error.."Expected module or module name, got '".. module .."'")
 	
 	local requirer = getfenv(2).script
 	return Loader.__server(module,require())
@@ -378,9 +372,8 @@ end
 	@param module string | number | Instance -- the module type to require
 	@return RequiredModule?
 ]=]
-function Loader.client(module,__disabled)
+function Loader.client(module: ModuleScript | string | number): table?
 	assert(IsClient,Loader._Error.."Attempted to access .client from the server")
-	assert(IsValidModule(module),Loader._Error.."Expected module or module name, got '".. module .."'")
 	
 	local requirer = getfenv(2).script
 	return Loader.__client(module,requirer)
@@ -392,9 +385,7 @@ end
 	@param service string -- Roblox service name
 	@return RobloxService?
 ]=]
-function Loader.import(service)
-	assert(IsValidService(service),Loader._Error.."'.import' expected Roblox Service, got '".. service .."'")
-	
+function Loader.import(service: string): Instance
 	if Loader._ServiceCache[service] then
 		return Loader._ServiceCache[service]
 	end
@@ -408,11 +399,9 @@ end
 	
 	@param name string -- the name & index of the enum
 	@param members table -- list of all the enum members
-	@return Enumerator
+	@return table
 ]=]
-function Loader.enum(name,members)
-	assert(typeof(name) == 'string',Loader._Error.."'.enum' missing parameter #1, expected string, got '"..typeof(name).."'")
-	assert(typeof(members) == 'table',Loader._Error.."'.enum' missing parameter #2, expected table, got '"..typeof(members).."'")
+function Loader.enum(name: string, members: table): table
 	assert(shared[name] == nil,Loader._Error.."Error claiming enum '"..name.."': already claimed")
 	
 	local proxy = {}
@@ -429,11 +418,9 @@ end
 	Replace the require function by Roblox
 	
 	@param module string | number | Instance -- the module type to require
-	@return RequiredModule?
+	@return table?
 ]=]
-function Loader:__call(module)
-	assert(IsValidModule(module),Loader._Error.."Expected module or module name, got '".. typeof(module) .."'")
-	
+function Loader:__call(module: ModuleScript | string | number): table?
 	local requirer = getfenv(2).script	
 	return Loader.__require(module,requirer)
 end
@@ -445,7 +432,7 @@ end
 	@param service string -- Roblox service name
 	@return RobloxService?
 ]=]
-function Loader:__index(service)
+function Loader:__index(service: string): Instance
 	if IsValidService(service) then
 		return Loader.import(service)
 	end
@@ -456,7 +443,7 @@ end
 	
 	@return FormattedVersion
 ]=]
-function Loader:__tostring()
+function Loader:__tostring(): string
 	return 'Loader '..Loader.__version()
 end
 
@@ -465,7 +452,7 @@ end
 	
 	@return FormattedVersion
 ]=]
-function Loader.__version()
+function Loader.__version(): string
 	return string.format('v%d.%d.%d',
 		Loader._Version.MAJOR,
 		Loader._Version.MINOR,
