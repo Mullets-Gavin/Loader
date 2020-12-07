@@ -15,6 +15,8 @@
 	Manager.garbage(time,instance)
 	Manager.delay(time,function,...)
 	Manager.retry(time,function,...)
+	Manager.rerun(tries,function,...)
+	Manager.debounce(key,function,...)
 	Manager.debug(label)
 	Manager.round(number[,decimal])
 	
@@ -62,6 +64,8 @@
 	├─ .delay(time,function,...)
 	├─ .garbage(time,instance)
 	├─ .retry(time,function,...)
+	├─ .rerun(tries,function,...)
+	├─ .debounce(key,function,...)
 	├─ .debug(label)
 	├─ .round(number[,decimal])
 	├─ .formatCounter(number,decimal)
@@ -121,8 +125,8 @@
 local Manager = {}
 Manager._Connections = {}
 Manager._Timers = {}
+Manager._Bouncers = {}
 Manager._LastIteration = nil
-
 Manager._Name = script.Name
 Manager._Error = '['.. string.upper(Manager._Name) ..']: '
 
@@ -142,7 +146,6 @@ Settings.Debug = false
 Settings.RunService = 'Stepped'
 
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
 local Workspace = Loader['Workspace']
 local CollectionService = Loader['CollectionService']
 local HttpService = Loader['HttpService']
@@ -153,10 +156,10 @@ local TweenService = Loader['TweenService']
 	Remove escape characters and return the translation
 	
 	@param s string -- the string to check for characters
-	@return EscapedString
+	@return string
 	@private
 ]=]
-local function Escape(s)
+local function Escape(s: string): string
 	return (string.gsub(s,"[%c\"\\]", function(c)
 		return '\127'.. Compression.EscapeMap[c]
 	end))
@@ -166,10 +169,10 @@ end
 	Unescape characters and return the translation
 	
 	@param s string -- the string to check for characters
-	@return UnescapedString
+	@return string
 	@private
 ]=]
-local function Unescape(s)
+local function Unescape(s: strng): string
 	return (string.gsub(s,'\127(.)', function(c)
 		return Compression.EscapeMap[c]
 	end))
@@ -179,10 +182,10 @@ end
 	Take a value and make it base 93
 	
 	@param value number -- the number required
-	@return Base93
+	@return string
 	@private
 ]=]
-local function ToBase93(n)
+local function ToBase93(n: number): string
 	local value = ''
 	
 	repeat
@@ -198,10 +201,10 @@ end
 	Take a value and make it base 10
 	
 	@param value number -- the number required
-	@return Base10
+	@return number
 	@private
 ]=]
-local function ToBase10(value)
+local function ToBase10(value: string): number
 	local n = 0
 	
 	for i = 1, #value do
@@ -217,9 +220,7 @@ end
 	@param properties table -- a dictionary with the settings & boolean
 	@return nil
 ]=]
-function Manager.set(properties)
-	assert(typeof(properties) == 'table',Manager._Error.."'set' expected dictionary, got '".. typeof(properties) .."'")
-	
+function Manager.set(properties: table): nil
 	Settings.Debug = properties['Debug'] or false
 	Settings.RunService = properties['RunService'] or 'Stepped'
 end
@@ -230,7 +231,7 @@ end
 	@param clock? number -- provide a time you want to wait for
 	@return delta
 ]=]
-function Manager.wait(clock)
+function Manager.wait(clock: number?): number
 	if clock then
 		local current = os.clock()
 		
@@ -247,12 +248,11 @@ end
 	
 	@param code function -- the function to wrap
 	@param ...? any -- optional parameters to pass in the function
+	@return nil
 ]=]
-function Manager.wrap(code,...)
-	assert(typeof(code) == 'function',Manager._Error.."'wrap' only accepts functions, got '".. typeof(code) .."'")
-	
+function Manager.wrap(code: (any) -> nil, ...): nil
 	local thread = coroutine.create(code)
-	local ran,response = coroutine.resume(thread, ...)
+	local ran,response = coroutine.resume(thread,...)
 	
 	if not ran then
 		local trace = debug.traceback(thread)
@@ -265,10 +265,9 @@ end
 	
 	@param code function -- the function to spawn
 	@param ...? any -- optional parameters to pass in the function
+	@return nil
 ]=]
-function Manager.spawn(code,...)
-	assert(typeof(code) == 'function',Manager._Error.."'spawn' only accepts functions, got '".. typeof(code) .."'")
-	
+function Manager.spawn(code: (any) -> nil, ...): nil
 	coroutine.resume(coroutine.create(code),...)
 end
 
@@ -278,12 +277,9 @@ end
 	@param fps number -- the FPS to run at, default 60
 	@param code function -- the function to callback
 	@param ...? any -- optional parameters to pass in the function
-	@return RBXScriptSignal
+	@return RBXScriptConnection
 ]=]
-function Manager.loop(fps,code,...)
-	assert(typeof(fps) == 'number')
-	assert(typeof(code) == 'function')
-	
+function Manager.loop(fps: number, code: (any) -> nil, ...): RBXScriptConnection
 	local data = {...}
 	local rate = 1/60
 	local logged = 0
@@ -305,10 +301,9 @@ end
 	@param clock number -- the time to wait
 	@param code function -- the function to callback
 	@param ...? any -- optional parameters to pass in the function
+	@return nil
 ]=]
-function Manager.delay(clock,code,...)
-	assert(typeof(clock) == 'number' and typeof(code) == 'function',Manager._Error.."'delay' missing parameters, got '".. typeof(clock) .."' and '".. typeof(code) .."'")
-	
+function Manager.delay(clock: number, code: (any) -> nil, ...): nil
 	local data = {...}
 	Manager.wrap(function()
 		local current = os.clock()
@@ -317,7 +312,7 @@ function Manager.delay(clock,code,...)
 			Manager.wait()
 		end
 		
-		return Manager.wrap(code,table.unpack(data))
+		code(table.unpack(data))
 	end)
 end
 
@@ -326,10 +321,9 @@ end
 	
 	@param clock number -- the time to wait
 	@param obj Instance -- the Instance to destroy
+	@return nil
 ]=]
-function Manager.garbage(clock,obj)
-	assert(typeof(clock) == 'number' and typeof(obj) == 'Instance',Manager._Error.."'garbage' missing parameters, got '".. typeof(clock) .."' and '".. typeof(Instance) .."'")
-	
+function Manager.garbage(clock: number, obj: Instance): nil
 	Manager.wrap(function()
 		local current = os.clock()
 		
@@ -347,10 +341,9 @@ end
 	@param clock number -- time to wait before timeout
 	@param code function -- the function to run for success
 	@param ...? any -- optional parameters to pass in the function
+	@return boolean & (any?)
 ]=]
-function Manager.retry(clock,code,...)
-	assert(typeof(clock) == 'number' and typeof(code) == 'function',Manager._Error.."'retry' missing parameters, got '".. typeof(clock) .."' and '".. typeof(code) .."'")
-	
+function Manager.retry(clock: number, code: (any) -> nil, ...): boolean & (any?)
 	local current = os.clock()
 	local success,response
 	
@@ -375,10 +368,9 @@ end
 	@param times number -- how many times to retry
 	@param code function -- the function to run for success
 	@param ...? any -- optional parameters to pass in the function
+	@return boolean & (any?)
 ]=]
-function Manager.rerun(times,code,...)
-	assert(typeof(times) == 'number' and typeof(code) == 'function',Manager._Error.."'rerun' missing parameters, got '".. typeof(times) .."' and '".. typeof(code) .."'")
-	
+function Manager.rerun(times: number, code: (any) -> nil, ...): boolean & (any?)
 	local current = 0
 	local success,response; repeat
 		current += 1
@@ -397,11 +389,29 @@ function Manager.rerun(times,code,...)
 end
 
 --[=[
+	Debounce a function & return a result if one is provided
+	
+	@param key string -- the key of the debounce
+	@param code function -- the function to wait for
+	@return boolean | (any?)
+]=]
+function Manager.debounce(key: any, code: (any) -> nil, ...): boolean | (any?)
+	if Manager._Bouncers[key] then return false end
+	Manager._Bouncers[key] = true
+	
+	local result = code(...)
+	
+	Manager._Bouncers[key] = false
+	return result
+end
+
+--[=[
 	A custom debug profiler function which uses time to benchmark
 	
 	@param label? string -- provide a label to use & track otherwise the requirer script name is used
+	@return nil
 ]=]
-function Manager.debug(label)
+function Manager.debug(label: string?): nil
 	local backtrace = getfenv(3).script
 	label = label or string.lower(backtrace.Name)
 	
@@ -423,7 +433,7 @@ end
 	@param decimal? number -- optional decimal to round to
 	@return RoundedNumber
 ]=]
-function Manager.round(input,decimal)
+function Manager.round(input: number, decimal: number?): number
 	if not decimal then
 		return math.round(input)
 	end
@@ -438,7 +448,7 @@ end
 	@param decimal number -- how many decimals it should display
 	@return FormattedNumber -- 4 -> 4.0
 ]=]
-function Manager.formatCounter(input,decimal)
+function Manager.formatCounter(input: number, decimal: number): string
 	local format = tostring(input)
 	local raw = '%.'..decimal..'f'
 	
@@ -451,11 +461,11 @@ end
 	@param input number -- the number to format
 	@return FormattedNumber -- 4000 -> 4,000
 ]=]
-function Manager.formatValue(input)
-	local format, remain = tonumber(input)
+function Manager.formatValue(input: number): string
+	local format,remain = tonumber(input)
 	
 	while remain ~= 0 do
-		format, remain = string.gsub(format,'^(-?%d+)(%d%d%d)','%1,%2')
+		format,remain = string.gsub(format,'^(-?%d+)(%d%d%d)','%1,%2')
 	end
 	
 	return format
@@ -467,7 +477,7 @@ end
 	@param input number -- the number to format
 	@return FormattedNumber -- 4000 -> 4k
 ]=]
-function Manager.formatMoney(input)
+function Manager.formatMoney(input: number): number | string
 	local negative = input < 0
 	input = math.abs(input)
 
@@ -500,7 +510,7 @@ end
 	@param input number -- the number to format
 	@return FormattedNumber -- 3000 -> 5:00
 ]=]
-function Manager.formatClock(input)
+function Manager.formatClock(input: number): string
 	local seconds = tonumber(input)
 	
 	if seconds <= 0 then
@@ -519,7 +529,7 @@ end
 	@param input number -- the number to format
 	@return FormattedNumber -- HH:MM:SS
 ]=]
-function Manager.format24H(input)
+function Manager.format24H(input: number): string
 	local seconds = tonumber(input)
 	
 	if seconds <= 0 then
@@ -539,7 +549,7 @@ end
 	@param input number -- the number to format
 	@return FormattedNumber -- DD:HH:MM:SS
 ]=]
-function Manager.formatDate(input)
+function Manager.formatDate(input: number): string
 	local days = math.floor(input / 86400)
 	local hours = math.floor(math.fmod(input, 86400) / 3600)
 	local minutes = math.floor(math.fmod(input,3600) / 60)
@@ -559,11 +569,7 @@ end
 	@param direction EnumItem -- an Enum.EasingDirection
 	@return TweenObject
 ]=]
-function Manager.Tween(object,properties,goals,duration,style,direction)
-	assert(object ~= nil,Manager._Error.."'Tween' expected an object, got 'nil'")
-	assert(typeof(properties) == 'table',"[MANAGER]: 'Tween' expected a table, got '".. typeof(properties) .."'")
-	assert(goals ~= nil,Manager._Error.."'Tween' expected goals, got 'nil'")
-	
+function Manager.Tween(object: Instance, properties: table, goals: any | table, duration: number?, style: EnumItem?, direction: EnumItem?): TweenObject
 	duration = typeof(duration) == 'number' and duration or 0.5
 	style = typeof(style) == 'EnumItem' and style or Enum.EasingStyle.Linear
 	direction = typeof(direction) == 'EnumItem' and direction or Enum.EasingDirection.InOut
@@ -587,9 +593,7 @@ end
 	@param master table -- the table to copy
 	@return table
 ]=]
-function Manager.Copy(master)
-	assert(typeof(master) == 'table')
-	
+function Manager.Copy(master: table): table
 	local clone = {}
 	
 	for key,value in pairs(master) do
@@ -609,7 +613,7 @@ end
 	@param master table -- the table to copy
 	@return table
 ]=]
-function Manager.DeepCopy(master)
+function Manager.DeepCopy(master: any): any?
 	local clone
 	
 	if typeof(master) == 'table' then
@@ -631,9 +635,7 @@ end
 	@param master table -- the table to shuffle
 	@return table
 ]=]
-function Manager.Shuffle(master)
-	assert(typeof(master) == 'table')
-	
+function Manager.Shuffle(master: table): table
 	local rng = Random.new()
 	
 	for index = #master, 2, -1 do
@@ -650,9 +652,7 @@ end
 	@param data any -- the data to convert to a string
 	@return EncodedString
 ]=]
-function Manager.Encode(data)
-	assert(data ~= nil)
-	
+function Manager.Encode(data: any): any? | boolean
 	local success,response = Manager.rerun(5,function()
 		return HttpService:JSONEncode(data)
 	end)
@@ -668,9 +668,7 @@ end
 	@param text string -- the encoded string to decode
 	@return DecodedData
 ]=]
-function Manager.Decode(text)
-	assert(typeof(text) == 'string')
-	
+function Manager.Decode(text: string): any? | boolean
 	local success,response = Manager.rerun(5,function()
 		return HttpService:JSONDecode(text)
 	end)
@@ -686,7 +684,7 @@ end
 	@param text any -- data to compress
 	@return CompressedString
 ]=]
-function Manager.Compress(text)
+function Manager.Compress(text: any): string
 	text = Manager.Encode(text)
 	
 	local dictionary = Manager.Copy(Compression.Dictionary)
@@ -727,7 +725,7 @@ end
 	@param text string -- the compressed string to decode
 	@return DecompressedData
 ]=]
-function Manager.Decompress(text)
+function Manager.Decompress(text: string): any?
 	local dictionary = Manager.Copy(Compression.Dictionary)
 	local sequence, spans, content = {}, string.match(text,'(.-)|(.*)')
 	local groups, start = {}, 1
@@ -767,7 +765,7 @@ end
 	@param tag string -- the tag to yield for
 	@return table
 ]=]
-function Manager:WaitForTag(tag)
+function Manager:WaitForTag(tag: string): table
 	while not CollectionService:GetTagged(tag)[1] do
 		Manager.wait()
 	end
@@ -781,7 +779,7 @@ end
 	@param player Instance -- the player instance
 	@return Character
 ]=]
-function Manager:WaitForCharacter(player)
+function Manager:WaitForCharacter(player: Player): Instance
 	while not player.Character do
 		Manager.wait()
 	end
@@ -799,11 +797,10 @@ end
 	@param code function -- the function to connect
 	@return ScriptSignal
 ]=]
-function Manager:Connect(code)
-	assert(code ~= nil,Manager._Error.."'Connect' missing parameters, got function '".. typeof(code) .."'")
+function Manager:Connect(code: RBXScriptConnection | table | (any) -> nil): typeof(Manager:Connect())
 	local control = {}
 	
-	function control:Disconnect()
+	function control:Disconnect(): typeof(control)
 		control = nil
 		
 		if typeof(code) == 'RBXScriptConnection' then
@@ -821,7 +818,7 @@ function Manager:Connect(code)
 		return setmetatable(control,nil)
 	end
 	
-	function control:Fire(...)
+	function control:Fire(...): any?
 		if typeof(code) == 'function' then
 			return Manager.wrap(code,...)
 		else
@@ -837,16 +834,16 @@ end
 	
 	@param key string -- name of the connection key
 	@param code function -- the function to connect
-	@return ScriptSignal
+	@return RBXScriptConnection
 ]=]
-function Manager:ConnectKey(key,code)
-	assert(key ~= nil and code ~= nil,Manager._Error.."'ConnectKey' missing parameters, got key '".. typeof(key) .."' and got function '".. typeof(code) .."'")
+function Manager:ConnectKey(key: any, code: RBXScriptConnection | table | (any) -> nil): typeof(Manager:ConnectKey())
 	if not Manager._Connections[key] then
 		Manager._Connections[key] = {}
 	end
+	
 	local control = {}
 	
-	function control:Disconnect()
+	function control:Disconnect(): nil
 		if not Manager._Connections[key] then return end
 		Manager._Connections[key][code] = nil
 		
@@ -866,7 +863,7 @@ function Manager:ConnectKey(key,code)
 		return setmetatable(control,nil)
 	end
 	
-	function control:Fire(...)
+	function control:Fire(...): any?
 		if typeof(code) == 'function' then
 			return Manager.wrap(code,...)
 		else
@@ -883,32 +880,34 @@ end
 	
 	@param key string -- name of the connection key
 	@param ...? any -- optional parameters to pass
+	@return nil
 ]=]
-function Manager:FireKey(key,...)
-	assert(key ~= nil,Manager._Error.."':FireKey' missing parameters, got key '".. typeof(key) .."'")
+function Manager:FireKey(key: string, ...): nil
+	if not Manager._Connections[key] then
+		return
+	end
 	
-	if Manager._Connections[key] then
-		for code,control in pairs(Manager._Connections[key]) do
-			control:Fire(...)
-		end
+	for code,control in pairs(Manager._Connections[key]) do
+		control:Fire(...)
 	end
 end
 
 --[=[
 	Disconnect all connections on a key
 	
-	@param key string -- name of the connection key
+	@param key any -- name of the connection key
 ]=]
-function Manager:DisconnectKey(key)
-	assert(key ~= nil,Manager._Error.."':DisconnectKey' missing parameters, got key '".. typeof(key) .."'")
-	
-	if Manager._Connections[key] then
-		for code,control in pairs(Manager._Connections[key]) do
-			control:Disconnect()
-			Manager._Connections[key][code] = nil
-		end
-		Manager._Connections[key] = nil
+function Manager:DisconnectKey(key: any): nil
+	if not Manager._Connections[key] then
+		return
 	end
+	
+	for code,control in pairs(Manager._Connections[key]) do
+		control:Disconnect()
+		Manager._Connections[key][code] = nil
+	end
+	
+	Manager._Connections[key] = nil
 end
 
 --[=[
@@ -917,9 +916,8 @@ end
 	@param targetFPS number -- the FPS to run at, default 60
 	@return TaskScheduler
 ]=]
-function Manager:Task(targetFPS)
+function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 	targetFPS = targetFPS or 60
-	assert(typeof(targetFPS) == 'number',Manager._Error.."':Task' only accepts numbers for frames per second, got '".. typeof(targetFPS) .."'")
 	
 	local control = {}
 	control.CodeQueue = {}
@@ -932,15 +930,21 @@ function Manager:Task(targetFPS)
 	local start = os.clock()
 	Manager.wait()
 	
-	local function Update()
+	local function Frames(): number
+		return (((os.clock() - start) >= 1 and #control.UpdateTable) or (#control.UpdateTable / (os.clock() - start)))
+	end
+	
+	local function Update(): nil
 		Manager._LastIteration = os.clock()
+		
 		for index = #control.UpdateTable,1,-1 do
 			control.UpdateTable[index + 1] = ((control.UpdateTable[index] >= (Manager._LastIteration - 1)) and control.UpdateTable[index] or nil)
 		end
+		
 		control.UpdateTable[1] = Manager._LastIteration
 	end
 	
-	local function Loop()
+	local function Loop(): nil
 		control.UpdateTableEvent = RunService[Settings.RunService]:Connect(Update)
 		
 		while (true) do
@@ -981,39 +985,36 @@ function Manager:Task(targetFPS)
 		control.UpdateTableEvent = nil
 	end
 	
-	function control:Enabled()
+	function control:Enabled(): boolean
 		return control.Enable
 	end
 	
-	function control:Pause()
+	function control:Pause(): number
 		control.Paused = true
 		control.Sleeping = true
 		
-		local fps = (((os.clock() - start) >= 1 and #control.UpdateTable) or (#control.UpdateTable / (os.clock() - start)))
-		return fps
+		return Frames()
 	end
 	
-	function control:Resume()
+	function control:Resume(): number
 		if control.Paused then
 			control.Paused = false
 			control.Sleeping = false
 			Loop()
 		end
 		
-		local fps = (((os.clock() - start) >= 1 and #control.UpdateTable) or (#control.UpdateTable / (os.clock() - start)))
-		return fps
+		return Frames()
 	end
 	
-	function control:Wait()
+	function control:Wait(): number
 		while not control.Sleeping do
 			Manager.wait()
 		end
 		
-		local fps = (((os.clock() - start) >= 1 and #control.UpdateTable) or (#control.UpdateTable / (os.clock() - start)))
-		return fps
+		return Frames()
 	end
 	
-	function control:Disconnect()
+	function control:Disconnect(): typeof(control)
 		control.Enable = false
 		control:Pause()
 		control.CodeQueue = nil
@@ -1028,7 +1029,7 @@ function Manager:Task(targetFPS)
 		return setmetatable(control,nil)
 	end
 	
-	function control:Queue(code)
+	function control:Queue(code: () -> nil): nil
 		if not control.CodeQueue then return end
 		control.CodeQueue[#control.CodeQueue + 1] = code
 		
