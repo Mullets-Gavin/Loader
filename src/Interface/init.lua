@@ -127,11 +127,9 @@ local Container
 	A local function to convert a color3 to RichText format
 	
 	@param color Color3 -- the color3 to convert
-	@return RichText rgb(color.r,color.g,color.b)
+	@return string -- rgb(color.r,color.g,color.b)
 ]=]
-local function FormatColor(color)
-	assert(typeof(color) == 'Color3',"Must provide a valid Color3")
-	
+local function FormatColor(color: Color3): string
 	return string.format(
 		'rgb(%i,%i,%i)',
 		math.floor(color.r * 255),
@@ -147,14 +145,10 @@ end
 	@param scale number -- the scale of which to size the element
 	@param min number -- the minimum size of the element
 	@param max number -- the maximum size of the element
+	@return nil
 	@private
 ]=]
-local function ResizeContainer(element,scale,min,max)
-	assert(typeof(element) == 'Instance' and element:IsA('GuiObject'),Interface._Error.."'ResizeContainer' expected a GuiObject for element, got '"..typeof(element).."'")
-	assert(typeof(scale) == 'number',Interface._Error.."'ResizeContainer' expected a number for scale, got '"..typeof(scale).."'")
-	assert(typeof(min) == 'number',Interface._Error.."'ResizeContainer' expected a number for min, got '"..typeof(min).."'")
-	assert(typeof(max) == 'number',Interface._Error.."'ResizeContainer' expected a number for max, got '"..typeof(max).."'")
-	
+local function ResizeContainer(element: GuiObject, scale: number, min: number, max: number): nil
 	local viewportSize = Camera.ViewportSize; do
 		if viewportSize.Y <= 700 then
 			Interface._AssignSizesOveride = true
@@ -197,15 +191,16 @@ end
 	
 	@param tag string -- the tag used
 	@param element GuiObject -- the object used for the component
+	@return nil
 ]=]
-local function BindComponent(tag,element)
+local function BindComponent(tag: string, element: GuiObject): nil
 	if Interface._ComponentCache[tag][element] then return end
 	
 	local Player = Players.LocalPlayer
 	local PlayerGui = Player.PlayerGui
 	
-	if not element:IsDescendantOf(PlayerGui) then
-		return
+	while not element:IsDescendantOf(PlayerGui) do
+		element.AncestryChanged:Wait()
 	end
 	
 	local code = Interface._ComponentCode[tag]
@@ -220,7 +215,7 @@ end
 	
 	@return boolean
 ]=]
-function Interface.IsComputer()
+function Interface.IsComputer(): boolean
 	local check = Interface.IsKeyboard() and Interface.IsMouse() and true or false
 	return check
 end
@@ -230,7 +225,7 @@ end
 	
 	@return boolean
 ]=]
-function Interface.IsMobile()
+function Interface.IsMobile(): boolean
 	local check = Interface.IsTouch() and not Interface.IsKeyboard() and true or false
 	return check
 end
@@ -240,7 +235,7 @@ end
 	
 	@return boolean
 ]=]
-function Interface.IsConsole()
+function Interface.IsConsole(): boolean
 	return GuiService:IsTenFootInterface()
 end
 
@@ -249,7 +244,7 @@ end
 	
 	@return boolean
 ]=]
-function Interface.IsKeyboard()
+function Interface.IsKeyboard(): boolean
 	return UserInputService.KeyboardEnabled
 end
 
@@ -258,7 +253,7 @@ end
 	
 	@return boolean
 ]=]
-function Interface.IsMouse()
+function Interface.IsMouse(): boolean
 	return UserInputService.MouseEnabled
 end
 
@@ -267,7 +262,7 @@ end
 	
 	@return boolean
 ]=]
-function Interface.IsTouch()
+function Interface.IsTouch(): boolean
 	return UserInputService.TouchEnabled
 end
 
@@ -276,7 +271,7 @@ end
 	
 	@return boolean
 ]=]
-function Interface.IsGamepad()
+function Interface.IsGamepad(): boolean
 	return UserInputService.GamepadEnabled
 end
 
@@ -285,18 +280,17 @@ end
 	
 	@return boolean
 ]=]
-function Interface.IsVR()
+function Interface.IsVR(): boolean
 	return UserInputService.VREnabled
 end
 
 --[=[
 	Replicate GuiObject containers, skipping Roblox character dependency
 	
-	@return Interface
+	@return nil
 ]=]
-function Interface.Replicate()
+function Interface.Replicate(): nil -- TODO
 	
-	return Interface
 end
 
 --[=[
@@ -306,20 +300,16 @@ end
 	@param scale number -- the scale of which to size the element
 	@param min number -- the minimum size of the element
 	@param max number -- the maximum size of the element
+	@return nil
 ]=]
-function Interface.AssignSizes(element,scale,min,max)
-	assert(typeof(element) == 'Instance' and element:IsA('GuiObject'),Interface._Error.."'AssignSizes' expected a GuiObject for element, got '"..typeof(element).."'")
-	assert(typeof(scale) == 'number',Interface._Error.."'AssignSizes' expected a number for scale, got '"..typeof(scale).."'")
-	assert(typeof(min) == 'number',Interface._Error.."'AssignSizes' expected a number for min, got '"..typeof(min).."'")
-	assert(typeof(max) == 'number',Interface._Error.."'AssignSizes' expected a number for max, got '"..typeof(max).."'")
-	
+function Interface.AssignSizes(element: GuiObject, scale: number, min: number, max: number): typeof(Interface.AssignSizes())
 	local control = {}	
 	control._element = element;
 	control._scale = scale;
 	control._min = min;
 	control._max = max;
 	
-	function control:Update(_scale,_min,_max)
+	function control:Update(_scale: number, _min: number, _max: number): typeof(control)
 		control._scale = _scale or control._scale
 		control._min = _min or control._min
 		control._max = _max or control._max
@@ -329,9 +319,7 @@ function Interface.AssignSizes(element,scale,min,max)
 		return control
 	end
 	
-	function control:Changed(code)
-		assert(typeof(code) == 'function',Interface._Error.."':Changed' expected a function, got '"..typeof(code).."'")
-		
+	function control:Changed(code: () -> nil): typeof(control)
 		local file = Interface._AssignSizesCache[element]
 		
 		if file ~= nil then
@@ -342,7 +330,7 @@ function Interface.AssignSizes(element,scale,min,max)
 		return control
 	end
 	
-	function control:Disconnect()
+	function control:Disconnect(): typeof(control)
 		local file = Interface._AssignSizesCache[element]
 		
 		if file ~= nil then
@@ -391,14 +379,12 @@ end
 	
 	@return RichTextObject
 ]=]
-function Interface.Richtext()
+function Interface.Richtext(): typeof(Interface.Richtext())
 	local control = {}
 	control._raw = {}
 	control._append = {}
 	
-	function control:Append(value)
-		assert(typeof(value) == 'string' or 'table',"':Append' Text or other RichText must be defined to correctly format Rich Text")
-		
+	function control:Append(value: string | table): typeof(control)
 		if typeof(value) == 'string' then
 			table.insert(control._raw,value)
 			table.insert(control._append,value)
@@ -412,9 +398,7 @@ function Interface.Richtext()
 		return control
 	end
 
-	function control:Bold(state)
-		assert(typeof(state) == 'boolean',"':Bold' A boolean must be defined to correctly format Rich Text")
-		
+	function control:Bold(state: boolean): typeof(control)
 		if state then
 			table.insert(control._raw,'<b>')
 		else
@@ -424,9 +408,7 @@ function Interface.Richtext()
 		return control
 	end
 
-	function control:Italic(state)
-		assert(typeof(state) == 'boolean',"':Italic' A boolean must be defined to correctly format Rich Text")
-		
+	function control:Italic(state: boolean): typeof(control)
 		if state then
 			table.insert(control._raw,'<i>')
 		else
@@ -436,9 +418,7 @@ function Interface.Richtext()
 		return control
 	end
 
-	function control:Underline(state)
-		assert(typeof(state) == 'boolean',"':Underline' A boolean must be defined to correctly format Rich Text")
-		
+	function control:Underline(state: boolean): typeof(control)
 		if state then
 			table.insert(control._raw,'<u>')
 		else
@@ -448,9 +428,7 @@ function Interface.Richtext()
 		return control
 	end
 
-	function control:Strike(state)
-		assert(typeof(state) == 'boolean',"':Strike' A boolean must be defined to correctly format Rich Text")
-		
+	function control:Strike(state: boolean): typeof(control)
 		if state then
 			table.insert(control._raw,'<s>')
 		else
@@ -460,9 +438,7 @@ function Interface.Richtext()
 		return control
 	end
 
-	function control:Comment(state)
-		assert(typeof(state) == 'boolean',"':Comment' A boolean must be defined to correctly format Rich Text")
-		
+	function control:Comment(state: boolean): typeof(control)
 		if state then
 			table.insert(control._raw,'<!--')
 		else
@@ -472,9 +448,7 @@ function Interface.Richtext()
 		return self
 	end
 
-	function control:Font(name)
-		assert(typeof(name) == 'string' or 'EnumItem' or 'boolean',"':Font' A name or EnumItem or false must be defined to correctly format Rich Text")
-		
+	function control:Font(name: string | EnumItem | boolean): typeof(control)
 		if typeof(name) == 'string' then
 			table.insert(control._raw,'<font face="'.. name ..'">')
 		elseif typeof(name) == 'EnumItem' then
@@ -486,9 +460,7 @@ function Interface.Richtext()
 		return control
 	end
 
-	function control:Size(number)
-		assert(typeof(number) == 'number' or 'boolean',"':Size' A number or false must be defined to correctly format Rich Text")
-		
+	function control:Size(number: number | boolean): typeof(control)
 		if typeof(number) == 'number' then
 			table.insert(control._raw,'<font size="'.. number ..'">')
 		elseif not number then
@@ -498,9 +470,7 @@ function Interface.Richtext()
 		return control
 	end
 
-	function control:Color(color)
-		assert(typeof(color) == 'Color3' or 'boolean',"':Color' A Color3 or false must be defined to correctly format Rich Text")
-		
+	function control:Color(color: Color3 | boolean): typeof(control)
 		if typeof(color) == 'Color3' then
 			table.insert(control._raw,'<font color="'.. FormatColor(color) ..'">')
 		elseif not color then
@@ -510,11 +480,11 @@ function Interface.Richtext()
 		return control
 	end
 
-	function control:GetRaw()
+	function control:GetRaw(): typeof(control)
 		return table.concat(control._append)
 	end
 
-	function control:GetText()
+	function control:GetText(): typeof(control)
 		return table.concat(control._raw)
 	end
 	
@@ -527,19 +497,16 @@ end
 	@param name string -- the internal name of the keybind, be unique
 	@return KeybindObject
 ]=]
-function Interface.Keybind(name)
-	assert(typeof(name) == 'string')
-	
+function Interface.Keybind(name: string): typeof(Interface.Keybind())
 	Input:CreateButton(name,Container)
+	
 	if not Input._InputCache[name] then
 		Input._InputCache[name] = {}
 	end
 	
 	local control = {}
 	
-	function control._Verify()
-		assert(Input._InputCache[name] ~= nil)
-		
+	function control._Verify(): nil
 		if Input._InputCache[name]['Keys'] and Input._InputCache[name]['Function'] then
 			Input._InputCache[name]['Verify'] = true
 		else
@@ -547,15 +514,13 @@ function Interface.Keybind(name)
 		end
 	end
 	
-	function control:Enabled(state)
-		assert(typeof(state) == 'boolean')
-		
+	function control:Enabled(state: boolean): nil
 		Input._InputCache[name]['Enabled'] = state
 		Input:EnableButton(name,state)
 		control._Verify()
 	end
 	
-	function control:Keybinds(...)
+	function control:Keybinds(...): nil
 		local capture = {}
 		
 		for index,key in pairs({...}) do
@@ -567,17 +532,13 @@ function Interface.Keybind(name)
 		control._Verify()
 	end
 	
-	function control:Mobile(state,image)
-		assert(typeof(state) == 'boolean')
-		
+	function control:Mobile(state: boolean, image: string?): nil
 		Input._InputCache[name]['Mobile'] = state
 		local button = Input:GetButton(name)
 		
 		if button then
 			button.Visible = state
 			if image then
-				assert(typeof(image) == 'string')
-				
 				button.Icon.Image = image
 			end
 		end
@@ -585,9 +546,7 @@ function Interface.Keybind(name)
 		control._Verify()
 	end
 	
-	function control:Hook(code)
-		assert(typeof(code) == 'function')
-		
+	function control:Hook(code: () -> nil): nil
 		if Input._InputCache[name]['Function'] then
 			Input._InputCache[name]['Function'] = nil
 		end
@@ -596,7 +555,7 @@ function Interface.Keybind(name)
 		control._Verify()
 	end
 	
-	function control:Destroy()
+	function control:Destroy(): typeof(control:Destroy())
 		local button = Input:GetButton(name)
 		
 		if button then
@@ -618,10 +577,9 @@ end
 	Disconnect a keybind
 	
 	@param name string -- the name of the keybind to find
+	@return nil
 ]=]
-function Interface:Disconnect(name)
-	assert(typeof(name) == 'string')
-	
+function Interface:Disconnect(name: string): nil
 	if Input._InputCallbacks[name] then
 		Input._InputCallbacks[name] = nil
 	end
@@ -634,9 +592,7 @@ end
 	@param keys table -- a list of the enum keycodes to switch to
 	@return boolean
 ]=]
-function Interface:Update(name,keys)
-	assert(typeof(name) == 'string')
-	assert(typeof(keys) == 'table')
+function Interface:Update(name: string, keys: table): boolean
 	for index,key in pairs(keys) do
 		assert(typeof(key) == 'EnumItem')
 	end
@@ -655,17 +611,11 @@ end
 	@param name string -- the name of the keybind
 	@param keys table -- a list of the enum keycodes
 	@param code function -- a callback function when a key presses
+	@return nil
 ]=]
-function Interface:Began(name,keys,code)
-	assert(typeof(name) == 'string')
-	assert(typeof(keys) == 'table')
-	assert(typeof(code) == 'function')
+function Interface:Began(name: string, keys: table, code: (any) -> nil): nil
 	for index,key in pairs(keys) do
 		assert(typeof(key) == 'EnumItem')
-	end
-	
-	if Input._InputCallbacks[name] then
-		Input._InputCallbacks[name] = nil
 	end
 	
 	Interface:Disconnect(name)
@@ -682,11 +632,9 @@ end
 	@param name string -- the name of the keybind
 	@param keys table -- a list of the enum keycodes
 	@param code function -- a callback function when a key depresses
+	@return nil
 ]=]
-function Interface:Ended(name,keys,code)
-	assert(typeof(name) == 'string')
-	assert(typeof(keys) == 'table')
-	assert(typeof(code) == 'function')
+function Interface:Ended(name: string, keys: table, code: (any) -> nil): nil
 	for index,key in pairs(keys) do
 		assert(typeof(key) == 'EnumItem')
 	end
@@ -704,8 +652,9 @@ end
 	
 	@param name string -- the name of the keybind
 	@param code function -- a callback function when there is a tap
+	@return nil
 ]=]
-function Interface:Tapped(name,code)
+function Interface:Tapped(name: string, code: (any) -> nil): nil
 	assert(typeof(name) == 'string')
 	assert(typeof(code) == 'function')
 	
@@ -721,8 +670,9 @@ end
 	@param name string -- an animation name & function in Animator
 	@param element GuiObject -- a GuiObject to animate
 	@param async boolean -- if the animation should yield or not
+	@return nil
 ]=]
-function Interface:Play(name,element,async)
+function Interface:Play(name: string, element: GuiObject, async: boolean?): nil
 	assert(Animator[name] ~= nil)
 	
 	local code = Animator[name]
@@ -737,10 +687,9 @@ end
 	Return a component on an element
 	
 	@param element GuiObject -- the element to get a component from
+	@return Component?
 ]=]
-function Interface:Get(element)
-	assert(typeof(element) == 'Instance' and element:IsA('GuiObject'),"element is not a gui object")
-	
+function Interface:Get(element: GuiObject): typeof(Interface:Create())?
 	for tag,data in pairs(Interface._ComponentCache) do
 		for index,obj in pairs(data) do
 			if index ~= element then continue end
@@ -753,11 +702,23 @@ end
 	Returns all the components on a tag in PlayerGui
 	
 	@param tag string -- the tag to get from
+	@return table
 ]=]
-function Interface:GetAll(tag)
-	assert(typeof(tag) == 'string',"tag is not a string")
-	
+function Interface:GetAll(tag: string): table
 	return Interface._ComponentCache[tag]
+end
+
+--[=[
+	Get the first component on a tag in the PlayerGui
+	
+	@param tag string
+	@return Component?
+]=]
+function Interface:GetComponent(tag: string): typeof(Interface:Create())?
+	local tags = Interface:GetAll(tag)
+	for index,component in pairs(tags) do
+		return component
+	end
 end
 
 --[=[
@@ -765,9 +726,10 @@ end
 	
 	@param name string -- the name of the binding
 	@param ...? any -- optional parameters to pass
+	@return nil
 ]=]
-function Interface:Fire(name,...)
-	assert(Components._Bindings[name],"no binding is connected to fire")
+function Interface:Fire(name: string, ...): nil
+	assert(Components._Bindings[name],"Attempted to fire non-existant binding on '"..name.."'")
 	
 	local code = Components._Bindings[name]
 	Manager.wrap(code,...)
@@ -778,32 +740,36 @@ end
 	
 	@param tag string -- the CollectionService tag to track
 	@param code function -- the function to run when you get a component
+	@return nil
 ]=]
-function Interface:Create(tag,code)
+function Interface:Create(tag: string, code: (any) -> nil): nil
 	assert(Interface._ComponentCache[tag] == nil,"tag is claimed")
-	assert(typeof(tag) == 'string',"tag is not a string")
-	assert(typeof(code) == 'function',"function passed aint a function bud")
 	
 	Interface._ComponentCache[tag] = {}
 	Interface._ComponentCode[tag] = code
 	
 	CollectionService:GetInstanceAddedSignal(tag):Connect(function(component)
-		BindComponent(tag,component)
+		Manager.wrap(BindComponent,tag,component)
 	end)
 	
 	local tagged = CollectionService:GetTagged(tag)
 	for index,component in pairs(tagged) do
-		BindComponent(tag,component)
+		Manager.wrap(BindComponent,tag,component)
 	end
 end
 
 --[=[
-	Redirects to Interface:Create(), streamlines shortcutting to Interface()
+	Redirects to either Interface:Create() or Interface:GetComponent(), streamlines shortcutting to Interface()
 	
 	@param tag string -- the CollectionService tag to track
-	@param code function -- the function to run when you get a component
+	@param code? function -- the function to run when you get a component
+	@return typeof(Interface:Create())?
 ]=]
-function Interface:__call(tag,code)
+function Interface:__call(tag: string, code: ((any) -> nil)?): typeof(Interface:Create())?
+	if not code and Interface._ComponentCache[tag] then
+		return Interface:GetComponent(tag)
+	end
+	
 	Interface:Create(tag,code)
 end
 

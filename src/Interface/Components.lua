@@ -18,7 +18,7 @@ local RunService = Loader['RunService']
 	@param element GuiObject -- the main component
 	@return Class
 ]=]
-function Components.new(element: GuiObject): Class
+function Components.new(element: GuiObject): typeof(Components.new())
 	local config = element:FindFirstChildWhichIsA('Configuration') do
 		if not config then
 			config = Instance.new('Configuration')
@@ -131,9 +131,9 @@ end
 	
 	@param name string -- the name of the attribute
 	@param code function -- the function to connect
-	@return RBXScriptSignal
+	@return RBXScriptConnection
 ]=]
-function Components:Attribute(name: string, code: (any, any) -> nil): RBXScriptSignal
+function Components:Attribute(name: string, code: (any, any) -> nil): RBXScriptConnection
 	local last = self:Get(name)
 	
 	assert(last ~= nil,Components._Error.."Attempted to bind to nil attribute '"..name.."'")
@@ -172,7 +172,7 @@ end
 	@param code function -- the function to connect
 	@return RBXScriptSignal
 ]=]
-function Components:Connect(object: GuiObject, event: string, code: (any) -> nil): RBXScriptSignal
+function Components:Connect(object: GuiObject, event: string, code: (any) -> nil): RBXScriptConnection
 	local signal = object[event]:Connect(function(...)
 		code(...)
 	end)
@@ -187,9 +187,9 @@ end
 	
 	@param name string -- the name of the lifecycle
 	@param code function -- the function to run
-	@return RBXScriptSignal
+	@return RBXScriptConnection
 ]=]
-function Components:Lifecycle(name: string, code: (number) -> nil): RBXScriptSignal
+function Components:Lifecycle(name: string, code: (number) -> nil): RBXScriptConnection
 	local signal = RunService.RenderStepped:Connect(function(delta)
 		if self.element.Visible then
 			code(delta)

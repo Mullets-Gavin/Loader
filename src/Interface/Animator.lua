@@ -1,6 +1,6 @@
 --[=[
 	@Author: Gavin "Mullets" Rosenthal
-	@Desc: An Animation library for GuiObjects [WIP]
+	@Desc: An Animation library for GuiObjects
 ]=]
 
 --[=[
@@ -55,18 +55,18 @@ local Scale = AttributeFlag and script:GetAttribute('AnimationScale') or 0.1
 --------------------
 -- Common Effects --
 --------------------
-Animator['FadeOut'] = function(element)
+Animator['FadeOut'] = function(element: GuiObject): nil
 	
 end
 
-Animator['FadeAll'] = function(container)
+Animator['FadeAll'] = function(element: GuiObject): nil
 	
 end
 
 -----------------------
 -- MouseButton1Click --
 -----------------------
-Animator['BounceUp'] = function(element)
+Animator['BounceUp'] = function(element: GuiObject): nil
 	local original = Animator.Original[element]
 	
 	local increment = 1 - Scale
@@ -80,11 +80,11 @@ Animator['BounceUp'] = function(element)
 	
 	local tween = Manager.Tween(element,{'Position'},{goal},Length)
 	tween.Completed:Wait()
-	tween = Manager.Tween(element,{'Position'},{original.Position},Length)
+	local tween = Manager.Tween(element,{'Position'},{original.Position},Length)
 	tween.Completed:Wait()
 end
 
-Animator['BounceDown'] = function(element)
+Animator['BounceDown'] = function(element: GuiObject): nil
 	local original = Animator.Original[element]
 	
 	local increment = Scale + 1
@@ -98,14 +98,14 @@ Animator['BounceDown'] = function(element)
 	
 	local tween = Manager.Tween(element,{'Position'},{goal},Length)
 	tween.Completed:Wait()
-	tween = Manager.Tween(element,{'Position'},{original.Position},Length)
+	local tween = Manager.Tween(element,{'Position'},{original.Position},Length)
 	tween.Completed:Wait()
 end
 
 ----------------
 -- MouseEnter --
 ----------------
-Animator['Grow'] = function(element)
+Animator['Grow'] = function(element: GuiObject): nil
 	local original = Animator.Original[element]
 	
 	local increment = Scale + 1
@@ -124,7 +124,7 @@ end
 ----------------
 -- MouseLeave --
 ----------------
-Animator['Reset'] = function(element)
+Animator['Reset'] = function(element: GuiObject): nil
 	local original = Animator.Original[element]
 	
 	local prop,value = {},{}
@@ -140,7 +140,7 @@ end
 -----------------
 -- Connections --
 -----------------
-local function ConnectAnimation(element,event,tag)
+local function ConnectAnimation(element: GuiObject, event: string, tag: string): nil
 	local identifier = event..'_'..tag..'_'..tostring(element)
 	if Animator.Cache[element] and Animator.Cache[element][identifier] then return end
 	
@@ -178,8 +178,8 @@ local function ConnectAnimation(element,event,tag)
 	Animator.Cache[element][identifier] = signal
 end
 
-local function ConnectTag(event,tag)
-	CollectionService:GetInstanceAddedSignal(tag):Connect(function(element)
+local function ConnectTag(event: string, tag: string): nil
+	CollectionService:GetInstanceAddedSignal(tag):Connect(function(element: GuiObject)
 		ConnectAnimation(element,event,tag)
 	end)
 	

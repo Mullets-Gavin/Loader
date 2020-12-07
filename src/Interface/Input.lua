@@ -10,9 +10,7 @@ Input._InputTouchCallbacks = {}
 Input._Buttons = {}
 
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
 local Manager = Loader('Manager')
-
 local UserInputService = Loader['UserInputService']
 
 --[=[
@@ -21,7 +19,7 @@ local UserInputService = Loader['UserInputService']
 	@return number
 	@private
 ]=]
-local function Map(x, x0, x1, y0, y1)
+local function Map(x: number, x0: number, x1: number, y0: number, y1: number): number
 	return (x-x0)/(x1-x0)*(y1-y0)+y0
 end
 
@@ -32,7 +30,7 @@ end
 	@return Locations
 	@private
 ]=]
-function Input.MakePositioning(num)
+function Input.MakePositioning(num: number): table
 	local accum = num
 	local start_row = 3
 	local increment = 1
@@ -59,7 +57,7 @@ end
 	@return Positions
 	@private
 ]=]
-function Input.GetPositioning(config)
+function Input.GetPositioning(config: table): table
 	local res = config.RESOLUTION
 	
 	local b_pos = config.CENTER_BUTTON_POSITION
@@ -87,7 +85,7 @@ function Input.GetPositioning(config)
 	local extra_angle_y = math.asin(y_offset/radius)
 	local total_angle = math.pi/2 + extra_angle_x + extra_angle_y
 	
-	local result: PositionResult = {list = {}, radius = radius}
+	local result = {list = {}, radius = radius}
 	for index = 1, config.N_BUTTONS do
 		local angle = (math.pi/2)/(config.N_BUTTONS+1) * index
 		
@@ -106,7 +104,7 @@ end
 	@return Positions
 	@private
 ]=]
-function Input.GetPositionsWithRows(buttons, config)
+function Input.GetPositionsWithRows(buttons: table, config: table): table
 	local result = {}
 	
 	local last_offset = config.MIN_RADIUS or 0
@@ -127,9 +125,10 @@ end
 	Create button effects on the generated ContextActionPosition button
 	
 	@param name string -- name of the button
+	@return nil
 	@private
 ]=]
-function Input.Effects(name)
+function Input.Effects(name: string): nil
 	local button = Input:GetButton(name)
 	
 	if button then
@@ -163,10 +162,10 @@ end
 	Get a button from the cache
 	
 	@param name string -- name of the button
-	@return Button?
+	@return GuiObject?
 	@private
 ]=]
-function Input:GetButton(name)
+function Input:GetButton(name: string): GuiObject?
 	return Input._Buttons[name]
 end
 
@@ -174,11 +173,11 @@ end
 	Create a button & optionally parent it; this is for mobile
 	
 	@param name string -- name of the button
-	@param parent? Instance -- the optional parent
-	@return Button
+	@param parent? GuiObject -- the optional parent
+	@return GuiObject
 	@private
 ]=]
-function Input:CreateButton(name,parent)
+function Input:CreateButton(name: string, parent: GuiObject?): GuiObject
 	if Input:GetButton(name) then
 		return Input:GetButton(name)
 	end
@@ -216,12 +215,10 @@ end
 	
 	@param name string -- name of the button
 	@param state boolean -- the state of the button
+	@return nil
 	@private
 ]=]
-function Input:EnableButton(name,state)
-	assert(typeof(name) == 'string')
-	assert(typeof(state) == 'boolean')
-	
+function Input:EnableButton(name: string, state: boolean): nil
 	local button = Input:GetButton(name)
 	local data = Input._InputCache[name]
 	
