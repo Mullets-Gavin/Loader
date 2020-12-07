@@ -70,12 +70,10 @@
 
 local DataSync = {}
 DataSync.__index = DataSync
-
 DataSync._Name = string.upper(script.Name)
 DataSync._Error = '['.. DataSync._Name ..']: '
 DataSync._ShuttingDown = false
 DataSync._Private = '__'
-
 DataSync._Cache = {}
 DataSync._Stores = {}
 DataSync._Files = {}
@@ -97,12 +95,10 @@ DataSync.FailProof = true -- kick the player if the datastore failed loading pla
 DataSync.All = 'all' -- the 'all' variable for streamlining data types
 
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
 local Manager = Loader('Manager')
 local Network = Loader('Network')
 local Methods = Loader(script:WaitForChild('Methods'))
 local Subscribe = Loader(script:WaitForChild('Subscribe'))
-
 local Players = Loader['Players']
 local RunService = Loader['RunService']
 
@@ -112,7 +108,7 @@ local RunService = Loader['RunService']
 	@param index string | number | Instance -- find the player from the index
 	@return Index & Player?
 ]=]
-local function GetPlayer(index)
+local function GetPlayer(index: string | number | Instance): ((number | string) & (Player?))
 	local player; do
 		local success,response = pcall(function()
 			return Players:GetPlayerByUserId(index)
@@ -140,9 +136,7 @@ end
 	@param data? table -- if you set a default table to load player data
 	@return DataStoreObject
 ]=]
-function DataSync.GetStore(key,data)
-	assert(typeof(key) == 'string',DataSync._Error.."':GetStore' expected a string, got '".. typeof(key) .."'")
-	
+function DataSync.GetStore(key: string, data: table?): typeof(DataSync.GetStore())
 	if not DataSync._Cache[key] then
 		DataSync._Cache[key] = {}
 	end
@@ -167,7 +161,7 @@ end
 	@param index string | number | nil & client -- the index on the DataStore
 	@return DataFileObject
 ]=]
-function DataSync:GetFile(index)
+function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile())
 	assert(self._key,DataSync._Error.."':GetFile' can only be used with a store")
 	
 	if not index and Manager.IsClient and Players.LocalPlayer then
@@ -270,7 +264,7 @@ end
 	@param value? string | number -- the value to grab data from
 	@return DataValue | DataFile?
 ]=]
-function DataSync:GetData(value)
+function DataSync:GetData(value: string | number | nil): any? | table
 	assert(self._file,DataSync._Error.."':GetData' can only be used with a data file")
 	
 	local file = DataSync._Cache[self._key][self._file]
@@ -290,12 +284,11 @@ end
 	Update a given value with any type of data
 	
 	@param value string -- the specific value in a DataFile
-	@param data any -- any valid type can be provided to a value
+	@param data any? -- any valid type can be provided to a value
 	@return DataFileObject
 ]=]
-function DataSync:UpdateData(value,data)
+function DataSync:UpdateData(value: string, data: any?): typeof(DataSync:GetFile())
 	assert(self._file,DataSync._Error.."':UpdateData' can only be used with a data file")
-	assert(value ~= nil,DataSync._Error.."':UpdateData' expected a value, got 'nil'")
 	
 	local file = DataSync._Cache[self._key][self._file]
 	if data == nil and DataSync._Defaults[self._key][value] ~= nil then
@@ -332,10 +325,8 @@ end
 	@param num number -- how much to increment/decrement
 	@return DataFileObject
 ]=]
-function DataSync:IncrementData(value,num)
+function DataSync:IncrementData(value: string, num: number): typeof(DataSync:GetFile())
 	assert(self._file,DataSync._Error.."':UpdateData' can only be used with a data file")
-	assert(typeof(value) == 'string',DataSync._Error.."':IncrementData' expected a string value, got '".. typeof(value) .."'")
-	assert(typeof(num) == 'number',DataSync._Error.."':IncrementData' expected a number, got '".. typeof(value) .."'")
 	
 	local current = self:GetData(value)
 	if typeof(current) == 'number' then
@@ -352,7 +343,7 @@ end
 	
 	@return DataFileObject
 ]=]
-function DataSync:SaveData(override)
+function DataSync:SaveData(override: boolean?): typeof(DataSync:GetFile())
 	assert(self._file,DataSync._Error.."':SaveData' can only be used with a data file")
 	assert(Manager.IsServer,"':SaveData' only works on the server")
 	if self._sesh then return self end
@@ -378,7 +369,7 @@ end
 	
 	@return DestroyedDataFileObject
 ]=]
-function DataSync:RemoveData(override)
+function DataSync:RemoveData(override: boolean?): typeof(DataSync:RemoveData())
 	assert(self._file,DataSync._Error.."':RemoveData' can only be used with a data file")
 	if self._sesh then return self end
 	
@@ -409,7 +400,7 @@ end
 	
 	@Return DataFileObject
 ]=]
-function DataSync:WipeData()
+function DataSync:WipeData(): typeof(DataSync:GetFile())
 	assert(self._file,DataSync._Error.."':WipeData' can only be used with a data file")
 	assert(Manager.IsServer,"':SaveData' only works on the server")
 	
@@ -425,7 +416,7 @@ end
 	@param value string -- the value for the file
 	@param code function -- the function which to be called whenever the value changes
 ]=]
-function DataSync:Subscribe(index,value,code,_sent)
+function DataSync:Subscribe(index: string | number | Player, value: string, code: (any) -> nil, _sent: Player?): typeof(DataSync:Subscribe())
 	assert(self._key,DataSync._Error.."':Subscribe' can only be used with a store")
 	
 	local index,player = tostring(GetPlayer(index))
@@ -450,7 +441,7 @@ end
 	
 	@return SubscriptionObject
 ]=]
-function DataSync:Unsubscribe()
+function DataSync:Unsubscribe(): typeof(DataSync:Unsubscribe())
 	assert(self._key,DataSync._Error.."':Unsubscribe' can only be used with a store")
 	assert(self._subscription,DataSync._Error.."':Unsubscribe' can only be used with a subscription created with ':Subscribe'")
 	
@@ -465,9 +456,10 @@ end
 	
 	@param index string -- the DataFile index
 	@param value string -- the value to fire
-	@param data any -- this can be any data
+	@param data any? -- this can be any data
+	@return nil
 ]=]
-function DataSync:_FireSubscriptions(index,value,data)
+function DataSync:_FireSubscriptions(index: string, value: string, data: any?): nil
 	assert(self._key,DataSync._Error.."':Subscribe' can only be used with a store")
 	
 	if string.sub(tostring(tostring(value)),1,#DataSync._Private) == DataSync._Private then

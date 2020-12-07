@@ -87,22 +87,17 @@ Network._Events = {}
 Network._Functions = {}
 Network._Bindables = {}
 Network._Invocables = {}
-
 Network._Name = string.upper(script.Name)
 Network._Error = '['.. Network._Name ..']: '
-
 Network.Enums = {
 	['Event'] = 1;
 	['Function'] = 2;
 }
 
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
 local Manager = Loader('Manager')
-
 local Players = Loader['Players']
 local ReplicatedStorage = Loader['ReplicatedStorage']
-
 local Container = ReplicatedStorage:FindFirstChild(Network._Name..'_FOLDER'); do
 	if Manager.IsServer and not Container then
 		local Folder = Instance.new('Folder')
@@ -123,7 +118,7 @@ end
 	@return Remote
 	@private
 ]=]
-local function GetRemote(name,enum)
+local function GetRemote(name: string, enum: number): Instance?
 	name = name..'_Remote'
 	
 	if Manager.IsServer then
@@ -156,7 +151,7 @@ end
 	@return Bindable
 	@private
 ]=]
-local function GetBindable(name,enum)
+local function GetBindable(name: string, enum: number): Instance?
 	name = name..'_Bindable'
 	
 	if enum then
@@ -187,7 +182,7 @@ end
 	@param name string -- the name of the remote
 	@return RemoteEvent
 ]=]
-function Network.CreateEvent(name)
+function Network.CreateEvent(name: string): RemoteEvent
 	if not string.find(name,'_Remote') then
 		name = name ..'_Remote'
 	end
@@ -209,7 +204,7 @@ end
 	@param name string -- the name of the remote
 	@return RemoteFunction
 ]=]
-function Network.CreateFunction(name)
+function Network.CreateFunction(name: string): RemoteFunction
 	if not string.find(name,'_Remote') then
 		name = name ..'_Remote'
 	end
@@ -231,7 +226,7 @@ end
 	@param name string -- the name of the bindable
 	@return BindableEvent
 ]=]
-function Network.CreateBindableEvent(name)
+function Network.CreateBindableEvent(name: string): BindableEvent
 	if not string.find(name,'_Bindable') then
 		name = name ..'_Bindable'
 	end
@@ -253,7 +248,7 @@ end
 	@param name string -- the name of the bindable
 	@return BindableFunction
 ]=]
-function Network.CreateBindableFunction(name)
+function Network.CreateBindableFunction(name: string): BindableFunction
 	if not string.find(name,'_Bindable') then
 		name = name ..'_Bindable'
 	end
@@ -276,10 +271,7 @@ end
 	@param code function -- the function to hook
 	@return RemoteEvent
 ]=]
-function Network:HookEvent(name,code)
-	assert(typeof(name) == 'string')
-	assert(typeof(code) == 'function')
-	
+function Network:HookEvent(name: string, code: (any) -> nil): RemoteEvent
 	local remote = GetRemote(name,Network.Enums.Event)
 	local event = Manager.IsClient and remote.OnClientEvent or remote.OnServerEvent
 	local connection = event:Connect(function(...)
@@ -297,9 +289,7 @@ end
 	@oaram name string -- the name of the remote
 	@return boolean
 ]=]
-function Network:UnhookEvent(name)
-	assert(typeof(name) == 'string')
-	
+function Network:UnhookEvent(name: string): boolean
 	local connection = Network._Events[name]
 	if connection then
 		connection:Disconnect()
@@ -316,10 +306,7 @@ end
 	@param code function -- the function to hook
 	@return RemoteFunction
 ]=]
-function Network:HookFunction(name,code)
-	assert(typeof(name) == 'string')
-	assert(typeof(code) == 'function')
-	
+function Network:HookFunction(name: string, code: (any) -> nil): RemoteFunction
 	local remote = GetRemote(name,Network.Enums.Function)
 	local callbackKey = Manager.IsClient and 'OnClientInvoke' or 'OnServerInvoke'
 	remote[callbackKey] = code
@@ -334,9 +321,7 @@ end
 	@param name string -- the name of the remote
 	@return boolean
 ]=]
-function Network:UnhookFunction(name)
-	assert(typeof(name) == 'string')
-	
+function Network:UnhookFunction(name: string): boolean
 	local connection = Network._Functions[name]
 	if connection then
 		local callbackKey = Manager.IsClient and 'OnClientInvoke' or 'OnServerInvoke'
@@ -352,9 +337,9 @@ end
 	
 	@param name string -- the name of the remote
 	@param ...? any -- extra parameters to pass
+	@return nil
 ]=]
-function Network:FireServer(name,...)
-	assert(typeof(name) == 'string')
+function Network:FireServer(name: string, ...): nil
 	assert(Manager.IsClient)
 	
 	local remote = GetRemote(name,Network.Enums.Event)
@@ -367,10 +352,9 @@ end
 	@param name string -- the name of the remote
 	@param player Instance -- the player Instance to send to
 	@param ...? any -- extra parameters to pass
+	@return nil
 ]=]
-function Network:FireClient(name,player,...)
-	assert(typeof(name) == 'string')
-	assert(typeof(player) == 'Instance' and player:IsA('Player'))
+function Network:FireClient(name: string, player: Player, ...): nil
 	assert(Manager.IsServer)
 	
 	local remote = GetRemote(name,Network.Enums.Event)
@@ -383,10 +367,9 @@ end
 	@param name string -- the name of the remote
 	@param clients table -- a table of player Instances to send to
 	@param ...? any -- extra parameters to pass
+	@return nil
 ]=]
-function Network:FireClients(name,clients,...)
-	assert(typeof(name) == 'string')
-	assert(typeof(clients) == 'table')
+function Network:FireClients(name: string, clients: table, ...): nil
 	assert(Manager.IsServer)
 	
 	for index,player in pairs(clients) do
@@ -402,8 +385,9 @@ end
 	
 	@param name string -- the name of the remote
 	@param ...? any -- extra parameters to pass
+	@return nil
 ]=]
-function Network:FireAllClients(name,...)
+function Network:FireAllClients(name: string, ...): nil
 	assert(typeof(name) == 'string')
 	assert(Manager.IsServer)
 	
@@ -417,8 +401,9 @@ end
 	@param name string -- the name of the remote
 	@param player Instance -- ignore this player
 	@param ...? any -- extra parameters to pass
+	@return nil
 ]=]
-function Network:FireAllClientsExcept(name,player,...)
+function Network:FireAllClientsExcept(name: string, player: Player, ...): nil
 	assert(typeof(name) == 'string')
 	assert(typeof(player) == 'Instance' and player:IsA('Player'))
 	assert(Manager.IsServer)
@@ -435,10 +420,9 @@ end
 	
 	@param name string -- the name of the remote
 	@param ...? any -- extra parameters to pass
-	@return Response?
+	@return any?
 ]=]
-function Network:InvokeServer(name,...)
-	assert(typeof(name) == 'string')
+function Network:InvokeServer(name: string, ...): any?
 	assert(Manager.IsClient)
 	
 	local remote = GetRemote(name)
@@ -451,11 +435,9 @@ end
 	
 	@param name string -- the name of the remote
 	@param ...? any -- extra parameters to pass
-	@return Response?
+	@return any?
 ]=]
-function Network:InvokeClient(name,player,...)
-	assert(typeof(name) == 'string')
-	assert(typeof(player) == 'Instance' and player:IsA('Player'))
+function Network:InvokeClient(name: string, player: Player, ...): any?
 	assert(Manager.IsServer)
 	
 	local remote = GetRemote(name)
@@ -469,11 +451,9 @@ end
 	@param name string -- the name of the remote
 	@param timeout number -- how long before a timeout
 	@param ...? any -- extra parameters to pass
-	@return TimeTook
+	@return table
 ]=]
-function Network:InvokeAllClients(name,timeout,...)
-	assert(typeof(name) == 'string')
-	assert(typeof(timeout) == 'number')
+function Network:InvokeAllClients(name: string, timeout: number, ...): table
 	assert(Manager.IsServer)
 	
 	local remote = GetRemote(name)
@@ -481,11 +461,13 @@ function Network:InvokeAllClients(name,timeout,...)
 	local count = 0
 	local max = #Players:GetPlayers()
 	local data = {...}
+	local proxy = {}
 	
 	for index,player in pairs(Players:GetPlayers()) do
 		Manager.spawn(function()
 			local response = remote:InvokeClient(player,data)
 			if response then
+				proxy[player] = response
 				count += 1
 			end
 		end)
@@ -495,7 +477,7 @@ function Network:InvokeAllClients(name,timeout,...)
 		Manager.wait()
 	end
 	
-	return clock
+	return proxy
 end
 
 --[=[
@@ -505,10 +487,7 @@ end
 	@param code function -- the function to bind
 	@return BindableEvent
 ]=]
-function Network:BindEvent(name,code)
-	assert(typeof(name) == 'string')
-	assert(typeof(code) == 'function')
-	
+function Network:BindEvent(name: string, code: (any) -> nil): BindableEvent
 	local bindable = GetBindable(name,Network.Enums.Event)
 	local event = bindable.Event
 	local connection = event:Connect(function(...)
@@ -526,9 +505,7 @@ end
 	@param name string -- the name of the bindable
 	@return boolean
 ]=]
-function Network:UnbindEvent(name)
-	assert(typeof(name) == 'string')
-	
+function Network:UnbindEvent(name: string): boolean
 	local connection = Network._Bindables[name]
 	if connection then
 		connection:Disconnect()
@@ -545,10 +522,7 @@ end
 	@param code function -- the function to bind
 	@return BindableFunction
 ]=]
-function Network:BindFunction(name,code)
-	assert(typeof(name) == 'string')
-	assert(typeof(code) == 'function')
-	
+function Network:BindFunction(name: string, code: (any) -> nil): BindableFunction
 	local bindable = GetBindable(name,Network.Enums.Function)
 	bindable.OnInvoke = code
 	Network._Invocables[name] = bindable
@@ -562,9 +536,7 @@ end
 	@param name string -- the name of the bindable
 	@return boolean
 ]=]
-function Network:UnbindFunction(name)
-	assert(typeof(name) == 'string')
-	
+function Network:UnbindFunction(name: string): boolean
 	local connection = Network._Invocables[name]
 	if connection then
 		connection.OnInvoke = nil
@@ -579,10 +551,9 @@ end
 	
 	@param name string -- the name of the bindable
 	@param ...? any -- extra parameters to pass
+	@return nil
 ]=]
-function Network:FireBindable(name,...)
-	assert(typeof(name) == 'string')
-	
+function Network:FireBindable(name: string, ...): nil
 	local bindable = GetBindable(name,Network.Enums.Event)
 	bindable:Fire(...)
 end
@@ -592,10 +563,9 @@ end
 	
 	@param name string -- the name of the bindable
 	@param ...? any -- extra parameters to pass
-	@return Response
+	@return any?
 ]=]
-function Network:InvokeBindable(name,...)
-	assert(typeof(name) == 'string')
+function Network:InvokeBindable(name: string, ...): any?
 	local bindable = GetBindable(name,Network.Enums.Function)
 	return bindable:Invoke(...)
 end

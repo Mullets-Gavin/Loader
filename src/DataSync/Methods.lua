@@ -8,7 +8,6 @@ Methods._Occupants = {}
 Methods._MaxRetries = 5
 
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
 local Manager = Loader('Manager')
 local DataStoreService = Loader['DataStoreService']
 
@@ -21,7 +20,7 @@ local DataStoreService = Loader['DataStoreService']
 	@return File & bool
 	@private
 ]=]
-function Methods.LoadData(key,index,file)
+function Methods.LoadData(key: string, index: string, file: table): table & boolean
 	assert(Manager.IsServer,"'LoadData' can only be used on the server")
 	index = tonumber(index) and 'Player_'..index or 'Data_'..index
 	
@@ -79,9 +78,8 @@ end
 	@return File & bool
 	@private
 ]=]
-function Methods.SaveData(key,index,file)
+function Methods.SaveData(key: string, index: string, file: table): table & boolean
 	assert(Manager.IsServer,"'SaveData' can only be used on the server")
-	assert(typeof(file) == 'table')
 	index = tonumber(index) and 'Player_'..index or 'Data_'..index
 	
 	if Methods._Occupants[key..index] then
@@ -123,7 +121,7 @@ end
 	@return File & bool
 	@private
 ]=]
-function Methods.WipeData(key,index)
+function Methods.WipeData(key: string, index: string): table & boolean
 	assert(Manager.IsServer,"'WipeData' can only be used on the server")
 	index = tonumber(index) and 'Player_'..index or 'Data_'..index
 	

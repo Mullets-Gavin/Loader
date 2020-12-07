@@ -96,9 +96,7 @@ Roblox._SetCoreTypes = {
 }
 
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
 local Manager = Loader('Manager')
-
 local Players = Loader['Players']
 local StarterGui = Loader['StarterGui']
 local TextService = Loader['TextService']
@@ -110,11 +108,10 @@ local ContentProvider = Loader['ContentProvider']
 	Prompt a friend request to another Player
 	
 	@param toPlayer Instance -- toPlayer should be a Player Instance
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:PromptFriendRequest(toPlayer)
+function Roblox:PromptFriendRequest(toPlayer: Player): any | boolean
 	assert(Manager.IsClient)
-	assert(toPlayer ~= nil and toPlayer:IsA('Player'))
 	
 	local success,response = Manager.rerun(5,function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptFriendRequest,toPlayer)
@@ -129,11 +126,10 @@ end
 	Prompt an unfriend request to another Player
 	
 	@param toPlayer Instance -- toPlayer should be a Player Instance
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:PromptUnfriendRequest(toPlayer)
+function Roblox:PromptUnfriendRequest(toPlayer: Player): any | boolean
 	assert(Manager.IsClient)
-	assert(toPlayer ~= nil and toPlayer:IsA('Player'))
 	
 	local success,response = Manager.rerun(5,function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptUnfriendRequest,toPlayer)
@@ -148,11 +144,10 @@ end
 	Prompt a block request to another Player
 	
 	@param toPlayer Instance -- toPlayer should be a Player Instance
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:PromptBlockRequest(toPlayer)
+function Roblox:PromptBlockRequest(toPlayer: Player): any | boolean
 	assert(Manager.IsClient)
-	assert(toPlayer ~= nil and toPlayer:IsA('Player'))
 	
 	local success,response = Manager.rerun(5,function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptBlockRequest,toPlayer)
@@ -167,11 +162,10 @@ end
 	Prompt an unblock request to another Player
 	
 	@param toPlayer Instance -- toPlayer should be a Player Instance
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:PromptUnblockRequest(toPlayer)
+function Roblox:PromptUnblockRequest(toPlayer: Player): any | boolean
 	assert(Manager.IsClient)
-	assert(toPlayer ~= nil and toPlayer:IsA('Player'))
 	
 	local success,response = Manager.rerun(5,function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptUnblockRequest,toPlayer)
@@ -186,12 +180,10 @@ end
 	Prompt a SocialService game invites prompt
 	
 	@param player Instance -- player should be the Player to prompt
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:PromptGameInvite(player)
-	assert(player:IsA('Player'))
-	
-	if not Roblox:CanSendGameInviteAsync(player) then return end
+function Roblox:PromptGameInvite(player: Player): any | boolean	
+	if not Roblox:CanSendGameInviteAsync(player) then return false end
 	
 	local success,response = Manager.rerun(5,function()
 		SocialService:PromptGameInvite(player)
@@ -207,11 +199,9 @@ end
 	Get a players friend list
 	
 	@param player Instance -- player should be a Player Instance
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:GetFriends(player)
-	assert(player:IsA('Player'))
-	
+function Roblox:GetFriends(player: Player): any | boolean
 	local success,response = Manager.rerun(5,function()
 		local proxy = {}
 		local pages = Players:GetFriendsAsync(player.UserId)
@@ -240,9 +230,9 @@ end
 --[=[
 	Get the local players Blocked list
 	
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:GetBlocked()
+function Roblox:GetBlocked(): any | boolean
 	assert(Manager.IsClient)
 	
 	if Manager.IsStudio then return {} end
@@ -261,12 +251,9 @@ end
 	
 	@param player Instance -- player should be a Player Instance
 	@param group number -- the group Id
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:GetRankInGroup(player,group)
-	assert(player:IsA('Player'))
-	assert(typeof(group) == 'number')
-	
+function Roblox:GetRankInGroup(player: Player, group: number): any | boolean
 	local success,response = Manager.rerun(5,function()
 		return player:GetRankInGroup(group)
 	end)
@@ -281,10 +268,9 @@ end
 	
 	@param player Instance -- player should be a Player Instance
 	@param num? number -- an optional number of online friends to return (default 200)
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:GetFriendsOnline(player,num)
-	assert(player:IsA('Player'))
+function Roblox:GetFriendsOnline(player: Player, num: number?): any | boolean
 	num = num or 200
 	
 	local success,response = Manager.rerun(5,function()
@@ -301,10 +287,9 @@ end
 	
 	@param userId number -- the required player userId
 	@param enumSize? EnumItem -- optional size argument, default 420x420px (max)
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:GetUserHeadshot(userId,enumSize)
-	assert(typeof(userId) == 'number')
+function Roblox:GetUserHeadshot(userId: Number, enumSize: EnumItem?): any | boolean
 	enumSize = enumSize == typeof('EnumItem') and enumSize or Enum.ThumbnailSize.Size420x420
 	
 	local name = 'Headshot_'..userId..'_'..enumSize
@@ -333,10 +318,9 @@ end
 	
 	@param userId number -- the required player userId
 	@param enumSize? EnumItem -- optional size argument, default 420x420px (max)
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:GetUserBust(userId,enumSize)
-	assert(typeof(userId) == 'number')
+function Roblox:GetUserBust(userId: number, enumSize: EnumItem?): any | boolean
 	enumSize = enumSize == typeof('EnumItem') and enumSize or Enum.ThumbnailSize.Size420x420
 	
 	local name = 'Bust_'..userId..'_'..enumSize
@@ -365,10 +349,9 @@ end
 	
 	@param userId number -- the required player userId
 	@param enumSize? EnumItem -- optional size argument, default 420x420px (max)
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:GetUserAvatar(userId,enumSize)
-	assert(typeof(userId) == 'number')
+function Roblox:GetUserAvatar(userId: number, enumSize: EnumItem?): any | boolean
 	enumSize = enumSize == typeof('EnumItem') and enumSize or Enum.ThumbnailSize.Size420x420
 	
 	local name = 'Avatar_'..userId..'_'..enumSize
@@ -398,9 +381,8 @@ end
 	@param userId number -- the userId of the player to check info on
 	@return inServer bool, placeId number, serverId JobId | boolean
 ]=]
-function Roblox:GetUserTeleportInfo(userId)
+function Roblox:GetUserTeleportInfo(userId: number): (any | boolean)
 	assert(Manager.IsServer)
-	assert(typeof(userId) == 'number')
 	
 	local success, current, err, placeId, jobId = pcall(function()
 		return TeleportService:GetPlayerPlaceInstanceAsync(userId)
@@ -418,12 +400,10 @@ end
 	
 	@param player Instance -- the player Instance to check with
 	@param userId number -- the user Id to compare against
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:IsFriendsWith(player,userId)
+function Roblox:IsFriendsWith(player: Player, userId: number): any | boolean
 	assert(Manager.IsClient)
-	assert(player:IsA('Player'))
-	assert(typeof(userId) == 'number')
 	
 	local success,response = Manager.rerun(5,function()
 		return player:IsFriendsWith(userId)
@@ -439,12 +419,10 @@ end
 	
 	@param player Instance -- the player Instance to check with
 	@param userId number -- the user Id to compare against
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:IsBlockedWith(player,userId)
+function Roblox:IsBlockedWith(player: Player, userId: number): any | boolean
 	assert(Manager.IsClient)
-	assert(player:IsA('Player'))
-	assert(typeof(userId) == 'number')
 	
 	local success,response = Manager.rerun(5,function()
 		if typeof(player) == 'table' then
@@ -469,11 +447,9 @@ end
 	Check if a player is the game creator (dev)
 	
 	@param player Instance -- the player Instance to check
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:IsGameCreator(player)
-	assert(player:IsA('Player'))
-	
+function Roblox:IsGameCreator(player: Player): any | boolean
 	local success,response = Manager.rerun(5,function()
 		if game.CreatorType == Enum.CreatorType.User then
 			if Manager.IsClient and Manager.IsStudio then
@@ -500,11 +476,10 @@ end
 	Check if a player can send game invites with SocialService
 	
 	@param player Instance -- the player Instance to check
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:CanSendGameInviteAsync(player)
+function Roblox:CanSendGameInviteAsync(player: Player): any | boolean
 	assert(Manager.IsClient)
-	assert(player:IsA('Player'))
 	
 	local success,response = Manager.rerun(5,function()
 		return SocialService:CanSendGameInviteAsync(player)
@@ -521,12 +496,10 @@ end
 	@param text string -- text to filter
 	@param userId number -- the userId sent by
 	@param context? EnumItem -- the context of the filtering
-	@return FilterObject | boolean
+	@return any | boolean
 ]=]
-function Roblox:FilterText(text,userId,context)
+function Roblox:FilterText(text: string, userId: number, context: EnumItem?): any | boolean
 	assert(Manager.IsServer)
-	assert(typeof(text) == 'string')
-	assert(typeof(userId) == 'number')
 	context = context or Enum.TextFilterContext.PublicChat
 	
 	local success,response = Manager.rerun(5,function()
@@ -543,12 +516,10 @@ end
 	
 	@param filter FilterObject -- the FilterObject created
 	@param userId number -- the userId to filter for
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:FilterChatForUser(filter,toUserId)
+function Roblox:FilterChatForUser(filter: Instance, toUserId: number): any | boolean
 	assert(Manager.IsServer)
-	assert(typeof(filter) == 'Instance')
-	assert(typeof(toUserId) == 'number')
 	
 	local success,response = Manager.rerun(5,function()
 		return filter:GetChatForUserAsync(toUserId)
@@ -564,12 +535,10 @@ end
 	
 	@param filter FilterObject -- the FilterObject created
 	@param userId number -- the userId to filter for
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:FilterStringForUser(filter,toUserId)
+function Roblox:FilterStringForUser(filter: Instance, toUserId: number): any | boolean
 	assert(Manager.IsServer)
-	assert(typeof(filter) == 'Instance')
-	assert(typeof(toUserId) == 'number')
 	
 	local success,response = Manager.rerun(5,function()
 		return filter:GetNonChatStringForUserAsync(toUserId)
@@ -584,11 +553,10 @@ end
 	Using a filter, get the text for a broadcast
 	
 	@param filter FilterObject -- the FilterObject created
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:FilterStringForBroadcast(filter)
+function Roblox:FilterStringForBroadcast(filter: Instance): any | boolean
 	assert(Manager.IsServer)
-	assert(typeof(filter) == 'Instance')
 	
 	local success,response = Manager.rerun(5,function()
 		return filter:GetNonChatStringForBroadcastAsync()
@@ -604,10 +572,9 @@ end
 	
 	@param enum EnumItem -- the enum to set state
 	@param state boolean -- the state to set
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:SetCoreGuiEnabled(enum,state)
-	assert(typeof(enum) == 'EnumItem')
+function Roblox:SetCoreGuiEnabled(enum: EnumItem, state: boolean?): any | boolean
 	state = typeof(state) == 'boolean' and state or false
 	
 	local success,response = Manager.rerun(5,function()
@@ -624,14 +591,13 @@ end
 	
 	@param enum string -- the enum to set state
 	@param state boolean -- the state to set
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:SetCoreEnabled(enum,state)
-	assert(enum ~= nil)
+function Roblox:SetCoreEnabled(enum: string, state: boolean?): any | boolean
 	state = typeof(state) == 'boolean' and state or false
 	
 	local success,response = Manager.rerun(5,function()
-		return StarterGui:SetCore('ResetButtonCallback',state)
+		return StarterGui:SetCore(enum,state)
 	end)
 	
 	if success then return response end
@@ -643,9 +609,9 @@ end
 	Post notifications to the bottom right
 	
 	@param properties table -- a dictionary of the notification properties. see devhub 'SendNotification'
-	@return response | boolean
+	@return any | boolean
 ]=]
-function Roblox:PostNotification(properties)
+function Roblox:PostNotification(properties: table): any | boolean
 	local code = typeof(properties.Callback) == 'function'; do
 		if code then
 			code = Instance.new('BindableFunction')
@@ -679,7 +645,7 @@ end
 	@param code? function -- a callback function made on completion
 	@return boolean
 ]=]
-function Roblox:PreloadAssets(assets,code)
+function Roblox:PreloadAssets(assets: Instance | table, code: () -> nil): boolean
 	assert(Manager.IsClient)
 	assets = typeof(assets) == 'table' and assets or {assets}
 	

@@ -13,10 +13,8 @@ Subscribe.Remotes = {
 }
 
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
 local Manager = Loader('Manager')
 local Network = Loader('Network')
-
 local Players = Loader['Players']
 local RunService = Loader['RunService']
 
@@ -27,7 +25,7 @@ local RunService = Loader['RunService']
 	@return Player?
 	@private
 ]=]
-local function GetPlayer(index)
+local function GetPlayer(index: string | number | Instance): Player?
 	local player; do
 		local success,response = pcall(function()
 			return Players:GetPlayerByUserId(index)
@@ -54,7 +52,7 @@ end
 	@return SubscriptionCache
 	@private
 ]=]
-local function GetCache(key,index,value)	
+local function GetCache(key: string, index: string, value: string): table	
 	if not Subscribe.Cache[key] then
 		Subscribe.Cache[key] = {}
 	end
@@ -81,7 +79,7 @@ end
 	@return SubscriptionCache
 	@private
 ]=]
-local function GetAll(key,index)
+local function GetAll(key: string, index: string): table
 	if not Subscribe.All[key] then
 		Subscribe.All[key] = {}
 	end
@@ -103,13 +101,10 @@ end
 	@param index any -- DataFile index
 	@param value any -- DataFile value
 	@param data any -- new data
+	@return nil
 	@private
 ]=]
-function Subscribe.FireSubscription(key,index,value,data)
-	assert(key ~= nil)
-	assert(index ~= nil)
-	assert(value ~= nil)
-	assert(data ~= nil)
+function Subscribe.FireSubscription(key: any, index: any, value: any, data: any): nil
 	index = tostring(index)
 	
 	local cache = GetCache(key,index,value)
@@ -168,14 +163,10 @@ end
 	@param index any -- DataFile index
 	@param value any -- DataFile value
 	@param code function -- the function to callback
+	@return nil
 	@private
 --]]
-function Subscribe.ConnectSubscription(info,key,index,value,code)
-	assert(info ~= nil)
-	assert(key ~= nil)
-	assert(index ~= nil)
-	assert(value ~= nil)
-	
+function Subscribe.ConnectSubscription(info: Instance | any, key: any, index: any, value: any, code: (any) -> nil): nil
 	index = tostring(index)
 	
 	local cache = GetCache(key,index,value)
@@ -218,12 +209,10 @@ end
 	@param key any -- DataStore key
 	@param index any -- DataFile index
 	@param value any -- DataFile value
+	@return nil
 	@private
 ]=]
-function Subscribe.DisconnectSubscription(info,key,index,value)
-	assert(info ~= nil)
-	assert(key ~= nil)
-	assert(index ~= nil)
+function Subscribe.DisconnectSubscription(info: Instance | any, key: any, index: any, value: any): nil
 	value = value or 'all'
 	
 	local cache = GetCache(key,index,value)
