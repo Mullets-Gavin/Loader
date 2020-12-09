@@ -24,10 +24,8 @@ Some useful things to know:
 	no data was changed since the last load/save
 --]]
 
---// loader
+-- initialize Loader
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
---// variables
 local Cache = {} -- the main DataStore cache table
 
 -- import the modules
@@ -49,7 +47,7 @@ local Test = DataSync.GetStore('HiddenData',{ -- set up the key and default tabl
 	['Karma'] = 1000;
 }):GetFile('Stats') -- immediately grab a file, this is useful for global stores
 
---// functions
+-- player functions
 local function PlayerAdded(plr)
 	if Cache[plr] then return end -- if theres already a file, dont load another
 	
