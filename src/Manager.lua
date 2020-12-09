@@ -256,7 +256,7 @@ function Manager.wrap(code: (any) -> nil, ...): nil
 	
 	if not ran then
 		local trace = debug.traceback(thread)
-		error(response .. "\n" .. trace)
+		error(response .. "\n" .. trace,2)
 	end
 end
 
