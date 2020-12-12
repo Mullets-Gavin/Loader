@@ -24,8 +24,10 @@ Some useful things to know:
 	no data was changed since the last load/save
 --]]
 
--- initialize Loader
+--// loader
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+
+--// variables
 local Cache = {} -- the main DataStore cache table
 
 -- import the modules
@@ -40,14 +42,16 @@ local Store = DataSync.GetStore('PlayerData',{ -- first parameter is the key of 
 	['Money'] = 0; -- these values are examples of how you can set up the default dictionary (file)
 	['Gems'] = 0;
 	['Level'] = 0;
-})
+	
+	['DontSaveMe'] = {};
+}):FilterKeys({'DontSaveMe'}) -- lets filter out 'DontSaveMe' from saving
 
 -- create a DataStore that the client doesn't sync to unless subscribed
 local Test = DataSync.GetStore('HiddenData',{ -- set up the key and default table
 	['Karma'] = 1000;
 }):GetFile('Stats') -- immediately grab a file, this is useful for global stores
 
--- player functions
+--// functions
 local function PlayerAdded(plr)
 	if Cache[plr] then return end -- if theres already a file, dont load another
 	
@@ -78,6 +82,10 @@ local function PlayerAdded(plr)
 			
 			-- hidden data
 			Test:IncrementData('Karma',-1) -- decrement karma from the hidden store
+			
+			local get = file:GetData('DontSaveMe') -- get the table
+			table.insert(get,math.random(1,10000000))
+			file:UpdateData('DontSaveMe',get)
 		end
 	end)
 end
