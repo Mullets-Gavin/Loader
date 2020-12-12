@@ -146,8 +146,7 @@ function Subscribe.FireSubscription(key: any, index: any, value: any, data: any)
 	
 	for hash,code in pairs(all['Code']) do
 		if table.find(called,code) then continue end
-		code(params)
-		--Manager.wrap(code,params)
+		Manager.wrap(code,params)
 	end
 end
 
