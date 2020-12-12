@@ -77,6 +77,7 @@ DataSync._Private = '__'
 DataSync._Cache = {}
 DataSync._Stores = {}
 DataSync._Files = {}
+DataSync._Filters = {}
 DataSync._Defaults = {}
 DataSync._Network = {}
 DataSync._Sessions = {}
@@ -166,23 +167,18 @@ end
 	@param filter? boolean -- if true, only save these keys, if false, don't save those keys
 ]=]
 function DataSync:FilterKeys(keys: table, filter: boolean?): typeof(DataSync.GetStore())
-	assert(self._key,DataSync._Error.."':GetFile' can only be used with a store")
+	assert(self._key,DataSync._Error.."':FilterKeys' can only be used with a store")
 	
 	if not DataSync._Defaults[self._key] then
 		warn(DataSync._Error..'Unable to set filter, no Default Data table found')
 		return self
 	end
 	
-	if not self._filter then
-		self._filter = {}
-	end
-	
-	for index,key in pairs(keys) do
-		table.insert(self._filter,key)
-	end
-	
-	self._filtersave = filter
-	
+	DataSync._Filters[self._key] = {
+		['Keys'] = keys;
+		['Type'] = filter and 'Whitelist' or 'Blacklist'
+	}
+	print(self._key,DataSync._Filters[self._key])
 	return self
 end
 
@@ -220,7 +216,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		
 		local load,success = Methods.LoadData(self._key,index,DataSync._Defaults[self._key])
 		if not success then
-			if DataSync._Sessions[index] then
+			if load == '__OCCUPIED' or DataSync._Sessions[index] then
 				while not DataSync._Files[index] do
 					Manager.wait()
 				end
@@ -266,7 +262,6 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		Manager.wrap(function()
 			while Manager.wait(DataSync.AutoSaveTimer) do
 				if player then
-					self._MARSHALL = true
 					local success,response = Manager.retry(1,function()
 						return Players:GetPlayerByUserId(index)
 					end)
@@ -281,7 +276,6 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 				end
 				
 				data:SaveData()
-				self._MARSHALL = false
 			end
 		end)
 	end
@@ -305,10 +299,17 @@ function DataSync:GetData(value: string | number | nil): any? | table
 	assert(self._file,DataSync._Error.."':GetData' can only be used with a data file")
 	
 	local file = DataSync._Cache[self._key][self._file]
-	if file == nil then
-		DataSync._Cache[self._key][self._file] = Manager.Copy(DataSync._Defaults[self._key])
-		file = DataSync._Cache[self._key][self._file]
+	
+	while not DataSync._Cache[self._key][self._file] do
+		Manager.wait()
 	end
+	
+	file = DataSync._Cache[self._key][self._file]
+	
+	--if file == nil then
+	--	DataSync._Cache[self._key][self._file] = Manager.Copy(DataSync._Defaults[self._key])
+	--	file = DataSync._Cache[self._key][self._file]
+	--end
 	
 	if value ~= nil then
 		return file[value]
@@ -399,22 +400,24 @@ function DataSync:SaveData(override: boolean?): typeof(DataSync:GetFile())
 	self._sesh = true
 	
 	local file = DataSync._Cache[self._key][self._file]
-	if self._filtersave and self._filter and not self._MARSHALL then
+	local clone = Manager.DeepCopy(file)
+	local filter = DataSync._Filters[self._key]
+	
+	if filter and filter['Type'] == 'Whitelist' then
 		for key,data in pairs(file) do
-			if table.find(self._filter,key) then continue end
-			
-			file[key] = nil
+			if not table.find(filter['Keys'],key) then
+				clone[key] = nil
+			end
 		end
-	elseif self._filter and not self._MARSHALL then
+	elseif filter and filter['Type'] == 'Blacklist' then
 		for key,data in pairs(file) do
-			if not table.find(self._filter,key) then continue end
-			
-			file[key] = nil
+			if table.find(filter['Keys'],key) then
+				clone[key] = nil
+			end
 		end
 	end
 	
-	
-	local load,success = Methods.SaveData(self._key,self._file,file)
+	local load,success = Methods.SaveData(self._key,self._file,clone)
 	if not success then
 		warn(DataSync._Error.."!URGENT! Failed to save file '"..self._file.."' on store '"..self._key.."'")
 	end
@@ -456,7 +459,7 @@ function DataSync:RemoveData(override: boolean?): typeof(DataSync:RemoveData())
 		DataSync._Files[self._file] = nil
 	end
 	
-	return setmetatable(self,nil)
+	return self
 end
 
 --[=[

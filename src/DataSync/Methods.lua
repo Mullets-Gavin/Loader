@@ -25,7 +25,7 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 	index = tonumber(index) and 'Player_'..index or 'Data_'..index
 	
 	if Methods._Occupants[key..index] then
-		return
+		return '__OCCUPIED'
 	end
 	
 	Methods._Occupants[key..index] = true
@@ -45,6 +45,7 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 			end
 			
 			if last == nil then
+				print('LOADED DEEP COPY')
 				last = Manager.DeepCopy(file)
 			elseif typeof(last) == 'table' then
 				for index,value in pairs(file) do
@@ -62,6 +63,11 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 	
 	if not success then
 		warn(data)
+		
+		data = Manager.DeepCopy(file)
+		data['__CanSave'] = false
+		data['__HasChanged'] = false
+		data['__IsReady'] = false
 	end
 	
 	Methods._Occupants[key..index] = nil
@@ -82,7 +88,7 @@ function Methods.SaveData(key: string, index: string, file: table): table & bool
 	assert(Manager.IsServer,"'SaveData' can only be used on the server")
 	index = tonumber(index) and 'Player_'..index or 'Data_'..index
 	
-	if Methods._Occupants[key..index] or not file['__HasChanged'] or not file['__CanSave'] then
+	if file == nil or Methods._Occupants[key..index] or not file['__HasChanged'] or not file['__CanSave'] then
 		return file or '__OCCUPIED',true
 	end
 	
