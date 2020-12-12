@@ -140,18 +140,14 @@ function Subscribe.FireSubscription(key: any, index: any, value: any, data: any)
 	
 	local called = {}
 	for hash,code in pairs(cache['Code']) do
-		Manager.wrap(function()
-			table.insert(called,code)
-			code(params)
-		end)
+		table.insert(called,code)
+		Manager.wrap(code,params)
 	end
 	
 	for hash,code in pairs(all['Code']) do
-		Manager.wrap(function()
-			if not table.find(called,code) then
-				code(params)
-			end
-		end)
+		if table.find(called,code) then continue end
+		code(params)
+		--Manager.wrap(code,params)
 	end
 end
 
@@ -168,6 +164,11 @@ end
 --]]
 function Subscribe.ConnectSubscription(info: Instance | any, key: any, index: any, value: any, code: (any) -> nil): nil
 	index = tostring(index)
+	
+	if typeof(info) == 'Instance' and info:IsA('Player') then
+		info = info.UserId
+	end
+	info = tostring(info)
 	
 	local cache = GetCache(key,index,value)
 	local all = string.lower(value) == 'all' and GetAll(key,index)
@@ -215,12 +216,18 @@ end
 function Subscribe.DisconnectSubscription(info: Instance | any, key: any, index: any, value: any): nil
 	value = value or 'all'
 	
+	if typeof(info) == 'Instance' and info:IsA('Player') then
+		info = info.UserId
+	end
+	info = tostring(info)
+	
 	local cache = GetCache(key,index,value)
-	local all = string.lower(value) == 'all' and GetAll(key,index)
+	local all = GetAll(key,index)
 	
 	if cache['Code'][info] ~= nil then
 		cache['Code'][info] = nil
 	end
+	
 	if all then
 		if all['Code'][info] ~= nil then
 			all['Code'][info] = nil

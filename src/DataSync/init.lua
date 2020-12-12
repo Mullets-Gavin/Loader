@@ -90,7 +90,7 @@ DataSync._Remotes = {
 DataSync.Sync = true -- allow data to sync - highly recommended to leave this to true
 DataSync.Shutdown = true -- support BindToClose & autosave all DataFiles
 DataSync.AutoSave = true -- can DataFiles autosave
-DataSync.AutoSaveTimer = 90 -- how often, in seconds, a DataFile autosaves
+DataSync.AutoSaveTimer = 30 -- how often, in seconds, a DataFile autosaves
 DataSync.FailProof = true -- kick the player if the datastore failed loading player-based data
 DataSync.All = 'all' -- the 'all' variable for streamlining data types
 
@@ -137,6 +137,10 @@ end
 	@return DataStoreObject
 ]=]
 function DataSync.GetStore(key: string, data: table?): typeof(DataSync.GetStore())
+	if DataSync._Stores[key] and not data then
+		return DataSync._Stores[key]
+	end
+	
 	if not DataSync._Cache[key] then
 		DataSync._Cache[key] = {}
 	end
@@ -153,6 +157,33 @@ function DataSync.GetStore(key: string, data: table?): typeof(DataSync.GetStore(
 	
 	DataSync._Stores[key] = store
 	return store
+end
+
+--[=[
+	A blacklist/whitelist filter for saving keys on a datastore
+
+	@param keys table -- the keys to filter
+	@param filter? boolean -- if true, only save these keys, if false, don't save those keys
+]=]
+function DataSync:FilterKeys(keys: table, filter: boolean?): typeof(DataSync.GetStore())
+	assert(self._key,DataSync._Error.."':GetFile' can only be used with a store")
+	
+	if not DataSync._Defaults[self._key] then
+		warn(DataSync._Error..'Unable to set filter, no Default Data table found')
+		return self
+	end
+	
+	if not self._filter then
+		self._filter = {}
+	end
+	
+	for index,key in pairs(keys) do
+		table.insert(self._filter,key)
+	end
+	
+	self._filtersave = filter
+	
+	return self
 end
 
 --[=[
@@ -217,7 +248,11 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 	}
 	
 	local info = player or index
-	self:Subscribe(info,index,'all')
+	
+	if info then
+		self:Subscribe(info,index,'all')
+	end
+	
 	self.IsReady = true
 	
 	if Manager.IsClient and DataSync.Sync then
@@ -231,6 +266,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		Manager.wrap(function()
 			while Manager.wait(DataSync.AutoSaveTimer) do
 				if player then
+					self._MARSHALL = true
 					local success,response = Manager.retry(1,function()
 						return Players:GetPlayerByUserId(index)
 					end)
@@ -245,6 +281,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 				end
 				
 				data:SaveData()
+				self._MARSHALL = false
 			end
 		end)
 	end
@@ -293,6 +330,14 @@ function DataSync:UpdateData(value: string, data: any?): typeof(DataSync:GetFile
 	local file = DataSync._Cache[self._key][self._file]
 	if data == nil and DataSync._Defaults[self._key][value] ~= nil then
 		data = DataSync._Defaults[self._key][value]
+	end
+	
+	if file == nil and Manager.IsServer then
+		while DataSync._Cache[self._key][self._file] == nil do
+			Manager.wait()
+		end 
+		
+		file = DataSync._Cache[self._key][self._file]
 	end
 	
 	if file[value] ~= nil then
@@ -346,19 +391,38 @@ end
 function DataSync:SaveData(override: boolean?): typeof(DataSync:GetFile())
 	assert(self._file,DataSync._Error.."':SaveData' can only be used with a data file")
 	assert(Manager.IsServer,"':SaveData' only works on the server")
-	if self._sesh then return self end
 	
-	if DataSync._ShuttingDown and not override then
+	if (DataSync._ShuttingDown and not override) or self._sesh then
 		return self
 	end
 	
 	self._sesh = true
+	
 	local file = DataSync._Cache[self._key][self._file]
+	if self._filtersave and self._filter and not self._MARSHALL then
+		for key,data in pairs(file) do
+			if table.find(self._filter,key) then continue end
+			
+			file[key] = nil
+		end
+	elseif self._filter and not self._MARSHALL then
+		for key,data in pairs(file) do
+			if not table.find(self._filter,key) then continue end
+			
+			file[key] = nil
+		end
+	end
+	
+	
 	local load,success = Methods.SaveData(self._key,self._file,file)
 	if not success then
 		warn(DataSync._Error.."!URGENT! Failed to save file '"..self._file.."' on store '"..self._key.."'")
 	end
-	DataSync._Cache[self._key][self._file]['__HasChanged'] = false
+	
+	if DataSync._Cache[self._key][self._file] then
+		DataSync._Cache[self._key][self._file]['__HasChanged'] = false
+	end
+	
 	self._sesh = false
 	
 	return self
@@ -431,7 +495,7 @@ function DataSync:Subscribe(index: string | number | Player, value: string, code
 	self._subscription = _subscription
 	
 	Subscribe.ConnectSubscription(info,self._key,index,value,code)
-	DataSync._Subscriptions[index .. value] = _subscription
+	DataSync._Subscriptions[index .. value] = self._subscription
 	
 	return self
 end
@@ -445,10 +509,14 @@ function DataSync:Unsubscribe(): typeof(DataSync:Unsubscribe())
 	assert(self._key,DataSync._Error.."':Unsubscribe' can only be used with a store")
 	assert(self._subscription,DataSync._Error.."':Unsubscribe' can only be used with a subscription created with ':Subscribe'")
 	
+	if not DataSync._Subscriptions[self._subscription.index .. self._subscription.value] then
+		return self
+	end
+	
 	Subscribe.DisconnectSubscription(self._subscription.info,self._key,self._subscription.index,self._subscription.value)
 	DataSync._Subscriptions[self._subscription.index .. self._subscription.value] = nil
 	
-	return setmetatable(self,nil)
+	return self
 end
 
 --[=[

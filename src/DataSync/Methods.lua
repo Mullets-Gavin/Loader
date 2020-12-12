@@ -82,16 +82,8 @@ function Methods.SaveData(key: string, index: string, file: table): table & bool
 	assert(Manager.IsServer,"'SaveData' can only be used on the server")
 	index = tonumber(index) and 'Player_'..index or 'Data_'..index
 	
-	if Methods._Occupants[key..index] then
-		return false,false
-	end
-	
-	if not file['__CanSave'] then
-		return false,false
-	end
-	
-	if not file['__HasChanged'] then
-		return file,true
+	if Methods._Occupants[key..index] or not file['__HasChanged'] or not file['__CanSave'] then
+		return file or '__OCCUPIED',true
 	end
 	
 	Methods._Occupants[key..index] = true
