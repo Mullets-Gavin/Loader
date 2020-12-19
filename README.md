@@ -39,10 +39,10 @@ ReplicatedStorage
 ----------------
 
 -- recommended
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
 
 -- optional
-local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
 
 ------------------
 -- Load Example --
@@ -51,12 +51,6 @@ local DataSync = Loader('DataSync')
 local Roblox = Loader.require('Roblox')
 local SomeClient = Loader.client('SomeClient')
 local SomeServer = Loader.server('SomeServer')
-
-----------------------
--- Services Example --
-----------------------
-local RunService = Loader['RunService']
-local PlayerService = Loader.import('Players')
 
 ------------------------
 -- Enumerator Example --
@@ -88,12 +82,6 @@ Loader.client(module: string | number | Instance) -> RequiredModule?
 ```
 Require a module instance or search client containers for a module with a string
 
-### Loader.import
-```lua
-Loader.import(service: string) -> RobloxService?
-```
-Import a Roblox service
-
 ### Loader.enum
 ```lua
 Loader.enum(name: string, members: table) -> Enumerator
@@ -105,9 +93,3 @@ Create a custom enum library on `shared`
 Loader(module: string | number | Instance) -> RequiredModule?
 ```
 Replace the require function by Roblox
-
-### Loader[]
-```lua
-Loader[service: string] -> RobloxService?
-```
-Quickly import services by indexing Loader

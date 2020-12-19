@@ -46,7 +46,7 @@
 	├─ .enum(name,members)
 	│  └─ create a custom enum on shared
 	├─ .__version() and .VERSION Returns the current version
-	└─ :__index and :__call redirect to .import and .require respectively
+	└─ :__call redirects to .require
 	
 [LICENSE]:
 	MIT License
@@ -86,6 +86,7 @@ local IsServer = RunService:IsServer() and 'Server'
 local IsClient = RunService:IsClient() and 'Client'
 
 local Loader = {}
+Loader.__index = Loader
 Loader._ModuleCache = {}
 Loader._Name = string.upper(script.Name)
 Loader._Containers = {'PlayerScripts','PlayerGui','Backpack'};
