@@ -84,6 +84,7 @@
 ]=]
 
 local Roblox = {}
+Roblox._Name = string.upper(script.Name)
 Roblox._ThumbnailCache = {}
 Roblox._SetCoreTypes = {
 	['PromptFriendRequest'] = 'PromptSendFriendRequest';

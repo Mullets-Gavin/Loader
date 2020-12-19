@@ -1,7 +1,7 @@
 <div align="center">
 <h1>Library Examples</h3>
 
-![examples](https://img.shields.io/badge/examples-1-blueviolet)
+![examples](https://img.shields.io/badge/examples-2-blueviolet)
 </div>
 
 ## About
@@ -10,7 +10,6 @@ Examples were created to demonstrate each library provided with Loader. Unlike t
 Examples included:
 - Loader
 - DataSync
-- Interface
 
 ## Examples
 ### Loader Example

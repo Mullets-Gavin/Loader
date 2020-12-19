@@ -25,17 +25,17 @@ Some useful things to know:
 --]]
 
 --// loader
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
 
 --// variables
 local Cache = {} -- the main DataStore cache table
 
 -- import the modules
-local Manager = Loader('Manager')
-local DataSync = Loader('DataSync')
+local Manager = require('Manager')
+local DataSync = require('DataSync')
 
 -- import the services
-local Players = Loader['Players']
+local Players = game:GetService('Players')
 
 -- create a DataStore
 local Store = DataSync.GetStore('PlayerData',{ -- first parameter is the key of the store

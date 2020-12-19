@@ -127,7 +127,7 @@ Manager._Connections = {}
 Manager._Timers = {}
 Manager._Bouncers = {}
 Manager._LastIteration = nil
-Manager._Name = script.Name
+Manager._Name = string.upper(script.Name)
 
 local Compression = {}
 Compression.Dictionary = {}
