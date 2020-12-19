@@ -5,12 +5,11 @@
 
 local Components = {}
 Components._Name = 'Modular Component System'
-Components._Error = '[MCS]: '
 Components._Bindings = {}
 
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = Loader('Manager')
-local RunService = Loader['RunService']
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Manager = require('Manager')
+local RunService = game:GetService('RunService')
 
 --[=[
 	Construct a new component out of a pre-existing element
@@ -66,7 +65,8 @@ end
 function Components:Fire(name: string, ...): nil
 	assert(Components._Bindings[name],"Attempted to fire a non-existant binding on '"..name.."'")
 	
-	Manager.wrap(Components._Bindings[name],...)
+	local code = Components._Bindings[name]
+	Manager.wrap(code,...)
 end
 
 --[=[
@@ -114,7 +114,7 @@ end
 function Components:Update(name: string, value: any): any
 	local get = self:Get(name)
 	
-	assert(get ~= nil,Components._Error.."Attempted to update nil attribute '"..name.."'")
+	assert(get ~= nil,"Attempted to update nil attribute '"..name.."'")
 	
 	if typeof(get) == 'number' and typeof(value) == 'number' then
 		get += value
@@ -136,7 +136,7 @@ end
 function Components:Attribute(name: string, code: (any, any) -> nil): RBXScriptConnection
 	local last = self:Get(name)
 	
-	assert(last ~= nil,Components._Error.."Attempted to bind to nil attribute '"..name.."'")
+	assert(last ~= nil,"Attempted to bind to nil attribute '"..name.."'")
 	
 	Manager.wrap(code,last,last)
 	
@@ -239,9 +239,14 @@ end
 	Shorten getting an attribute attached to the component
 	
 	@param name string -- name of the component
+	@param value any? -- include this to also set the component state
 	@return Value any
 ]=]
-function Components:__call(name: string): any?
+function Components:__call(name: string, value: any?): any?
+	if value ~= nil then
+		self:Set(name,value)
+	end
+	
 	return self:Get(name)
 end
 

@@ -29,10 +29,10 @@
 ]=]
 
 local Animator = {}
-Animator.Cache = {}
-Animator.Original = {}
-Animator.Prefix = 'UI_'
-Animator.TagList = {
+Animator._Cache = {}
+Animator._Original = {}
+Animator._Prefix = 'UI_'
+Animator._TagList = {
 	['MouseButton1Click'] = {'BounceUp','BounceDown'};
 	['MouseButton1Down'] = {};
 	['MouseButton1Up'] = {};
@@ -40,17 +40,13 @@ Animator.TagList = {
 	['MouseLeave'] = {'Reset'};
 }
 
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = Loader('Manager')
-local HttpService = Loader['HttpService']
-local CollectionService = Loader['CollectionService']
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Manager = require('Manager')
+local HttpService = game:GetService('HttpService')
+local CollectionService = game:GetService('CollectionService')
 
-local AttributeFlag = pcall(function() -- TODO: remove this when Attributes are released
-	script:GetAttribute('Test')
-end)
-
-local Length = AttributeFlag and script:GetAttribute('AnimationTime') or 0.1
-local Scale = AttributeFlag and script:GetAttribute('AnimationScale') or 0.1
+local Length = 0.1 -- the time it takes to complete an animation, I recommend short & snappy
+local Scale = 0.1 -- the scale of the UI (0.1 = 10%), if your UI uses offset, this will be pixels
 
 --------------------
 -- Common Effects --
@@ -67,7 +63,7 @@ end
 -- MouseButton1Click --
 -----------------------
 Animator['BounceUp'] = function(element: GuiObject): nil
-	local original = Animator.Original[element]
+	local original = Animator._Original[element]
 	
 	local increment = 1 - Scale
 	local goal; do
@@ -85,7 +81,7 @@ Animator['BounceUp'] = function(element: GuiObject): nil
 end
 
 Animator['BounceDown'] = function(element: GuiObject): nil
-	local original = Animator.Original[element]
+	local original = Animator._Original[element]
 	
 	local increment = Scale + 1
 	local goal; do
@@ -106,7 +102,7 @@ end
 -- MouseEnter --
 ----------------
 Animator['Grow'] = function(element: GuiObject): nil
-	local original = Animator.Original[element]
+	local original = Animator._Original[element]
 	
 	local increment = Scale + 1
 	local goal; do
@@ -125,7 +121,7 @@ end
 -- MouseLeave --
 ----------------
 Animator['Reset'] = function(element: GuiObject): nil
-	local original = Animator.Original[element]
+	local original = Animator._Original[element]
 	
 	local prop,value = {},{}
 	for index,base in pairs(original) do
@@ -142,12 +138,12 @@ end
 -----------------
 local function ConnectAnimation(element: GuiObject, event: string, tag: string): nil
 	local identifier = event..'_'..tag..'_'..tostring(element)
-	if Animator.Cache[element] and Animator.Cache[element][identifier] then return end
+	if Animator._Cache[element] and Animator._Cache[element][identifier] then return end
 	
 	local IsImage = element:IsA('ImageButton') or element:IsA('ImageLabel')
 	
-	if not Animator.Original[element] then
-		Animator.Original[element] = {
+	if not Animator._Original[element] then
+		Animator._Original[element] = {
 			AnchorPoint = element.AnchorPoint;
 			Position = element.Position;
 			Size = element.Size;
@@ -162,7 +158,7 @@ local function ConnectAnimation(element: GuiObject, event: string, tag: string):
 	end
 	
 	local guid = HttpService:GenerateGUID(false)
-	local code = Animator[string.sub(tag,#Animator.Prefix + 1)]
+	local code = Animator[string.sub(tag,#Animator._Prefix + 1)]
 	local signal = element[event]:Connect(function(...)
 		local data = {...}
 		
@@ -171,11 +167,11 @@ local function ConnectAnimation(element: GuiObject, event: string, tag: string):
 		end)
 	end)
 	
-	if not Animator.Cache[element] then
-		Animator.Cache[element] = {}
+	if not Animator._Cache[element] then
+		Animator._Cache[element] = {}
 	end
 	
-	Animator.Cache[element][identifier] = signal
+	Animator._Cache[element][identifier] = signal
 end
 
 local function ConnectTag(event: string, tag: string): nil
@@ -189,9 +185,9 @@ local function ConnectTag(event: string, tag: string): nil
 	end
 end
 
-for event,list in pairs(Animator.TagList) do
+for event,list in pairs(Animator._TagList) do
 	for count,tag in pairs(list) do
-		tag = Animator.Prefix..tag
+		tag = Animator._Prefix..tag
 		ConnectTag(event,tag)
 	end
 end

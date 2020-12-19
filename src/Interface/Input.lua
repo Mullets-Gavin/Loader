@@ -9,9 +9,9 @@ Input._InputCallbacks = {}
 Input._InputTouchCallbacks = {}
 Input._Buttons = {}
 
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = Loader('Manager')
-local UserInputService = Loader['UserInputService']
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Manager = require('Manager')
+local UserInputService = game:GetService('UserInputService')
 
 --[=[
 	Find the center of a map based on a number
@@ -241,9 +241,8 @@ if Manager.IsClient then
 		for name,data in pairs(Input._InputCache) do
 			if data['Verify'] and data['Enabled'] and data['Function'] and data['Keys'] then
 				if table.find(data['Keys'],obj.KeyCode) or table.find(data['Keys'],obj.UserInputType) then
-					Manager.wrap(function()
-						data['Function'](obj)
-					end)
+					local code = data['Function']
+					Manager.wrap(code,obj)
 				end
 			end
 		end
@@ -251,9 +250,8 @@ if Manager.IsClient then
 		for index,data in pairs(Input._InputCallbacks) do
 			if data['Type'] == 'Began' then
 				if table.find(data['Keys'],obj.KeyCode) or table.find(data['Keys'],obj.UserInputType) then
-					Manager.wrap(function()
-						data['Code'](obj)
-					end)
+					local code = data['Code']
+					Manager.wrap(code,obj)
 				end
 			end
 		end
@@ -264,9 +262,8 @@ if Manager.IsClient then
 		for index,data in pairs(Input._InputCallbacks) do
 			if data['Type'] == 'Ended' then
 				if table.find(data['Keys'],obj.KeyCode) or table.find(data['Keys'],obj.UserInputType) then
-					Manager.wrap(function()
-						data['Code'](obj)
-					end)
+					local code = data['Code']
+					Manager.wrap(code,obj)
 				end
 			end
 		end
@@ -275,9 +272,8 @@ if Manager.IsClient then
 	UserInputService.TouchTap:Connect(function(obj,processed)
 		if processed then return end
 		for index,data in pairs(Input._InputTouchCallbacks) do
-			Manager.wrap(function()
-				data['Code'](obj)
-			end)
+			local code = data['Code']
+			Manager.wrap(code,obj)
 		end
 	end)
 end

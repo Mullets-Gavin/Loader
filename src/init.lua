@@ -16,11 +16,9 @@
 	Listed below is a quick glance on the API, visit the link above for proper documentation.
 	
 	Loader(module)
-	Loader[service]
 	Loader.require(module)
 	Loader.server(module)
 	Loader.client(module)
-	Loader.import(service)
 	Loader.enum(name,members)
 	Loader.VERSION()
 	
@@ -45,8 +43,6 @@
 	│  └─ Redirects & returns __server()
 	├─ .client(module)
 	│  └─ Redirects & returns __client()
-	├─ Loader[service] | .import(service)
-	│  └─ validates the service & returns it
 	├─ .enum(name,members)
 	│  └─ create a custom enum on shared
 	├─ .__version() and .VERSION Returns the current version
@@ -76,72 +72,45 @@
 	SOFTWARE.
 ]=]
 
-local Loader = {}
-Loader._ModuleCache = {}
-Loader._ServiceCache = {}
-Loader._Timeout = 0.5
-Loader._Initialized = false
-Loader._Filter = false
-Loader._Name = string.upper(script.Name)
-Loader._Error = '['.. Loader._Name ..']: '
-Loader._Containers = {'PlayerScripts','PlayerGui','Backpack'};
-Loader._Version = {
-	['MAJOR'] = 1;
-	['MINOR'] = 1;
-	['PATCH'] = 0;
-}
-Loader._Services = {
-	['Client'] = {'ReplicatedFirst'};
-	['Server'] = {'ServerScriptService','ServerStorage'};
-	['Shared'] = {'ReplicatedStorage','Chat','Lighting'};
-}
-setmetatable(Loader,Loader)
+local Chat = game:GetService('Chat')
+local Players = game:GetService('Players')
+local Geometry = game:GetService('Geometry')
+local RunService = game:GetService('RunService')
+local ServerStorage = game:GetService('ServerStorage')
+local ReplicatedFirst = game:GetService('ReplicatedFirst')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local ServerScriptService = game:GetService('ServerScriptService')
 
-Loader.MaxRetryTime = 5
-
-local Services = setmetatable({}, {__index = function(cache, service)
-	cache[service] = game:GetService(service)
-	return cache[service]
-end})
-
-local RunService = Services['RunService']
 local IsStudio = RunService:IsStudio() and 'Studio'
 local IsServer = RunService:IsServer() and 'Server'
 local IsClient = RunService:IsClient() and 'Client'
 
---[=[
-	Validates a module script instance
-	
-	@param module ModuleScript | string | number -- provided module type
-	@return boolean
-	@private
-]=]
-local function IsValidModule(module: ModuleScript | string | number): boolean
-	if typeof(module) == 'Instance' then
-		if not module:IsA('ModuleScript') then
-			return false
-		end
-		
-		return true
-	elseif typeof(module) == 'string' or typeof(module) == 'number' then
-		return true
-	end
-	
-	return false
-end
+local Loader = {}
+Loader._ModuleCache = {}
+Loader._Name = string.upper(script.Name)
+Loader._Containers = {'PlayerScripts','PlayerGui','Backpack'};
+Loader._Services = {
+	['Client'] = {ReplicatedFirst};
+	['Server'] = {ServerStorage, ServerScriptService};
+	['Shared'] = {ReplicatedStorage, Chat, Geometry};
+}
+Loader._Version = {
+	['MAJOR'] = 1;
+	['MINOR'] = 1;
+	['PATCH'] = 2;
+}
 
 --[=[
-	Validates and returns a Roblox service
+	Loaders settings
 	
-	@param service string -- String to check for a service
-	@return boolean
-	@private
+	Defaults:
+	Loader.MaxRetryTime = 5
+	Loader.Timeout = 0.5
+	Loader.Filter = false
 ]=]
-local function IsValidService(service: string): boolean
-	return pcall(function()
-		return game:FindService(service)
-	end)
-end
+Loader.MaxRetryTime = 5
+Loader.Timeout = 0.5
+Loader.Filter = false
 
 --[=[
 	Safely require a module like the Roblox require function works
@@ -153,9 +122,9 @@ end
 ]=]
 local function SafeRequire(module: ModuleScript, requirer: Script): table?
 	local time = os.clock()
-	local event; event = Services['RunService'].Stepped:Connect(function()
-		if os.clock() >= time + Loader._Timeout then
-			warn(string.format(Loader._Error..'%s -> %s is taking too long',tostring(requirer),tostring(module)))
+	local event; event = RunService.Stepped:Connect(function()
+		if os.clock() >= time + Loader.Timeout then
+			warn(string.format('%s -> %s is taking too long',tostring(requirer),tostring(module)))
 			if event then
 				event:Disconnect()
 				event = nil
@@ -170,14 +139,14 @@ local function SafeRequire(module: ModuleScript, requirer: Script): table?
 	
 	if not success then
 		if type(loaded) == 'nil' and string.find(response,'exactly one value') then
-			error(Loader._Error.."Module did not return exactly one value: " .. module:GetFullName(), 3)
+			error("Module did not return exactly one value: " .. module:GetFullName(), 3)
 		else
-			error(Loader._Error.."Module " .. module:GetFullName() .. " experienced an error while loading: " .. response, 3)
+			error("Module " .. module:GetFullName() .. " experienced an error while loading: " .. response, 3)
 		end
 	end
 	
 	if event then
-		event:disconnect()
+		event:Disconnect()
 		event = nil
 	end
 	
@@ -195,7 +164,7 @@ end
 local function DeepSearch(name: string, list: table): ModuleScript?
 	for count,asset in ipairs(list) do
 		if not asset:IsA('ModuleScript') then continue end
-		if Loader._Filter and asset.Parent:IsA('ModuleScript') then continue end
+		if Loader.Filter and asset.Parent:IsA('ModuleScript') then continue end
 		
 		if string.lower(asset.Name) == name then
 			return asset
@@ -234,8 +203,7 @@ function Loader.__require(module: ModuleScript, requirer: Script): table?
 		end
 		
 		for index,service in pairs(Loader._Services.Shared) do
-			local container = Services[service]
-			local sharedModule = DeepSearch(name,container:GetDescendants())
+			local sharedModule = DeepSearch(name,service:GetDescendants())
 			
 			if sharedModule then
 				Loader._ModuleCache[name] = SafeRequire(sharedModule,requirer)
@@ -262,7 +230,7 @@ function Loader.__require(module: ModuleScript, requirer: Script): table?
 		RunService.Heartbeat:Wait()
 	end
 	
-	assert(Loader._ModuleCache[name],Loader._Error.."attempted to require a non-existant module")
+	assert(Loader._ModuleCache[name],"attempted to require a non-existant module: '"..name.."'")
 	return Loader._ModuleCache[name]
 end
 
@@ -282,8 +250,7 @@ function Loader.__server(module: ModuleScript, requirer: Script): table?
 	end
 	
 	for index,service in pairs(Loader._Services.Server) do
-		local container = Services[service]
-		local serverModule = DeepSearch(name,container:GetDescendants())
+		local serverModule = DeepSearch(name,service:GetDescendants())
 		
 		if serverModule then
 			Loader._ModuleCache[name] = SafeRequire(serverModule,requirer)
@@ -311,7 +278,7 @@ function Loader.__client(module: ModuleScript, requirer: Script, __disabled: boo
 	end
 	
 	while not Loader._ModuleCache[name] and os.clock() - clock < Loader.MaxRetryTime do
-		local player = Services['Players'].LocalPlayer
+		local player = Players.LocalPlayer
 		
 		for index,container in pairs(player:GetChildren()) do
 			if not table.find(Loader._Containers,container.Name) then continue end
@@ -325,8 +292,7 @@ function Loader.__client(module: ModuleScript, requirer: Script, __disabled: boo
 		end
 		
 		for index,service in pairs(Loader._Services.Client) do
-			local container = Services[service]
-			local clientModule = DeepSearch(name,container:GetDescendants())
+			local clientModule = DeepSearch(name,service:GetDescendants())
 			
 			if clientModule then
 				Loader._ModuleCache[name] = SafeRequire(clientModule,requirer)
@@ -334,9 +300,7 @@ function Loader.__client(module: ModuleScript, requirer: Script, __disabled: boo
 			end
 		end
 		
-		if __disabled then
-			break
-		end
+		if __disabled then break end
 	end
 	
 	return Loader._ModuleCache[name]
@@ -360,7 +324,7 @@ end
 	@return RequiredModule?
 ]=]
 function Loader.server(module: ModuleScript | string | number): table?
-	assert(IsServer,Loader._Error.."Attempted to access .server from the client")
+	assert(IsServer,"Attempted to access .server from the client")
 	
 	local requirer = getfenv(2).script
 	return Loader.__server(module,require())
@@ -373,25 +337,10 @@ end
 	@return RequiredModule?
 ]=]
 function Loader.client(module: ModuleScript | string | number): table?
-	assert(IsClient,Loader._Error.."Attempted to access .client from the server")
+	assert(IsClient,"Attempted to access .client from the server")
 	
 	local requirer = getfenv(2).script
 	return Loader.__client(module,requirer)
-end
-
---[=[
-	Import a Roblox service
-	
-	@param service string -- Roblox service name
-	@return RobloxService?
-]=]
-function Loader.import(service: string): Instance
-	if Loader._ServiceCache[service] then
-		return Loader._ServiceCache[service]
-	end
-	
-	Loader._ServiceCache[service] = game:GetService(service)
-	return Loader._ServiceCache[service]
 end
 
 --[=[
@@ -402,7 +351,7 @@ end
 	@return table
 ]=]
 function Loader.enum(name: string, members: table): table
-	assert(shared[name] == nil,Loader._Error.."Error claiming enum '"..name.."': already claimed")
+	assert(shared[name] == nil,"Error claiming enum '"..name.."': already claimed")
 	
 	local proxy = {}
 	
@@ -423,19 +372,6 @@ end
 function Loader:__call(module: ModuleScript | string | number): table?
 	local requirer = getfenv(2).script	
 	return Loader.__require(module,requirer)
-end
-
---[=[
-	Quickly import services by indexing Loader
-	Redirects to Loader.import()
-	
-	@param service string -- Roblox service name
-	@return RobloxService?
-]=]
-function Loader:__index(service: string): Instance
-	if IsValidService(service) then
-		return Loader.import(service)
-	end
 end
 
 --[=[
@@ -474,4 +410,4 @@ do
 	end
 end
 
-return Loader
+return setmetatable(Loader,Loader)

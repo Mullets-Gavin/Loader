@@ -4,19 +4,19 @@
 ]=]
 
 local Subscribe = {}
-Subscribe.Cache = {}
-Subscribe.All = {}
-Subscribe.Remotes = {
+Subscribe._Cache = {}
+Subscribe._All = {}
+Subscribe._Remotes = {
 	['Download'] = '_DOWNLOAD';
 	['Upload'] = '_UPLOAD';
 	['Subscribe'] = '_SUBSCRIBE';
 }
 
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = Loader('Manager')
-local Network = Loader('Network')
-local Players = Loader['Players']
-local RunService = Loader['RunService']
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Manager = require('Manager')
+local Network = require('Network')
+local Players = game:GetService('Players')
+local RunService = game:GetService('RunService')
 
 --[=[
 	Get a player from an index
@@ -53,22 +53,22 @@ end
 	@private
 ]=]
 local function GetCache(key: string, index: string, value: string): table	
-	if not Subscribe.Cache[key] then
-		Subscribe.Cache[key] = {}
+	if not Subscribe._Cache[key] then
+		Subscribe._Cache[key] = {}
 	end
 	
-	if not Subscribe.Cache[key][index] then
-		Subscribe.Cache[key][index] = {}
+	if not Subscribe._Cache[key][index] then
+		Subscribe._Cache[key][index] = {}
 	end
 	
-	if not Subscribe.Cache[key][index][value] then
-		Subscribe.Cache[key][index][value] = {
+	if not Subscribe._Cache[key][index][value] then
+		Subscribe._Cache[key][index][value] = {
 			['Clients'] = {};
 			['Code'] = {};
 		}
 	end
 	
-	return Subscribe.Cache[key][index][value]
+	return Subscribe._Cache[key][index][value]
 end
 
 --[=[
@@ -80,18 +80,18 @@ end
 	@private
 ]=]
 local function GetAll(key: string, index: string): table
-	if not Subscribe.All[key] then
-		Subscribe.All[key] = {}
+	if not Subscribe._All[key] then
+		Subscribe._All[key] = {}
 	end
 	
-	if not Subscribe.All[key][index] then
-		Subscribe.All[key][index] = {
+	if not Subscribe._All[key][index] then
+		Subscribe._All[key][index] = {
 			['Clients'] = {};
 			['Code'] = {};
 		}
 	end
 	
-	return Subscribe.All[key][index]
+	return Subscribe._All[key][index]
 end
 
 --[=[
@@ -117,14 +117,14 @@ function Subscribe.FireSubscription(key: any, index: any, value: any, data: any)
 		for count,client in pairs(cache['Clients']) do
 			Manager.wrap(function()
 				table.insert(sent,client)
-				Network:FireClient(Subscribe.Remotes.Download,client,key,index,value,data)
+				Network:FireClient(Subscribe._Remotes.Download,client,key,index,value,data)
 			end)
 		end
 		
 		for count,client in pairs(all['Clients']) do
 			Manager.wrap(function()
 				if not table.find(sent,client) then
-					Network:FireClient(Subscribe.Remotes.Download,client,key,index,value,data)
+					Network:FireClient(Subscribe._Remotes.Download,client,key,index,value,data)
 				end
 			end)
 		end
@@ -191,14 +191,14 @@ function Subscribe.ConnectSubscription(info: Instance | any, key: any, index: an
 		end
 	end
 	
-	Subscribe.Cache[key][index][value] = cache
+	Subscribe._Cache[key][index][value] = cache
 	
 	if all then
-		Subscribe.All[key][index] = all
+		Subscribe._All[key][index] = all
 	end
 	
 	if Manager.IsClient then
-		Network:FireServer(Subscribe.Remotes.Subscribe,key,index,value)
+		Network:FireServer(Subscribe._Remotes.Subscribe,key,index,value)
 	end
 end
 
@@ -245,10 +245,10 @@ function Subscribe.DisconnectSubscription(info: Instance | any, key: any, index:
 		end
 	end
 	
-	Subscribe.Cache[key][index][value] = nil
+	Subscribe._Cache[key][index][value] = nil
 	
 	if all then
-		Subscribe.All[key][index] = all
+		Subscribe._All[key][index] = all
 	end
 end
 

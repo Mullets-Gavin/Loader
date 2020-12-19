@@ -103,23 +103,22 @@
 local Interface = {}
 Interface.__index = Interface
 Interface._Name = string.upper(script.Name)
-Interface._Error = '['.. Interface._Name ..']: '
 Interface._ComponentCode = {}
 Interface._ComponentCache = {}
 Interface._AssignSizesCache = {}
 Interface._AssignSizesOveride = false
 setmetatable(Interface,Interface)
 
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = Loader('Manager')
-local Input = Loader(script:WaitForChild('Input'))
-local Components = Loader(script:WaitForChild('Components'))
-local Animator = Loader(script:WaitForChild('Animator'))
-local Workspace = Loader['Workspace']
-local GuiService = Loader['GuiService']
-local Players = Loader['Players']
-local UserInputService = Loader['UserInputService']
-local CollectionService = Loader['CollectionService']
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Manager = require('Manager')
+local Input = require(script:WaitForChild('Input'))
+local Components = require(script:WaitForChild('Components'))
+local Animator = require(script:WaitForChild('Animator'))
+local Workspace = game:GetService('Workspace')
+local GuiService = game:GetService('GuiService')
+local Players = game:GetService('Players')
+local UserInputService = game:GetService('UserInputService')
+local CollectionService = game:GetService('CollectionService')
 local Camera = Workspace.CurrentCamera
 local Container
 

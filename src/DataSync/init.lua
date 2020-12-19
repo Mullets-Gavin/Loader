@@ -71,7 +71,6 @@
 local DataSync = {}
 DataSync.__index = DataSync
 DataSync._Name = string.upper(script.Name)
-DataSync._Error = '['.. DataSync._Name ..']: '
 DataSync._ShuttingDown = false
 DataSync._Private = '__'
 DataSync._Cache = {}
@@ -95,13 +94,13 @@ DataSync.AutoSaveTimer = 30 -- how often, in seconds, a DataFile autosaves
 DataSync.FailProof = true -- kick the player if the datastore failed loading player-based data
 DataSync.All = 'all' -- the 'all' variable for streamlining data types
 
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = Loader('Manager')
-local Network = Loader('Network')
-local Methods = Loader(script:WaitForChild('Methods'))
-local Subscribe = Loader(script:WaitForChild('Subscribe'))
-local Players = Loader['Players']
-local RunService = Loader['RunService']
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Manager = require('Manager')
+local Network = require('Network')
+local Methods = require(script:WaitForChild('Methods'))
+local Subscribe = require(script:WaitForChild('Subscribe'))
+local Players = game:GetService('Players')
+local RunService = game:GetService('RunService')
 
 --[=[
 	Get the Player from either the instance or UserId
@@ -167,10 +166,10 @@ end
 	@param filter? boolean -- if true, only save these keys, if false, don't save those keys
 ]=]
 function DataSync:FilterKeys(keys: table, filter: boolean?): typeof(DataSync.GetStore())
-	assert(self._key,DataSync._Error.."':FilterKeys' can only be used with a store")
+	assert(self._key,"':FilterKeys' can only be used with a store")
 	
 	if not DataSync._Defaults[self._key] then
-		warn(DataSync._Error..'Unable to set filter, no Default Data table found')
+		warn('Unable to set filter, no Default Data table found')
 		return self
 	end
 	
@@ -178,7 +177,7 @@ function DataSync:FilterKeys(keys: table, filter: boolean?): typeof(DataSync.Get
 		['Keys'] = keys;
 		['Type'] = filter and 'Whitelist' or 'Blacklist'
 	}
-	print(self._key,DataSync._Filters[self._key])
+	
 	return self
 end
 
@@ -189,7 +188,7 @@ end
 	@return DataFileObject
 ]=]
 function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile())
-	assert(self._key,DataSync._Error.."':GetFile' can only be used with a store")
+	assert(self._key,"':GetFile' can only be used with a store")
 	
 	if not index and Manager.IsClient and Players.LocalPlayer then
 		index = tostring(Players.LocalPlayer.UserId)
@@ -214,6 +213,14 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 	if not DataSync._Cache[self._key][index] and Manager.IsServer and not self._sesh then
 		self._sesh = true
 		
+		if not DataSync._Defaults[self._key] then
+			while not DataSync._Files[index] do
+				Manager.wait()
+			end
+			
+			return DataSync._Files[index]
+		end
+		
 		local load,success = Methods.LoadData(self._key,index,DataSync._Defaults[self._key])
 		if not success then
 			if load == '__OCCUPIED' or DataSync._Sessions[index] then
@@ -224,10 +231,10 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 				return DataSync._Files[index]
 			end
 			
-			warn(DataSync._Error..'DataStores are currently down; returning default data')
+			warn('DataStores are currently down; returning default data')
 			
 			if player and not Manager.IsStudio and DataSync.FailProof then
-				player:Kick('\n'.. DataSync._Error ..'DataStores are currently down, please try again later')
+				player:Kick('\n'..'DataStores are currently down, please try again later')
 				return nil
 			end
 			
@@ -296,7 +303,7 @@ end
 	@return DataValue | DataFile?
 ]=]
 function DataSync:GetData(value: string | number | nil): any? | table
-	assert(self._file,DataSync._Error.."':GetData' can only be used with a data file")
+	assert(self._file,"':GetData' can only be used with a data file")
 	
 	local file = DataSync._Cache[self._key][self._file]
 	
@@ -326,7 +333,7 @@ end
 	@return DataFileObject
 ]=]
 function DataSync:UpdateData(value: string, data: any?): typeof(DataSync:GetFile())
-	assert(self._file,DataSync._Error.."':UpdateData' can only be used with a data file")
+	assert(self._file,"':UpdateData' can only be used with a data file")
 	
 	local file = DataSync._Cache[self._key][self._file]
 	if data == nil and DataSync._Defaults[self._key][value] ~= nil then
@@ -372,13 +379,13 @@ end
 	@return DataFileObject
 ]=]
 function DataSync:IncrementData(value: string, num: number): typeof(DataSync:GetFile())
-	assert(self._file,DataSync._Error.."':UpdateData' can only be used with a data file")
+	assert(self._file,"':UpdateData' can only be used with a data file")
 	
 	local current = self:GetData(value)
 	if typeof(current) == 'number' then
 		self:UpdateData(value,current + num)
 	else
-		error(DataSync._Error.."':IncrementData' failed, tried to increment a non-number")
+		error("':IncrementData' failed, tried to increment a non-number")
 	end
 	
 	return self
@@ -390,7 +397,7 @@ end
 	@return DataFileObject
 ]=]
 function DataSync:SaveData(override: boolean?): typeof(DataSync:GetFile())
-	assert(self._file,DataSync._Error.."':SaveData' can only be used with a data file")
+	assert(self._file,"':SaveData' can only be used with a data file")
 	assert(Manager.IsServer,"':SaveData' only works on the server")
 	
 	if (DataSync._ShuttingDown and not override) or self._sesh then
@@ -419,7 +426,7 @@ function DataSync:SaveData(override: boolean?): typeof(DataSync:GetFile())
 	
 	local load,success = Methods.SaveData(self._key,self._file,clone)
 	if not success then
-		warn(DataSync._Error.."!URGENT! Failed to save file '"..self._file.."' on store '"..self._key.."'")
+		warn("!URGENT! Failed to save file '"..self._file.."' on store '"..self._key.."'")
 	end
 	
 	if DataSync._Cache[self._key][self._file] then
@@ -437,7 +444,7 @@ end
 	@return DestroyedDataFileObject
 ]=]
 function DataSync:RemoveData(override: boolean?): typeof(DataSync:RemoveData())
-	assert(self._file,DataSync._Error.."':RemoveData' can only be used with a data file")
+	assert(self._file,"':RemoveData' can only be used with a data file")
 	if self._sesh then return self end
 	
 	if DataSync._ShuttingDown and not override then
@@ -468,7 +475,7 @@ end
 	@Return DataFileObject
 ]=]
 function DataSync:WipeData(): typeof(DataSync:GetFile())
-	assert(self._file,DataSync._Error.."':WipeData' can only be used with a data file")
+	assert(self._file,"':WipeData' can only be used with a data file")
 	assert(Manager.IsServer,"':SaveData' only works on the server")
 	
 	Methods.WipeData(self._key,self._file)
@@ -484,7 +491,7 @@ end
 	@param code function -- the function which to be called whenever the value changes
 ]=]
 function DataSync:Subscribe(index: string | number | Player, value: string, code: (any) -> nil, _sent: Player?): typeof(DataSync:Subscribe())
-	assert(self._key,DataSync._Error.."':Subscribe' can only be used with a store")
+	assert(self._key,"':Subscribe' can only be used with a store")
 	
 	local index,player = tostring(GetPlayer(index))
 	local player = Manager.IsClient and Players.LocalPlayer or Manager.IsServer and _sent
@@ -509,8 +516,8 @@ end
 	@return SubscriptionObject
 ]=]
 function DataSync:Unsubscribe(): typeof(DataSync:Unsubscribe())
-	assert(self._key,DataSync._Error.."':Unsubscribe' can only be used with a store")
-	assert(self._subscription,DataSync._Error.."':Unsubscribe' can only be used with a subscription created with ':Subscribe'")
+	assert(self._key,"':Unsubscribe' can only be used with a store")
+	assert(self._subscription,"':Unsubscribe' can only be used with a subscription created with ':Subscribe'")
 	
 	if not DataSync._Subscriptions[self._subscription.index .. self._subscription.value] then
 		return self
@@ -531,7 +538,7 @@ end
 	@return nil
 ]=]
 function DataSync:_FireSubscriptions(index: string, value: string, data: any?): nil
-	assert(self._key,DataSync._Error.."':Subscribe' can only be used with a store")
+	assert(self._key,"':Subscribe' can only be used with a store")
 	
 	if string.sub(tostring(tostring(value)),1,#DataSync._Private) == DataSync._Private then
 		return true
@@ -549,7 +556,7 @@ if Manager.IsServer then
 				return
 			end
 			
-			print(DataSync._Error..'Shutting down and saving DataSync files')
+			print('Shutting down and saving DataSync files')
 			
 			for index,file in pairs(DataSync._Files) do
 				file:SaveData(true):RemoveData(true)

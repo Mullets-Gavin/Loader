@@ -7,9 +7,9 @@ local Methods = {}
 Methods._Occupants = {}
 Methods._MaxRetries = 5
 
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = Loader('Manager')
-local DataStoreService = Loader['DataStoreService']
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Manager = require('Manager')
+local DataStoreService = game:GetService('DataStoreService')
 
 --[=[
 	Load DataStore
@@ -45,7 +45,6 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 			end
 			
 			if last == nil then
-				print('LOADED DEEP COPY')
 				last = Manager.DeepCopy(file)
 			elseif typeof(last) == 'table' then
 				for index,value in pairs(file) do

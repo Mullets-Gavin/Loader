@@ -88,16 +88,15 @@ Network._Functions = {}
 Network._Bindables = {}
 Network._Invocables = {}
 Network._Name = string.upper(script.Name)
-Network._Error = '['.. Network._Name ..']: '
 Network.Enums = {
 	['Event'] = 1;
 	['Function'] = 2;
 }
 
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = Loader('Manager')
-local Players = Loader['Players']
-local ReplicatedStorage = Loader['ReplicatedStorage']
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Manager = require('Manager')
+local Players = game:GetService('Players')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Container = ReplicatedStorage:FindFirstChild(Network._Name..'_FOLDER'); do
 	if Manager.IsServer and not Container then
 		local Folder = Instance.new('Folder')
@@ -388,7 +387,6 @@ end
 	@return nil
 ]=]
 function Network:FireAllClients(name: string, ...): nil
-	assert(typeof(name) == 'string')
 	assert(Manager.IsServer)
 	
 	local remote = GetRemote(name,Network.Enums.Event)
@@ -404,8 +402,6 @@ end
 	@return nil
 ]=]
 function Network:FireAllClientsExcept(name: string, player: Player, ...): nil
-	assert(typeof(name) == 'string')
-	assert(typeof(player) == 'Instance' and player:IsA('Player'))
 	assert(Manager.IsServer)
 	
 	local remote = GetRemote(name,Network.Enums.Event)
@@ -440,8 +436,18 @@ end
 function Network:InvokeClient(name: string, player: Player, ...): any?
 	assert(Manager.IsServer)
 	
+	local data = {...}
 	local remote = GetRemote(name)
-	return remote:InvokeClient(player,...)
+	
+	local success,response = pcall(function()
+		return remote:InvokeClient(player,table.unpack(data))
+	end)
+	
+	if success then
+		return response
+	end
+	
+	return success
 end
 
 --[=[

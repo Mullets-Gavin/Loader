@@ -128,7 +128,6 @@ Manager._Timers = {}
 Manager._Bouncers = {}
 Manager._LastIteration = nil
 Manager._Name = script.Name
-Manager._Error = '['.. string.upper(Manager._Name) ..']: '
 
 local Compression = {}
 Compression.Dictionary = {}
@@ -145,12 +144,12 @@ local Settings = {}
 Settings.Debug = false
 Settings.RunService = 'Stepped'
 
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Workspace = Loader['Workspace']
-local CollectionService = Loader['CollectionService']
-local HttpService = Loader['HttpService']
-local RunService = Loader['RunService']
-local TweenService = Loader['TweenService']
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Workspace = game:GetService('Workspace')
+local CollectionService = game:GetService('CollectionService')
+local HttpService = game:GetService('HttpService')
+local RunService = game:GetService('RunService')
+local TweenService = game:GetService('TweenService')
 
 --[=[
 	Remove escape characters and return the translation
@@ -419,7 +418,7 @@ function Manager.debug(label: string?): nil
 	if not timer then
 		timer = os.clock()
 	else
-		warn(Manager._Error..label,'took:',os.clock() - timer..'ms')
+		warn(label,'took:',os.clock() - timer..'ms')
 		timer = nil
 	end
 	
@@ -810,7 +809,7 @@ function Manager:Connect(code: RBXScriptConnection | table | (any) -> nil): type
 				code:Disconnect()
 			end)
 			if not success and Settings.Debug then
-				warn(Manager._Error..err)
+				warn(err)
 			end
 		end
 		
@@ -822,7 +821,7 @@ function Manager:Connect(code: RBXScriptConnection | table | (any) -> nil): type
 		if typeof(code) == 'function' then
 			return Manager.wrap(code,...)
 		else
-			warn(Manager._Error.."Attempted to call ':Fire' on '".. typeof(code) .."'")
+			warn("Attempted to call ':Fire' on '".. typeof(code) .."'")
 		end
 	end
 	
@@ -855,7 +854,7 @@ function Manager:ConnectKey(key: any, code: RBXScriptConnection | table | (any) 
 			end)
 			
 			if not success and Settings.Debug then
-				warn(Manager._Error..err)
+				warn(err)
 			end
 		end
 		
@@ -867,7 +866,7 @@ function Manager:ConnectKey(key: any, code: RBXScriptConnection | table | (any) 
 		if typeof(code) == 'function' then
 			return Manager.wrap(code,...)
 		else
-			warn(Manager._Error.."Attempted to call ':Fire' on '".. typeof(code) .."'")
+			warn("Attempted to call ':Fire' on '".. typeof(code) .."'")
 		end
 	end
 	

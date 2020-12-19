@@ -95,14 +95,14 @@ Roblox._SetCoreTypes = {
 	['PostNotification'] = 'SendNotification';
 }
 
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = Loader('Manager')
-local Players = Loader['Players']
-local StarterGui = Loader['StarterGui']
-local TextService = Loader['TextService']
-local SocialService = Loader['SocialService']
-local TeleportService = Loader['TeleportService']
-local ContentProvider = Loader['ContentProvider']
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Manager = require('Manager')
+local Players = game:GetService('Players')
+local StarterGui = game:GetService('StarterGui')
+local TextService = game:GetService('TextService')
+local SocialService = game:GetService('SocialService')
+local TeleportService = game:GetService('TeleportService')
+local ContentProvider = game:GetService('ContentProvider')
 
 --[=[
 	Prompt a friend request to another Player
