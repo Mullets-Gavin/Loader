@@ -1,7 +1,7 @@
 <div align="center">
 <h1>Loader</h1>
 
-[![version](https://img.shields.io/badge/version-v1.1.2-red)](https://github.com/Mullets-Gavin/Loader/releases/tag/v1.1.2) [![tests: passing](https://img.shields.io/badge/tests-passing-brightgreen)](https://github.com/Mullets-Gavin/Loader/tree/master/tests) [![chat](https://img.shields.io/discord/281959162470989834?color=blue)](https://discord.gg/dZYyvBu) [![examples](https://img.shields.io/badge/examples-2-blueviolet)](https://github.com/Mullets-Gavin/Loader/tree/master/examples)
+[![version](https://img.shields.io/badge/version-v1.1.2-red)](https://github.com/Mullets-Gavin/Loader/releases) [![tests: passing](https://img.shields.io/badge/tests-passing-brightgreen)](https://github.com/Mullets-Gavin/Loader/tree/master/tests) [![chat](https://img.shields.io/discord/281959162470989834?color=blue)](https://discord.gg/dZYyvBu) [![examples](https://img.shields.io/badge/examples-2-blueviolet)](https://github.com/Mullets-Gavin/Loader/tree/master/examples)
 
 A Roblox Luau lazy-library loader with built-in libraries and functions.
 </div>
@@ -10,7 +10,7 @@ A Roblox Luau lazy-library loader with built-in libraries and functions.
 You can install Loader with two methods, though it is recommended that you install Loader via the `rbxm` model located in the releases.
 
 ### Method 1, Model:
-* Download the `rbxm` model [here](https://github.com/Mullets-Gavin/Loader/releases/tag/v1.0.0)
+* Download the `rbxm` model [here](https://github.com/Mullets-Gavin/Loader/releases)
 * Drag and drop the file into a Roblox place
 * Set Loader in `ReplicatedStorage`
 * You're all set!
