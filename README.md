@@ -47,10 +47,10 @@ local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader
 ------------------
 -- Load Example --
 ------------------
-local DataSync = Loader('DataSync')
-local Roblox = Loader.require('Roblox')
-local SomeClient = Loader.client('SomeClient')
-local SomeServer = Loader.server('SomeServer')
+local SomeModule = require('SomeModule') -- Loader('SomeModule')
+local SomeModule = require.require('SomeModule') -- Loader.require('SomeModule')
+local SomeClient = require.client('SomeClient') -- Loader.client('SomeClient')
+local SomeServer = require.server('SomeServer') -- Loader.server('SomeServer')
 
 ------------------------
 -- Enumerator Example --
