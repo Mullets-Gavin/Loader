@@ -115,17 +115,16 @@ function Subscribe.FireSubscription(key: any, index: any, value: any, data: any)
 		local sent = {}
 		
 		for count,client in pairs(cache['Clients']) do
+			table.insert(sent,client)
 			Manager.wrap(function()
-				table.insert(sent,client)
 				Network:FireClient(Subscribe._Remotes.Download,client,key,index,value,data)
 			end)
 		end
 		
 		for count,client in pairs(all['Clients']) do
+			if table.find(sent,client) then continue end
 			Manager.wrap(function()
-				if not table.find(sent,client) then
-					Network:FireClient(Subscribe._Remotes.Download,client,key,index,value,data)
-				end
+				Network:FireClient(Subscribe._Remotes.Download,client,key,index,value,data)
 			end)
 		end
 	end
@@ -164,8 +163,9 @@ end
 function Subscribe.ConnectSubscription(info: Instance | any, key: any, index: any, value: any, code: (any) -> nil): nil
 	index = tostring(index)
 	
-	if typeof(info) == 'Instance' and info:IsA('Player') then
-		info = info.UserId
+	local plr; if typeof(info) == 'Instance' and info:IsA('Player') then
+		plr = info
+		info = plr.UserId
 	end
 	info = tostring(info)
 	
@@ -179,14 +179,14 @@ function Subscribe.ConnectSubscription(info: Instance | any, key: any, index: an
 		end
 	end
 	
-	if typeof(info) == 'Instance' and info:IsA('Player') then
-		if not table.find(cache['Clients'],info) then
-			table.insert(cache['Clients'],info)
+	if plr then
+		if not table.find(cache['Clients'],plr) then
+			table.insert(cache['Clients'],plr)
 		end
 		
 		if all then
-			if not table.find(all['Clients'],info) then
-				table.insert(all['Clients'],info)
+			if not table.find(all['Clients'],plr) then
+				table.insert(all['Clients'],plr)
 			end
 		end
 	end

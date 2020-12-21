@@ -562,17 +562,20 @@ if Manager.IsServer then
 				file:SaveData(true):RemoveData(true)
 			end
 			
-			Manager.wait(1)
+			while next(DataSync._Files) do
+				Manager.wait()
+			end
 		end)
 	end
 	
 	Network.CreateEvent(DataSync._Remotes.Download)
 	
 	Network:HookFunction(DataSync._Remotes.Upload,function(client,key,index,value)
-		assert(typeof(key) == 'string',typeof(key))
-		assert(index ~= nil)
+		local success,response = pcall(function()
+			return DataSync.GetStore(key):GetFile(index):GetData(value)
+		end)
 		
-		return DataSync.GetStore(key):GetFile(index):GetData(value)
+		return success and response or nil
 	end)
 	
 	Network:HookEvent(DataSync._Remotes.Subscribe,function(client,key,index,value)
