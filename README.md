@@ -6,6 +6,9 @@
 A Roblox Luau lazy-library loader with built-in libraries and functions.
 </div>
 
+## What's Loader?
+Loader is, at it's finest, a Roblox Luau library loader with some sweet built-in libraries. Loader aims to replace the require function within your game. By doing so, this allows you to lazy load modules, which means you can require modules by name like `require('Module')` & deep search your DataModel for that script. This can be pretty taxing at times, so check out the lite weight version of Loader here, [Lighter.](https://github.com/Mullets-Gavin/Loader/tree/master/lite)
+
 ## Installation
 You can install Loader with two methods, though it is recommended that you install Loader via the `rbxm` model located in the releases.
 
@@ -44,9 +47,10 @@ local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loade
 -- optional
 local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
 
-------------------
--- Load Example --
-------------------
+---------------------
+-- Require Example --
+---------------------
+
 local SomeModule = require('SomeModule') -- Loader('SomeModule')
 local SomeModule = require.require('SomeModule') -- Loader.require('SomeModule')
 local SomeClient = require.client('SomeClient') -- Loader.client('SomeClient')
@@ -55,6 +59,7 @@ local SomeServer = require.server('SomeServer') -- Loader.server('SomeServer')
 ------------------------
 -- Enumerator Example --
 ------------------------
+
 local Enums = Loader.enum('Example',{'this','is','a','test'})
 print(shared.Example.this) --> this
 print(shared.Example.is == shared.Example.a) --> false

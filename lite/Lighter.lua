@@ -6,7 +6,7 @@
 
 --[=[
 [DOCUMENTATION]:
-	https://github.com/Mullets-Gavin/Loader
+	https://github.com/Mullets-Gavin/Loader/tree/master/lite
 	Listed below is a quick glance on the API, visit the link above for proper documentation.
 	
 	Lighter(module)
@@ -220,16 +220,9 @@ function Lighter.__version(): string
 end
 Lighter.VERSION = Lighter.__version()
 
-do
-	if not Lighter._Initialized and (not IsStudio or (IsStudio and IsServer)) then
-		Lighter._Initialized = true
-		print('Lighter by Mullet Mafia Dev initialized','|',Lighter.VERSION)
-	end
-	
-	if IsClient and not IsStudio then
-		while not game:IsLoaded() do
-			game.Loaded:Wait()
-		end
+if IsClient and not IsStudio then
+	while not game:IsLoaded() do
+		game.Loaded:Wait()
 	end
 end
 
