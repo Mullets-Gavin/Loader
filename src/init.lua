@@ -97,8 +97,8 @@ Loader._Services = {
 }
 Loader._Version = {
 	['MAJOR'] = 1;
-	['MINOR'] = 1;
-	['PATCH'] = 2;
+	['MINOR'] = 2;
+	['PATCH'] = 0;
 }
 
 --[=[
@@ -106,11 +106,11 @@ Loader._Version = {
 	
 	Defaults:
 	Loader.MaxRetryTime = 5
-	Loader.Timeout = 0.5
+	Loader.Timeout = 5
 	Loader.Filter = false
 ]=]
 Loader.MaxRetryTime = 5
-Loader.Timeout = 0.5
+Loader.Timeout = 5
 Loader.Filter = false
 
 --[=[
@@ -277,7 +277,7 @@ function Loader.__client(module: ModuleScript, requirer: Script, __disabled: boo
 	if Loader._ModuleCache[name] then
 		return Loader._ModuleCache[name]
 	end
-	
+
 	while not Loader._ModuleCache[name] and os.clock() - clock < Loader.MaxRetryTime do
 		local player = Players.LocalPlayer
 		
@@ -314,7 +314,7 @@ end
 	@return RequiredModule?
 ]=]
 function Loader.require(module: ModuleScript | string | number): table?
-	local requirer = getfenv(2).script	
+	local requirer = getfenv(2).script
 	return Loader.__require(module,requirer)
 end
 
