@@ -1,7 +1,12 @@
-theme: jekyll-theme-minimal
 title: Loader
+logo: /assets/img/logo.png
+show_downloads: false
+theme: jekyll-theme-minimal
 description: >
   A Roblox Luau lazy-library loader with built-in libraries and functions.
   <hr/>
+  <a href="index.html">Getting Started</a><br/>
   <a href="test.html">Test page</a><br/>
+  <a href="documentation.html">Documentation</a><br/>
+  <a href="test.html">  Loader</a><br/>
   <br/><hr/>
