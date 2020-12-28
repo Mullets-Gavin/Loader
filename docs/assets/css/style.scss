@@ -2,7 +2,7 @@
 ---
 
 @import "jekyll-theme-minimal";
-@import "/docs/assets/css/code.scss"
+@import "/docs/assets/css/code.scss";
 
 body {
 	background-color: #121212;
@@ -30,5 +30,6 @@ code, strong {
 }
 
 pre {
+	color: #dfdfdf;
 	border: 1px solid #263c4f;
 }
