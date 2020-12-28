@@ -4,12 +4,12 @@ theme: jekyll-theme-minimal
 description: >
   A Roblox Luau lazy-library loader with built-in libraries and functions.
   <hr/>
-  <a href="index.html">Getting Started</a><br/>
-  <a href="documentation.html">Reference</a><br/>
-  <a href="test.html">• Loader</a><br/>
-  <a href="test.html">• DataSync</a><br/>
-  <a href="test.html">• Interface</a><br/>
-  <a href="test.html">• Manager</a><br/>
-  <a href="test.html">• Network</a><br/>
-  <a href="test.html">• Roblox</a><br/>
+  <a href="start.html">Getting Started</a><br/>
+  <a href="ref.html">Reference</a><br/>
+  <a href="loader.html">• Loader</a><br/>
+  <a href="datasync.html">• DataSync</a><br/>
+  <a href="interface.html">• Interface</a><br/>
+  <a href="manager.html">• Manager</a><br/>
+  <a href="network.html">• Network</a><br/>
+  <a href="roblox.html">• Roblox</a><br/>
   <br/><hr/>
