@@ -1,8 +1,8 @@
 ---
 ---
 
-@import "jekyll-theme-minimal";
-@import "./code.scss";
+@import "{{ site.theme }}";
+@import "code";
 
 body {
 	background-color: #121212;
