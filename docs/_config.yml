@@ -5,7 +5,11 @@ description: >
   A Roblox Luau lazy-library loader with built-in libraries and functions.
   <hr/>
   <a href="index.html">Getting Started</a><br/>
-  <a href="test.html">Test page</a><br/>
-  <a href="documentation.html">Documentation</a><br/>
+  <a href="documentation.html">Reference</a><br/>
   <a href="test.html">• Loader</a><br/>
+  <a href="test.html">• DataSync</a><br/>
+  <a href="test.html">• Interface</a><br/>
+  <a href="test.html">• Manager</a><br/>
+  <a href="test.html">• Network</a><br/>
+  <a href="test.html">• Roblox</a><br/>
   <br/><hr/>
