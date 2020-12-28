@@ -11,9 +11,11 @@ You can install Loader with three methods, though it is recommended that if you 
 * Make sure you have [Deliver](https://github.com/Mullets-Gavin/Deliver) installed, a command-line interface for Roblox Studio.
 * Open up Roblox Studio & enable the output and command line.
 * Run the installation command:
+
 ```
 --install Loader game.ReplicatedStorage
 ```
+
 * You're all set!
 
 ### Method 2, Model:
@@ -43,6 +45,16 @@ ReplicatedStorage
    ├─ Network
    └─ Roblox
 ```
+
+## Initialize
+
+Initialize Loader by requiring the module located in ReplicatedStorage. Paste this to each new script you make to stay consistent:
+```lua
+local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+```
+
+It's recommended to set Loader as a `require` replacement since it works the same, with added perks of diagnosing problems.
+
 
 ## More
 

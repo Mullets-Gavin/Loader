@@ -56,10 +56,10 @@ local DataSync = require('DataSync')
 -------------------
 
 local Store = DataSync.GetStore('DataStoreKey',{
-	['Cash'] = 0;
-	['Banned'] = false;
-	['Inventory'] = {
-		['Apple'] = 3;
+    ['Cash'] = 0;
+    ['Banned'] = false;
+    ['Inventory'] = {
+        ['Apple'] = 3;
 	}
 })
 
@@ -78,11 +78,11 @@ print(File:GetData('Cash'))
 
 local Subscription;
 Subscription = Store:Subscribe(player.UserId,'all',function(new,old)
-	print(new.Stat,'updated:',new.Value)
-	print('Previously',old.Value)
+    print(new.Stat,'updated:',new.Value)
+    print('Previously',old.Value)
 
-	if new.Value >= 10 then
-		Subscription:Disconnect()
-	end
+    if new.Value >= 10 then
+        Subscription:Disconnect()
+    end
 end)
 ```
