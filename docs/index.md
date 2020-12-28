@@ -1,145 +1,33 @@
-Text can be **bold**, _italic_, or ~~strikethrough~~.
+# Loader
 
-[Link to another page](./another-page.html).
+Loader is, at it's finest, a Roblox Luau library loader with some sweet built-in libraries. Loader aims to replace the require function within your game. By doing so, this allows you to lazy load modules, which means you can require modules by name like `require('Module')` & deep search your DataModel for that script.
 
-There should be whitespace between paragraphs.
+## Reasoning
 
-There should be whitespace between paragraphs. We recommend including a README, or a file with information about your project.
+You're probably thinking, "ANOTHER library loader?" and to that I say, yes. Loader is an extremely well-packed Library Loader to require modules. The perks of using Loader are as follows; lazy-load modules, quick load cached modules, and have global enums along with built in libraries.
 
-# Header 1
+Lazy-loading modules is using the name of the module to deep search the game to require. This can make workflows cleaner by applying a simple require for the name. Loader will also quick-load modules that have already been required (cached) which makes the deep search extremely inexpensive after the initial search. Built-into Loader is also an enum function to create global enums on the environment. Not to mention the extremely useful libraries included in Loader, which consistent of the following; DataSync, Interface, Manager, Network, and Roblox.
 
-This is a normal paragraph following a header. GitHub is a code hosting platform for version control and collaboration. It lets you and others work together on projects from anywhere.
+## Libraries
 
-## Header 2
+Loader is not just a library loader, but also a library provider. Built into Loader lays 5 libraries which take priority in string searching for a module. The libraries provided are all created Roblox-specific use for creating games. Each library comes with a vast amount of API which makes installing minor implementations of Roblox's API extremely easy and convenient.
 
-> This is a blockquote following a header.
->
-> When something is important enough, you do it even if the odds are not in your favor.
+### DataSync
 
-### Header 3
+DataSync is a streamlined DataStore wrapper which handles data replication for you. With no dependency on a player, this is the most versatile DataStore wrapper on Roblox with feature-rich API. Within the module, DataSync will handle all compression, replication, and saving/loading in a sleek and streamlined manner. DataSync is an extremely great choice for games that need a tough but customizable DataStore system. You can learn more about DataSync [here](datasync.md).
 
-```js
-// An exceptionally useful comment
-function func(param) {
-	var text = 'string';
-	for (var i = 0; i < param.length; i++) {
-		text += 1;
-	}
-	return {
-		'text': text,
-		'boolean': false
-	};
-}
-```
+### Interface
 
-```lua
--- explicit comments
--- TODO: make a beautiful theme
-function foo(...): typeof(true)
-	local args = {table.unpack(...)}
-	local self = {
-		[1] = args[true];
-		[2] = nil;
-		['property'] = Instance.new('Backpack')
-	}
-	
-	print(typeof(self.property))
-	
-	local logged = 0
-	for index = 1, 10 do
-		if index % 2 == 0 then
-			continue
-		end
-		
-		logged += 1
-	end
-	
-	print(args.something) -- oops
-	return args[false]:IsA('Actor')
-end
-```
+Handling the clients interface, inputs, and device information. Interface is a large library with dozens of API to detect platforms, wrapper functions for any user-made input, and most importantly, handling Roblox user-interface. Interface includes a built-in version of [Modular Component System](https://github.com/Mullets-Gavin/Roblox/tree/master/Client/MCS), an interface component system designed to create components on run time out of tagged UI elements. Read up more on Interface [here](interface.md).
 
-#### Header 4
+### Manager
 
-*   This is an unordered list following a header.
-*   This is an unordered list following a header.
-*   This is an unordered list following a header.
+The janitor of the school, Manager is a sleek and simple solution to handling events, cleaning up connections, and replacing legacy pure-Lua implementations, such as `spawn()`. Manager is the most accurate wrapper in timings, such as accurate `wait()` functions & controlled task schedulers. An extremely useful library full of useful API, you can find Manager [here](manager.md).
 
-##### Header 5
+### Network
 
-1.  This is an ordered list following a header.
-2.  This is an ordered list following a header.
-3.  This is an ordered list following a header.
+Wrapping your networking can be extremely beneficial. Network aims to provide a solution to debugging networking issues by providing tracebacks & error handling for you. Network will handle your RemoteEvents, RemoteFunctions, BindableEvents, and BindableFunctions. Using Network can also make it easier for teams to have a unified wrapper that forces a standard to utilize. Learn more about its uses [here](network.md).
 
-###### Header 6
+### Roblox
 
-| head1        | head two          | three |
-|:-------------|:------------------|:------|
-| ok           | good swedish fish | nice  |
-| out of stock | good and plenty   | nice  |
-| ok           | good `oreos`      | hmm   |
-| ok           | good `zoute` drop | yumm  |
-
-### There's a horizontal rule below this.
-
-* * *
-
-### Here is an unordered list:
-
-*   Item foo
-*   Item bar
-*   Item baz
-*   Item zip
-
-### And an ordered list:
-
-1.  Item one
-1.  Item two
-1.  Item three
-1.  Item four
-
-### And a nested list:
-
-- level 1 item
-  - level 2 item
-  - level 2 item
-    - level 3 item
-    - level 3 item
-- level 1 item
-  - level 2 item
-  - level 2 item
-  - level 2 item
-- level 1 item
-  - level 2 item
-  - level 2 item
-- level 1 item
-
-### Small image
-
-![Octocat](https://github.githubassets.com/images/icons/emoji/octocat.png)
-
-### Large image
-
-![Branching](https://guides.github.com/activities/hello-world/branching.png)
-
-
-### Definition lists can be used with HTML syntax.
-
-<dl>
-<dt>Name</dt>
-<dd>Godzilla</dd>
-<dt>Born</dt>
-<dd>1952</dd>
-<dt>Birthplace</dt>
-<dd>Japan</dd>
-<dt>Color</dt>
-<dd>Green</dd>
-</dl>
-
-```
-Long, single-line code blocks should not wrap. They should horizontally scroll if they are too long. This line should be long enough to demonstrate this.
-```
-
-```
-The final element.
-```
+A general, catch-all module for wrapping Roblox API in a clean manner. The Roblox library provides you the opportunity to simplify your calls to Roblox's unstable API, and provides an automatic retry system up to 5 runs to try and guarantee success. View what API is available already [here](roblox.md).
