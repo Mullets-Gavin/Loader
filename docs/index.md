@@ -19,17 +19,43 @@ This is a normal paragraph following a header. GitHub is a code hosting platform
 ### Header 3
 
 ```js
-// Javascript code with syntax highlighting.
-var fun = function lang(l) {
-  dateformat.i18n = require('./lang/' + l)
-  return true;
+// An exceptionally useful comment
+function func(param) {
+	var text = 'string';
+	for (var i = 0; i < param.length; i++) {
+		text += 1;
+	}
+	return {
+		'text': text,
+		'boolean': false
+	};
 }
 ```
 
-```ruby
-# Ruby code with syntax highlighting
-GitHubPages::Dependencies.gems.each do |gem, version|
-  s.add_dependency(gem, "= #{version}")
+```lua
+-- explicit comments
+-- TODO: make a beautiful theme
+function foo(...): typeof(true)
+	local args = {table.unpack(...)}
+	local self = {
+		[1] = args[true];
+		[2] = nil;
+		['property'] = Instance.new('Backpack')
+	}
+	
+	print(typeof(self.property))
+	
+	local logged = 0
+	for index = 1, 10 do
+		if index % 2 == 0 then
+			continue
+		end
+		
+		logged += 1
+	end
+	
+	print(args.something) -- oops
+	return args[false]:IsA('Actor')
 end
 ```
 
