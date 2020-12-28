@@ -587,6 +587,22 @@ function Manager.Tween(object: Instance, properties: table, goals: any | table, 
 end
 
 --[=[
+	Returns the size of the table
+	
+	@param master table -- table to count
+	@return number
+]=]
+function Manager.Count(master: table): number
+	local count = 0
+	
+	for index,element in pairs(master) do
+		count += 1
+	end
+	
+	return count
+end
+
+--[=[
 	Shallow copy a table
 	
 	@param master table -- the table to copy

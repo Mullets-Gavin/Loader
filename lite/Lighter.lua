@@ -51,7 +51,6 @@
 local RunService = game:GetService('RunService')
 
 local IsStudio = RunService:IsStudio() and 'Studio'
-local IsServer = RunService:IsServer() and 'Server'
 local IsClient = RunService:IsClient() and 'Client'
 
 local Lighter = {}
@@ -219,11 +218,5 @@ function Lighter.__version(): string
 	)
 end
 Lighter.VERSION = Lighter.__version()
-
-if IsClient and not IsStudio then
-	while not game:IsLoaded() do
-		game.Loaded:Wait()
-	end
-end
 
 return setmetatable(Lighter,Lighter)

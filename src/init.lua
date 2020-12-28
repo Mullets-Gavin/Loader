@@ -235,6 +235,16 @@ function Loader.__require(module: ModuleScript, requirer: Script): table?
 	return Loader._ModuleCache[name]
 end
 
+local widgetInfo = DockWidgetPluginGuiInfo.new(
+	Enum.InitialDockState.Float,  -- Widget will be initialized in floating panel
+	false,   -- Widget will be initially enabled
+	true,  -- Don't override the previous enabled state
+	350,    -- Default width of the floating window
+	550,    -- Default height of the floating window
+	350,    -- Minimum width of the floating window (optional)
+	550     -- Minimum height of the floating window (optional)
+)
+
 --[=[
 	The internal require function for filtering the server containers
 	
@@ -259,7 +269,7 @@ function Loader.__server(module: ModuleScript, requirer: Script): table?
 		end
 	end
 	
-	return Loader._ModuleCache[name]
+	return Loader._ModuleCache[name],true
 end
 
 --[=[
