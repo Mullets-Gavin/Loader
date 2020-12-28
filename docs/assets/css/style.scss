@@ -5,7 +5,7 @@
 
 body {
 	background-color: #121212;
-	color: #b5b5b5;
+	color: #cccccc;
 }
 
 a {
@@ -16,6 +16,18 @@ a:focus, a:hover {
 	color: #EC3F3F;
 }
 
+a small {
+	color: #cccccc;
+}
+
 h1, h2, h3, h4, h5, h6 {
 	color: #ffffff;
+}
+
+code, strong {
+	color: #dfdfdf;
+}
+
+pre {
+	border: 1px solid #263c4f;
 }
