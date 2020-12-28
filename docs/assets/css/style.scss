@@ -3,3 +3,19 @@
 
 @import "jekyll-theme-minimal";
 
+body {
+	background-color: #121212;
+	color: #b5b5b5;
+}
+
+a {
+	color: #FF6A6A;
+}
+
+a:focus a:hover {
+	color: #EC3F3F;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: #ffffff;
+}
