@@ -86,8 +86,10 @@ local SomeModule = require.require('SomeModule') -- Lighter.require('SomeModule'
 local plugin = script:FindFirstAncestorWhichIsA('Plugin')
 local require = require(plugin:FindFirstChild('Lighter',true))
 local SomeModule = require('SomeModule')
+```
 
--- Hierarchy
+### Hierarchy
+```
 plugin
 ├─ Main
 ├─ Lighter
