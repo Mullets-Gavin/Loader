@@ -60,7 +60,7 @@ local Store = DataSync.GetStore('DataStoreKey',{
     ['Banned'] = false;
     ['Inventory'] = {
         ['Apple'] = 3;
-	}
+    }
 })
 
 Store:FilterKeys('Banned')

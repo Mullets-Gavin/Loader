@@ -1,0 +1,3 @@
+# Interface
+
+Handling the clients interface, inputs, and device information. Interface is a large library with dozens of API to detect platforms, wrapper functions for any user-made input, and most importantly, handling Roblox user-interface. Interface includes a built-in version of [Modular Component System](https://github.com/Mullets-Gavin/Roblox/tree/master/Client/MCS), an interface component system designed to create components on run time out of tagged UI elements.
