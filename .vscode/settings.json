@@ -3,6 +3,7 @@
 		"trailing-space"
 	],
     "Lua.diagnostics.ignore": [
-        "Connect"
-    ]
+		"Connect",
+		"Wait"
+	]
 }
