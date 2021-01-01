@@ -12,7 +12,7 @@
 
 --[=[
 [DOCUMENTATION]:
-	https://github.com/Mullets-Gavin/Loader
+	https://mullets-gavin.github.io/Loader/
 	Listed below is a quick glance on the API, visit the link above for proper documentation.
 	
 	Loader(module)
@@ -72,33 +72,33 @@
 	SOFTWARE.
 ]=]
 
-local Chat = game:GetService('Chat')
-local Players = game:GetService('Players')
-local Geometry = game:GetService('Geometry')
-local RunService = game:GetService('RunService')
-local ServerStorage = game:GetService('ServerStorage')
-local ReplicatedFirst = game:GetService('ReplicatedFirst')
-local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local ServerScriptService = game:GetService('ServerScriptService')
+local Chat = game:GetService("Chat")
+local Players = game:GetService("Players")
+local Geometry = game:GetService("Geometry")
+local RunService = game:GetService("RunService")
+local ServerStorage = game:GetService("ServerStorage")
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
-local IsStudio = RunService:IsStudio() and 'Studio'
-local IsServer = RunService:IsServer() and 'Server'
-local IsClient = RunService:IsClient() and 'Client'
+local IsStudio = RunService:IsStudio() and "Studio"
+local IsServer = RunService:IsServer() and "Server"
+local IsClient = RunService:IsClient() and "Client"
 
 local Loader = {}
 Loader.__index = Loader
 Loader._ModuleCache = {}
 Loader._Name = string.upper(script.Name)
-Loader._Containers = {'PlayerScripts','PlayerGui','Backpack'};
+Loader._Containers = { "PlayerScripts", "PlayerGui", "Backpack" }
 Loader._Services = {
-	['Client'] = {ReplicatedFirst};
-	['Server'] = {ServerStorage, ServerScriptService};
-	['Shared'] = {ReplicatedStorage, Chat, Geometry};
+	["Client"] = { ReplicatedFirst },
+	["Server"] = { ServerStorage, ServerScriptService },
+	["Shared"] = { ReplicatedStorage, Chat, Geometry },
 }
 Loader._Version = {
-	['MAJOR'] = 1;
-	['MINOR'] = 2;
-	['PATCH'] = 0;
+	["MAJOR"] = 1,
+	["MINOR"] = 3,
+	["PATCH"] = 0,
 }
 
 --[=[
@@ -123,34 +123,38 @@ Loader.Filter = false
 ]=]
 local function SafeRequire(module: ModuleScript, requirer: Script): table?
 	local time = os.clock()
-	local event; event = RunService.Stepped:Connect(function()
+	local event
+	event = RunService.Stepped:Connect(function()
 		if os.clock() >= time + Loader.Timeout then
-			warn(string.format('%s -> %s is taking too long',tostring(requirer),tostring(module)))
+			warn(string.format("%s -> %s is taking too long", tostring(requirer), tostring(module)))
 			if event then
 				event:Disconnect()
 				event = nil
 			end
 		end
 	end)
-	
+
 	local loaded
-	local success,response = pcall(function()
+	local success, response = pcall(function()
 		loaded = require(module)
 	end)
-	
+
 	if not success then
-		if type(loaded) == 'nil' and string.find(response,'exactly one value') then
+		if type(loaded) == "nil" and string.find(response, "exactly one value") then
 			error("Module did not return exactly one value: " .. module:GetFullName(), 3)
 		else
-			error("Module " .. module:GetFullName() .. " experienced an error while loading: " .. response, 3)
+			error(
+				"Module " .. module:GetFullName() .. " experienced an error while loading: " .. response,
+				3
+			)
 		end
 	end
-	
+
 	if event then
 		event:Disconnect()
 		event = nil
 	end
-	
+
 	return loaded
 end
 
@@ -163,15 +167,19 @@ end
 	@private
 ]=]
 local function DeepSearch(name: string, list: table): ModuleScript?
-	for count,asset in ipairs(list) do
-		if not asset:IsA('ModuleScript') then continue end
-		if Loader.Filter and asset.Parent:IsA('ModuleScript') then continue end
-		
+	for count, asset in ipairs(list) do
+		if not asset:IsA("ModuleScript") then
+			continue
+		end
+		if Loader.Filter and asset.Parent:IsA("ModuleScript") then
+			continue
+		end
+
 		if string.lower(asset.Name) == name then
 			return asset
 		end
 	end
-	
+
 	return nil
 end
 
@@ -185,65 +193,58 @@ end
 ]=]
 function Loader.__require(module: ModuleScript, requirer: Script): table?
 	local clock = os.clock()
-	local name = string.lower(typeof(module) == 'Instance' and module.Name or module)
-	
+	local name = string.lower(typeof(module) == "Instance" and module.Name or module)
+
 	if Loader._ModuleCache[name] then
 		return Loader._ModuleCache[name]
 	end
-	
-	if typeof(module) == 'number' or typeof(module) == 'Instance' then
+
+	if typeof(module) == "number" or typeof(module) == "Instance" then
 		Loader._ModuleCache[name] = require(module)
 		return Loader._ModuleCache[name]
 	end
-	
+
 	while not Loader._ModuleCache[name] and os.clock() - clock < Loader.MaxRetryTime do
-		local libModule = DeepSearch(name,script:GetChildren())
+		local libModule = DeepSearch(name, script:GetChildren())
 		if libModule then
-			Loader._ModuleCache[name] = SafeRequire(libModule,requirer)
+			Loader._ModuleCache[name] = SafeRequire(libModule, requirer)
 			return Loader._ModuleCache[name]
 		end
-		
-		for index,service in pairs(Loader._Services.Shared) do
-			local sharedModule = DeepSearch(name,service:GetDescendants())
-			
+
+		for index, service in pairs(Loader._Services.Shared) do
+			local sharedModule = DeepSearch(name, service:GetDescendants())
+
 			if sharedModule then
-				Loader._ModuleCache[name] = SafeRequire(sharedModule,requirer)
+				Loader._ModuleCache[name] = SafeRequire(sharedModule, requirer)
 				return Loader._ModuleCache[name]
 			end
 		end
-		
+
 		if IsClient then
-			local response = Loader.__client(module,requirer,true)
-			
+			local response = Loader.__client(module, requirer, true)
+
 			if response then
 				return Loader._ModuleCache[name]
 			end
 		elseif IsServer then
-			local response = Loader.__server(module,requirer)
-			
+			local response = Loader.__server(module, requirer)
+
 			if response then
 				return Loader._ModuleCache[name]
 			end
-			
+
 			break
 		end
-		
+
 		RunService.Heartbeat:Wait()
 	end
-	
-	assert(Loader._ModuleCache[name],"attempted to require a non-existant module: '"..name.."'")
+
+	assert(
+		Loader._ModuleCache[name],
+		"attempted to require a non-existant module: '" .. name .. "'"
+	)
 	return Loader._ModuleCache[name]
 end
-
-local widgetInfo = DockWidgetPluginGuiInfo.new(
-	Enum.InitialDockState.Float,  -- Widget will be initialized in floating panel
-	false,   -- Widget will be initially enabled
-	true,  -- Don't override the previous enabled state
-	350,    -- Default width of the floating window
-	550,    -- Default height of the floating window
-	350,    -- Minimum width of the floating window (optional)
-	550     -- Minimum height of the floating window (optional)
-)
 
 --[=[
 	The internal require function for filtering the server containers
@@ -254,22 +255,22 @@ local widgetInfo = DockWidgetPluginGuiInfo.new(
 	@private
 ]=]
 function Loader.__server(module: ModuleScript, requirer: Script): table?
-	local name = string.lower(typeof(module) == 'Instance' and module.Name or module)
-	
+	local name = string.lower(typeof(module) == "Instance" and module.Name or module)
+
 	if Loader._ModuleCache[name] then
 		return Loader._ModuleCache[name]
 	end
-	
-	for index,service in pairs(Loader._Services.Server) do
-		local serverModule = DeepSearch(name,service:GetDescendants())
-		
+
+	for index, service in pairs(Loader._Services.Server) do
+		local serverModule = DeepSearch(name, service:GetDescendants())
+
 		if serverModule then
-			Loader._ModuleCache[name] = SafeRequire(serverModule,requirer)
+			Loader._ModuleCache[name] = SafeRequire(serverModule, requirer)
 			return Loader._ModuleCache[name]
 		end
 	end
-	
-	return Loader._ModuleCache[name],true
+
+	return Loader._ModuleCache[name]
 end
 
 --[=[
@@ -282,38 +283,42 @@ end
 ]=]
 function Loader.__client(module: ModuleScript, requirer: Script, __disabled: boolean?): table?
 	local clock = os.clock()
-	local name = string.lower(typeof(module) == 'Instance' and module.Name or module)
-	
+	local name = string.lower(typeof(module) == "Instance" and module.Name or module)
+
 	if Loader._ModuleCache[name] then
 		return Loader._ModuleCache[name]
 	end
 
 	while not Loader._ModuleCache[name] and os.clock() - clock < Loader.MaxRetryTime do
 		local player = Players.LocalPlayer
-		
-		for index,container in pairs(player:GetChildren()) do
-			if not table.find(Loader._Containers,container.Name) then continue end
-			
-			local clientModule = DeepSearch(name,container:GetDescendants())
-			
+
+		for index, container in pairs(player:GetChildren()) do
+			if not table.find(Loader._Containers, container.Name) then
+				continue
+			end
+
+			local clientModule = DeepSearch(name, container:GetDescendants())
+
 			if clientModule then
-				Loader._ModuleCache[name] = SafeRequire(clientModule,requirer)
+				Loader._ModuleCache[name] = SafeRequire(clientModule, requirer)
 				return Loader._ModuleCache[name]
 			end
 		end
-		
-		for index,service in pairs(Loader._Services.Client) do
-			local clientModule = DeepSearch(name,service:GetDescendants())
-			
+
+		for index, service in pairs(Loader._Services.Client) do
+			local clientModule = DeepSearch(name, service:GetDescendants())
+
 			if clientModule then
-				Loader._ModuleCache[name] = SafeRequire(clientModule,requirer)
+				Loader._ModuleCache[name] = SafeRequire(clientModule, requirer)
 				return Loader._ModuleCache[name]
 			end
 		end
-		
-		if __disabled then break end
+
+		if __disabled then
+			break
+		end
 	end
-	
+
 	return Loader._ModuleCache[name]
 end
 
@@ -325,7 +330,7 @@ end
 ]=]
 function Loader.require(module: ModuleScript | string | number): table?
 	local requirer = getfenv(2).script
-	return Loader.__require(module,requirer)
+	return Loader.__require(module, requirer)
 end
 
 --[=[
@@ -335,10 +340,10 @@ end
 	@return RequiredModule?
 ]=]
 function Loader.server(module: ModuleScript | string | number): table?
-	assert(IsServer,"Attempted to access .server from the client")
-	
+	assert(IsServer, "Attempted to access .server from the client")
+
 	local requirer = getfenv(2).script
-	return Loader.__server(module,require())
+	return Loader.__server(module, require())
 end
 
 --[=[
@@ -348,10 +353,10 @@ end
 	@return RequiredModule?
 ]=]
 function Loader.client(module: ModuleScript | string | number): table?
-	assert(IsClient,"Attempted to access .client from the server")
-	
+	assert(IsClient, "Attempted to access .client from the server")
+
 	local requirer = getfenv(2).script
-	return Loader.__client(module,requirer)
+	return Loader.__client(module, requirer)
 end
 
 --[=[
@@ -362,14 +367,14 @@ end
 	@return table
 ]=]
 function Loader.enum(name: string, members: table): table
-	assert(shared[name] == nil,"Error claiming enum '"..name.."': already claimed")
-	
+	assert(shared[name] == nil, "Error claiming enum '" .. name .. "': already claimed")
+
 	local proxy = {}
-	
-	for index,enum in ipairs(members) do
+
+	for index, enum in ipairs(members) do
 		proxy[enum] = enum
 	end
-	
+
 	shared[name] = proxy
 	return shared[name]
 end
@@ -381,8 +386,8 @@ end
 	@return table?
 ]=]
 function Loader:__call(module: ModuleScript | string | number): table?
-	local requirer = getfenv(2).script	
-	return Loader.__require(module,requirer)
+	local requirer = getfenv(2).script
+	return Loader.__require(module, requirer)
 end
 
 --[=[
@@ -391,7 +396,7 @@ end
 	@return FormattedVersion
 ]=]
 function Loader:__tostring(): string
-	return 'Loader '..Loader.__version()
+	return "Loader " .. Loader.__version()
 end
 
 --[=[
@@ -400,7 +405,8 @@ end
 	@return FormattedVersion
 ]=]
 function Loader.__version(): string
-	return string.format('v%d.%d.%d',
+	return string.format(
+		"v%d.%d.%d",
 		Loader._Version.MAJOR,
 		Loader._Version.MINOR,
 		Loader._Version.PATCH
@@ -410,10 +416,10 @@ Loader.VERSION = Loader.__version()
 
 do
 	if not shared.Loader and (not IsStudio or (IsStudio and IsServer)) then
-		Loader.enum('Loader',{'Initialized'})
-		print('Loader by Mullet Mafia Dev initialized','|',Loader.VERSION)
+		Loader.enum("Loader", { "Initialized" })
+		print("Loader by Mullet Mafia Dev initialized", "|", Loader.VERSION)
 	end
-	
+
 	if IsClient and not IsStudio then
 		while not game:IsLoaded() do
 			game.Loaded:Wait()
@@ -421,4 +427,4 @@ do
 	end
 end
 
-return setmetatable(Loader,Loader)
+return setmetatable(Loader, Loader)

@@ -9,9 +9,9 @@ Input._InputCallbacks = {}
 Input._InputTouchCallbacks = {}
 Input._Buttons = {}
 
-local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = require('Manager')
-local UserInputService = game:GetService('UserInputService')
+local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
+local Manager = require("Manager")
+local UserInputService = game:GetService("UserInputService")
 
 --[=[
 	Find the center of a map based on a number
@@ -20,7 +20,7 @@ local UserInputService = game:GetService('UserInputService')
 	@private
 ]=]
 local function Map(x: number, x0: number, x1: number, y0: number, y1: number): number
-	return (x-x0)/(x1-x0)*(y1-y0)+y0
+	return (x - x0) / (x1 - x0) * (y1 - y0) + y0
 end
 
 --[=[
@@ -35,7 +35,7 @@ function Input.MakePositioning(num: number): table
 	local start_row = 3
 	local increment = 1
 	local proxy = {}
-	
+
 	while accum > 0 do
 		local row_size = start_row + #proxy * increment
 		if accum >= row_size then
@@ -46,7 +46,7 @@ function Input.MakePositioning(num: number): table
 			accum = 0
 		end
 	end
-	
+
 	return proxy
 end
 
@@ -59,10 +59,10 @@ end
 ]=]
 function Input.GetPositioning(config: table): table
 	local res = config.RESOLUTION
-	
+
 	local b_pos = config.CENTER_BUTTON_POSITION
 	local min_radius
-	if b_pos.X/res.X > b_pos.Y/res.Y then
+	if b_pos.X / res.X > b_pos.Y / res.Y then
 		min_radius = res.X - b_pos.X
 	else
 		min_radius = res.Y - b_pos.Y
@@ -70,29 +70,37 @@ function Input.GetPositioning(config: table): table
 	if config.MIN_RADIUS then
 		min_radius = math.max(min_radius, config.MIN_RADIUS)
 	end
-	
-	local approx_angle = (math.pi/2)/(config.N_BUTTONS+1)
-	local factor = math.sqrt(2 + 2*math.cos(approx_angle))
-	local approx_space = factor*0.5*(config.BUTTON_SIZE.X.Offset + config.BUTTON_SIZE.X.Scale * res.X)
+
+	local approx_angle = (math.pi / 2) / (config.N_BUTTONS + 1)
+	local factor = math.sqrt(2 + 2 * math.cos(approx_angle))
+	local approx_space = factor * 0.5 * (config.BUTTON_SIZE.X.Offset + config.BUTTON_SIZE.X.Scale * res.X)
 	local min_space = (approx_space + config.BUTTON_PADDING) * (config.N_BUTTONS + 1)
-	local radius = math.max(min_space / (0.5 * math.pi), min_radius + config.BUTTON_SIZE.X.Offset + config.MIN_RADIUS_PADDING)
-	
+	local radius = math.max(
+		min_space / (0.5 * math.pi),
+		min_radius + config.BUTTON_SIZE.X.Offset + config.MIN_RADIUS_PADDING
+	)
+
 	local corner = b_pos + config.CENTER_BUTTON_SIZE
 	local x_offset = res.X - corner.X
 	local y_offset = res.Y - corner.Y
-	
-	local extra_angle_x = math.asin(x_offset/radius)
-	local extra_angle_y = math.asin(y_offset/radius)
-	local total_angle = math.pi/2 + extra_angle_x + extra_angle_y
-	
-	local result = {list = {}, radius = radius}
+
+	local extra_angle_x = math.asin(x_offset / radius)
+	local extra_angle_y = math.asin(y_offset / radius)
+	local total_angle = math.pi / 2 + extra_angle_x + extra_angle_y
+
+	local result = { list = {}, radius = radius }
 	for index = 1, config.N_BUTTONS do
-		local angle = (math.pi/2)/(config.N_BUTTONS+1) * index
-		
-		angle = Map(angle, 0, math.pi/2, -extra_angle_x, math.pi/2 + extra_angle_y)
-		result.list[index] = UDim2.new(0, res.X - x_offset + math.cos(math.pi/2 + angle) * radius, 0, res.Y - y_offset - math.sin(math.pi/2 + angle) * radius)
+		local angle = (math.pi / 2) / (config.N_BUTTONS + 1) * index
+
+		angle = Map(angle, 0, math.pi / 2, -extra_angle_x, math.pi / 2 + extra_angle_y)
+		result.list[index] = UDim2.new(
+			0,
+			res.X - x_offset + math.cos(math.pi / 2 + angle) * radius,
+			0,
+			res.Y - y_offset - math.sin(math.pi / 2 + angle) * radius
+		)
 	end
-	
+
 	return result
 end
 
@@ -106,18 +114,18 @@ end
 ]=]
 function Input.GetPositionsWithRows(buttons: table, config: table): table
 	local result = {}
-	
+
 	local last_offset = config.MIN_RADIUS or 0
 	for index, n_buttons in ipairs(buttons) do
 		config.N_BUTTONS = n_buttons
 		config.MIN_RADIUS = last_offset
-		
+
 		local positions = Input.GetPositioning(config)
-		table.move(positions.list, 1, #positions.list, #result+1, result)
-		
+		table.move(positions.list, 1, #positions.list, #result + 1, result)
+
 		last_offset = positions.radius
 	end
-	
+
 	return result
 end
 
@@ -130,31 +138,45 @@ end
 ]=]
 function Input.Effects(name: string): nil
 	local button = Input:GetButton(name)
-	
+
 	if button then
-		Manager:ConnectKey(name,button.MouseButton1Down:Connect(function()
-			button.ImageColor3 = Color3.fromRGB(255, 255, 255)
-			button.ImageTransparency = 0.75
-		end))
-		
-		Manager:ConnectKey(name,button.MouseButton1Up:Connect(function()
-			button.ImageColor3 = Color3.fromRGB(0, 0, 0)
-			button.ImageTransparency = 0.5
-		end))
-		
-		Manager:ConnectKey(name,button.MouseLeave:Connect(function()
-			button.ImageColor3 = Color3.fromRGB(0, 0, 0)
-			button.ImageTransparency = 0.5
-		end))
-		
-		Manager:ConnectKey(name,button.InputBegan:Connect(function(obj)
-			if not typeof(Input._InputCache[name]) == 'table' then return end
-			if not Input._InputCache[name]['Enabled'] or not Input._InputCache[name]['Function'] or not Input._InputCache[name]['Verify'] then
-				return
-			end
-			
-			Input._InputCache[name]['Function'](obj)
-		end))
+		Manager:ConnectKey(
+			name,
+			button.MouseButton1Down:Connect(function()
+				button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+				button.ImageTransparency = 0.75
+			end)
+		)
+
+		Manager:ConnectKey(
+			name,
+			button.MouseButton1Up:Connect(function()
+				button.ImageColor3 = Color3.fromRGB(0, 0, 0)
+				button.ImageTransparency = 0.5
+			end)
+		)
+
+		Manager:ConnectKey(
+			name,
+			button.MouseLeave:Connect(function()
+				button.ImageColor3 = Color3.fromRGB(0, 0, 0)
+				button.ImageTransparency = 0.5
+			end)
+		)
+
+		Manager:ConnectKey(
+			name,
+			button.InputBegan:Connect(function(obj)
+				if not typeof(Input._InputCache[name]) == "table" then
+					return
+				end
+				if not Input._InputCache[name]["Enabled"] or not Input._InputCache[name]["Function"] or not Input._InputCache[name]["Verify"] then
+					return
+				end
+
+				Input._InputCache[name]["Function"](obj)
+			end)
+		)
 	end
 end
 
@@ -181,18 +203,18 @@ function Input:CreateButton(name: string, parent: GuiObject?): GuiObject
 	if Input:GetButton(name) then
 		return Input:GetButton(name)
 	end
-	
-	local button = Instance.new('ImageButton')
+
+	local button = Instance.new("ImageButton")
 	button.Name = name
 	button.BackgroundTransparency = 1
-	button.Image = 'rbxassetid://3376854277'
-	button.ImageColor3 = Color3.fromRGB(0,0,0)
+	button.Image = "rbxassetid://3376854277"
+	button.ImageColor3 = Color3.fromRGB(0, 0, 0)
 	button.ImageTransparency = 0.5
 	button.Visible = false
-	local icon = Instance.new('ImageLabel')
-	icon.Name = 'Icon'
+	local icon = Instance.new("ImageLabel")
+	icon.Name = "Icon"
 	icon.BackgroundTransparency = 1
-	icon.Image = ''
+	icon.Image = ""
 	icon.ImageColor3 = Color3.fromRGB(0, 0, 0)
 	icon.ImageTransparency = 0.5
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -200,13 +222,13 @@ function Input:CreateButton(name: string, parent: GuiObject?): GuiObject
 	icon.Size = UDim2.new(0.8, 0, 0.8, 0)
 	icon.ZIndex = 10
 	icon.Parent = button
-	
+
 	Input._Buttons[name] = button
-	
+
 	if parent then
 		button.Parent = parent
 	end
-	
+
 	return button
 end
 
@@ -221,11 +243,11 @@ end
 function Input:EnableButton(name: string, state: boolean): nil
 	local button = Input:GetButton(name)
 	local data = Input._InputCache[name]
-	
+
 	if not button or not data then
 		return
 	end
-	
+
 	if state then
 		button.Icon.ImageColor3 = Color3.fromRGB(255, 255, 255)
 		button.Icon.ImageTransparency = 0
@@ -236,44 +258,50 @@ function Input:EnableButton(name: string, state: boolean): nil
 end
 
 if Manager.IsClient then
-	UserInputService.InputBegan:Connect(function(obj,processed)
-		if processed then return end
-		for name,data in pairs(Input._InputCache) do
-			if data['Verify'] and data['Enabled'] and data['Function'] and data['Keys'] then
-				if table.find(data['Keys'],obj.KeyCode) or table.find(data['Keys'],obj.UserInputType) then
-					local code = data['Function']
-					Manager.wrap(code,obj)
+	UserInputService.InputBegan:Connect(function(obj, processed)
+		if processed then
+			return
+		end
+		for name, data in pairs(Input._InputCache) do
+			if data["Verify"] and data["Enabled"] and data["Function"] and data["Keys"] then
+				if table.find(data["Keys"], obj.KeyCode) or table.find(data["Keys"], obj.UserInputType) then
+					local code = data["Function"]
+					Manager.wrap(code, obj)
 				end
 			end
 		end
-		
-		for index,data in pairs(Input._InputCallbacks) do
-			if data['Type'] == 'Began' then
-				if table.find(data['Keys'],obj.KeyCode) or table.find(data['Keys'],obj.UserInputType) then
-					local code = data['Code']
-					Manager.wrap(code,obj)
-				end
-			end
-		end
-	end)
-	
-	UserInputService.InputEnded:Connect(function(obj,processed)
-		if processed then return end
-		for index,data in pairs(Input._InputCallbacks) do
-			if data['Type'] == 'Ended' then
-				if table.find(data['Keys'],obj.KeyCode) or table.find(data['Keys'],obj.UserInputType) then
-					local code = data['Code']
-					Manager.wrap(code,obj)
+
+		for index, data in pairs(Input._InputCallbacks) do
+			if data["Type"] == "Began" then
+				if table.find(data["Keys"], obj.KeyCode) or table.find(data["Keys"], obj.UserInputType) then
+					local code = data["Code"]
+					Manager.wrap(code, obj)
 				end
 			end
 		end
 	end)
 
-	UserInputService.TouchTap:Connect(function(obj,processed)
-		if processed then return end
-		for index,data in pairs(Input._InputTouchCallbacks) do
-			local code = data['Code']
-			Manager.wrap(code,obj)
+	UserInputService.InputEnded:Connect(function(obj, processed)
+		if processed then
+			return
+		end
+		for index, data in pairs(Input._InputCallbacks) do
+			if data["Type"] == "Ended" then
+				if table.find(data["Keys"], obj.KeyCode) or table.find(data["Keys"], obj.UserInputType) then
+					local code = data["Code"]
+					Manager.wrap(code, obj)
+				end
+			end
+		end
+	end)
+
+	UserInputService.TouchTap:Connect(function(obj, processed)
+		if processed then
+			return
+		end
+		for index, data in pairs(Input._InputTouchCallbacks) do
+			local code = data["Code"]
+			Manager.wrap(code, obj)
 		end
 	end)
 end

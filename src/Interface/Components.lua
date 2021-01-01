@@ -4,12 +4,12 @@
 ]=]
 
 local Components = {}
-Components._Name = 'Modular Component System'
+Components._Name = "Modular Component System"
 Components._Bindings = {}
 
-local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = require('Manager')
-local RunService = game:GetService('RunService')
+local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
+local Manager = require("Manager")
+local RunService = game:GetService("RunService")
 
 --[=[
 	Construct a new component out of a pre-existing element
@@ -18,18 +18,19 @@ local RunService = game:GetService('RunService')
 	@return Class
 ]=]
 function Components.new(element: GuiObject): typeof(Components.new())
-	local config = element:FindFirstChildWhichIsA('Configuration') do
+	local config = element:FindFirstChildWhichIsA("Configuration")
+	do
 		if not config then
-			config = Instance.new('Configuration')
-			config.Name = 'MCS_'..element.Name
+			config = Instance.new("Configuration")
+			config.Name = "MCS_" .. element.Name
 			config.Parent = element
 		end
 	end
-	
+
 	return setmetatable({
-		element = element;
-		config = config;
-	},Components)
+		element = element,
+		config = config,
+	}, Components)
 end
 
 --[=[
@@ -40,8 +41,11 @@ end
 	@return nil
 ]=]
 function Components:Bind(name: string, code: (any) -> nil): nil
-	assert(Components._Bindings[name] == nil,"Attempted to overwrite binding on '"..name.."'")
-	
+	assert(
+		Components._Bindings[name] == nil,
+		"Attempted to overwrite binding on '" .. name .. "'"
+	)
+
 	Components._Bindings[name] = code
 end
 
@@ -63,10 +67,13 @@ end
 	@return nil
 ]=]
 function Components:Fire(name: string, ...): nil
-	assert(Components._Bindings[name],"Attempted to fire a non-existant binding on '"..name.."'")
-	
+	assert(
+		Components._Bindings[name],
+		"Attempted to fire a non-existant binding on '" .. name .. "'"
+	)
+
 	local code = Components._Bindings[name]
-	Manager.wrap(code,...)
+	Manager.wrap(code, ...)
 end
 
 --[=[
@@ -77,7 +84,7 @@ end
 ]=]
 function Components:Get(name: string): any?
 	local obj = self.config:FindFirstChild(name)
-	
+
 	if obj then
 		return obj.Value
 	else
@@ -94,13 +101,13 @@ end
 ]=]
 function Components:Set(name: string, value: any): any?
 	local obj = self.config:FindFirstChild(name)
-	
+
 	if obj then
 		obj.Value = value
 	else
-		self.config:SetAttribute(name,value)
+		self.config:SetAttribute(name, value)
 	end
-	
+
 	return value
 end
 
@@ -113,16 +120,16 @@ end
 ]=]
 function Components:Update(name: string, value: any): any
 	local get = self:Get(name)
-	
-	assert(get ~= nil,"Attempted to update nil attribute '"..name.."'")
-	
-	if typeof(get) == 'number' and typeof(value) == 'number' then
+
+	assert(get ~= nil, "Attempted to update nil attribute '" .. name .. "'")
+
+	if typeof(get) == "number" and typeof(value) == "number" then
 		get += value
-		self:Set(name,get)
+		self:Set(name, get)
 	else
-		self:Set(name,value)
+		self:Set(name, value)
 	end
-	
+
 	return self:Get(name)
 end
 
@@ -135,32 +142,33 @@ end
 ]=]
 function Components:Attribute(name: string, code: (any, any) -> nil): RBXScriptConnection
 	local last = self:Get(name)
-	
-	assert(last ~= nil,"Attempted to bind to nil attribute '"..name.."'")
-	
-	Manager.wrap(code,last,last)
-	
+
+	assert(last ~= nil, "Attempted to bind to nil attribute '" .. name .. "'")
+
+	Manager.wrap(code, last, last)
+
 	local obj = self.config:FindFirstChild(name)
-	local signal; do
+	local signal
+	do
 		if obj then
 			signal = obj.Changed:Connect(function(new)
-				Manager.wrap(code,new,last)
-				
+				Manager.wrap(code, new, last)
+
 				last = new
 			end)
 		else
 			signal = self.config:GetAttributeChangedSignal(name):Connect(function()
 				local new = self:Get(name)
-				
-				Manager.wrap(code,new,last)
-				
+
+				Manager.wrap(code, new, last)
+
 				last = new
 			end)
 		end
 	end
-	
-	Manager:ConnectKey('attribute_'..name,signal)
-	
+
+	Manager:ConnectKey("attribute_" .. name, signal)
+
 	return signal
 end
 
@@ -176,9 +184,9 @@ function Components:Connect(object: GuiObject, event: string, code: (any) -> nil
 	local signal = object[event]:Connect(function(...)
 		code(...)
 	end)
-	
-	Manager:ConnectKey('connection_'..object.Name,signal)
-	
+
+	Manager:ConnectKey("connection_" .. object.Name, signal)
+
 	return signal
 end
 
@@ -195,9 +203,9 @@ function Components:Lifecycle(name: string, code: (number) -> nil): RBXScriptCon
 			code(delta)
 		end
 	end)
-	
-	Manager:ConnectKey('lifecycle_'..name,signal)
-	
+
+	Manager:ConnectKey("lifecycle_" .. name, signal)
+
 	return signal
 end
 
@@ -208,9 +216,9 @@ end
 	@return nil
 ]=]
 function Components:Destroy(name: string): nil
-	Manager:DisconnectKey('attribute_'..name)
-	Manager:DisconnectKey('connection_'..name)
-	Manager:DisconnectKey('lifecycle_'..name)
+	Manager:DisconnectKey("attribute_" .. name)
+	Manager:DisconnectKey("connection_" .. name)
+	Manager:DisconnectKey("lifecycle_" .. name)
 end
 
 --[=[
@@ -223,16 +231,19 @@ function Components:__index(index: any): any?
 	if Components[index] then
 		return Components[index]
 	end
-	
+
 	if index == self.element.Name then
 		return self.element
 	end
-	
+
 	if self.element[index] then
 		return self.element[index]
 	end
-	
-	error(index..' is not a valid member of '..self.element:GetFullName()..' "'..self.element.ClassName..'"',2)
+
+	error(
+		index .. " is not a valid member of " .. self.element:GetFullName() .. " \"" .. self.element.ClassName .. "\"",
+		2
+	)
 end
 
 --[=[
@@ -244,9 +255,9 @@ end
 ]=]
 function Components:__call(name: string, value: any?): any?
 	if value ~= nil then
-		self:Set(name,value)
+		self:Set(name, value)
 	end
-	
+
 	return self:Get(name)
 end
 

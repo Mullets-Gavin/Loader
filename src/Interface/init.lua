@@ -107,18 +107,17 @@ Interface._ComponentCode = {}
 Interface._ComponentCache = {}
 Interface._AssignSizesCache = {}
 Interface._AssignSizesOveride = false
-setmetatable(Interface,Interface)
+setmetatable(Interface, Interface)
 
-local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Manager = require('Manager')
-local Input = require(script:WaitForChild('Input'))
-local Components = require(script:WaitForChild('Components'))
-local Animator = require(script:WaitForChild('Animator'))
-local Workspace = game:GetService('Workspace')
-local GuiService = game:GetService('GuiService')
-local Players = game:GetService('Players')
-local UserInputService = game:GetService('UserInputService')
-local CollectionService = game:GetService('CollectionService')
+local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
+local Manager = require("Manager")
+local Input = require(script:WaitForChild("Input"))
+local Components = require(script:WaitForChild("Components"))
+local Workspace = game:GetService("Workspace")
+local GuiService = game:GetService("GuiService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local CollectionService = game:GetService("CollectionService")
 local Camera = Workspace.CurrentCamera
 local Container
 
@@ -130,7 +129,7 @@ local Container
 ]=]
 local function FormatColor(color: Color3): string
 	return string.format(
-		'rgb(%i,%i,%i)',
+		"rgb(%i,%i,%i)",
 		math.floor(color.r * 255),
 		math.floor(color.g * 255),
 		math.floor(color.b * 255)
@@ -148,39 +147,41 @@ end
 	@private
 ]=]
 local function ResizeContainer(element: GuiObject, scale: number, min: number, max: number): nil
-	local viewportSize = Camera.ViewportSize; do
+	local viewportSize = Camera.ViewportSize
+	do
 		if viewportSize.Y <= 700 then
 			Interface._AssignSizesOveride = true
 		else
 			Interface._AssignSizesOveride = false
 		end
 	end
-	
-	local Size = Interface._AssignSizesCache[element]['Size']
+
+	local Size = Interface._AssignSizesCache[element]["Size"]
 	if UserInputService.TouchEnabled or Interface._AssignSizesOveride then
-		
-		local uiSize = (viewportSize.X/viewportSize.Y) * scale
+
+		local uiSize = (viewportSize.X / viewportSize.Y) * scale
 		local clampX = math.clamp(Size.X.Scale * uiSize, min, max)
 		local clampY = math.clamp(Size.Y.Scale * uiSize, min, max)
-		
+
 		element.Size = UDim2.new(clampX, 0, clampY, 0)
 	else
-		local uiSize; do
-			if (viewportSize.X/viewportSize.Y) >= 2 then
-				uiSize = (viewportSize.X/viewportSize.Y) * (scale/3.5)
+		local uiSize
+		do
+			if (viewportSize.X / viewportSize.Y) >= 2 then
+				uiSize = (viewportSize.X / viewportSize.Y) * (scale / 3.5)
 			else
-				uiSize = (viewportSize.X/viewportSize.Y) * (scale/2)
+				uiSize = (viewportSize.X / viewportSize.Y) * (scale / 2)
 			end
 		end
-		
+
 		local clampX = math.clamp(Size.X.Scale * uiSize, min, max)
 		local clampY = math.clamp(Size.Y.Scale * uiSize, min, max)
-		
+
 		element.Size = UDim2.new(clampX, 0, clampY, 0)
-		
+
 		local absoluteY = element.AbsoluteSize.Y
 		if absoluteY < 36 then
-			ResizeContainer(element,scale * 2,min,max)
+			ResizeContainer(element, scale * 2, min, max)
 		end
 	end
 end
@@ -193,20 +194,22 @@ end
 	@return nil
 ]=]
 local function BindComponent(tag: string, element: GuiObject): nil
-	if Interface._ComponentCache[tag][element] then return end
-	
+	if Interface._ComponentCache[tag][element] then
+		return
+	end
+
 	local Player = Players.LocalPlayer
 	local PlayerGui = Player.PlayerGui
-	
+
 	while not element:IsDescendantOf(PlayerGui) do
 		element.AncestryChanged:Wait()
 	end
-	
+
 	local code = Interface._ComponentCode[tag]
 	local create = Components.new(element)
 	Interface._ComponentCache[tag][element] = create
-	
-	Manager.wrap(code,create)
+
+	Manager.wrap(code, create)
 end
 
 --[=[
@@ -289,7 +292,7 @@ end
 	@return nil
 ]=]
 function Interface.Replicate(): nil -- TODO
-	
+
 end
 
 --[=[
@@ -302,74 +305,74 @@ end
 	@return nil
 ]=]
 function Interface.AssignSizes(element: GuiObject, scale: number, min: number, max: number): typeof(Interface.AssignSizes())
-	local control = {}	
-	control._element = element;
-	control._scale = scale;
-	control._min = min;
-	control._max = max;
-	
+	local control = {}
+	control._element = element
+	control._scale = scale
+	control._min = min
+	control._max = max
+
 	function control:Update(_scale: number, _min: number, _max: number): typeof(control)
 		control._scale = _scale or control._scale
 		control._min = _min or control._min
 		control._max = _max or control._max
-		
-		ResizeContainer(control._element,control._scale,control._min,control._max)
-		
+
+		ResizeContainer(control._element, control._scale, control._min, control._max)
+
 		return control
 	end
-	
+
 	function control:Changed(code: () -> ()): typeof(control)
 		local file = Interface._AssignSizesCache[element]
-		
+
 		if file ~= nil then
-			file['Code'] = code
+			file["Code"] = code
 			Interface._AssignSizesCache[element] = file
 		end
-		
+
 		return control
 	end
-	
+
 	function control:Disconnect(): typeof(control)
 		local file = Interface._AssignSizesCache[element]
-		
+
 		if file ~= nil then
-			file['Event']:Disconnect()
-			file['Event'] = nil
-			file['Code'] = nil
+			file["Event"]:Disconnect()
+			file["Event"] = nil
+			file["Code"] = nil
 			Interface._AssignSizesCache[element] = file
 		end
-		
+
 		return control
 	end
-	
+
 	local file = Interface._AssignSizesCache[element]
-	
-	if file and file['Event'] ~= nil then
-		file['Event']:Disconnect()
+
+	if file and file["Event"] ~= nil then
+		file["Event"]:Disconnect()
 	else
 		file = {
-			['Event'] = nil;
-			['Code'] = nil;
-			['Size'] = element.Size;
+			["Event"] = nil,
+			["Code"] = nil,
+			["Size"] = element.Size,
 		}
 	end
-	
-	if file['Size'] == nil then
-		file['Size'] = element.Size
+
+	if file["Size"] == nil then
+		file["Size"] = element.Size
 	end
-	
-	file['event'] = Camera:GetPropertyChangedSignal('ViewportSize'):Connect(function()
-		ResizeContainer(control._element,control._scale,control._min,control._max)
+
+	file["event"] = Camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+		ResizeContainer(control._element, control._scale, control._min, control._max)
 		local import = Interface._AssignSizesCache[element]
-		if import and import['Code'] then
-			import['Code']()
+		if import and import["Code"] then
+			import["Code"]()
 		end
 	end)
-	
+
 	Interface._AssignSizesCache[element] = file
-	
-	ResizeContainer(control._element,control._scale,control._min,control._max)
-	
+
+	ResizeContainer(control._element, control._scale, control._min, control._max)
+
 	return control
 end
 
@@ -382,100 +385,100 @@ function Interface.Richtext(): typeof(Interface.Richtext())
 	local control = {}
 	control._raw = {}
 	control._append = {}
-	
+
 	function control:Append(value: string | table): typeof(control)
-		if typeof(value) == 'string' then
-			table.insert(control._raw,value)
-			table.insert(control._append,value)
-		elseif typeof(value) == 'table' then
-			for index,format in ipairs(value._raw) do
-				table.insert(control._raw,format)
-				table.insert(control._append,format)
+		if typeof(value) == "string" then
+			table.insert(control._raw, value)
+			table.insert(control._append, value)
+		elseif typeof(value) == "table" then
+			for index, format in ipairs(value._raw) do
+				table.insert(control._raw, format)
+				table.insert(control._append, format)
 			end
 		end
-		
+
 		return control
 	end
 
 	function control:Bold(state: boolean): typeof(control)
 		if state then
-			table.insert(control._raw,'<b>')
+			table.insert(control._raw, "<b>")
 		else
-			table.insert(control._raw,'</b>')
+			table.insert(control._raw, "</b>")
 		end
-		
+
 		return control
 	end
 
 	function control:Italic(state: boolean): typeof(control)
 		if state then
-			table.insert(control._raw,'<i>')
+			table.insert(control._raw, "<i>")
 		else
-			table.insert(control._raw,'</i>')
+			table.insert(control._raw, "</i>")
 		end
-		
+
 		return control
 	end
 
 	function control:Underline(state: boolean): typeof(control)
 		if state then
-			table.insert(control._raw,'<u>')
+			table.insert(control._raw, "<u>")
 		else
-			table.insert(control._raw,'</u>')
+			table.insert(control._raw, "</u>")
 		end
-		
+
 		return control
 	end
 
 	function control:Strike(state: boolean): typeof(control)
 		if state then
-			table.insert(control._raw,'<s>')
+			table.insert(control._raw, "<s>")
 		else
-			table.insert(control._raw,'</s>')
+			table.insert(control._raw, "</s>")
 		end
-		
+
 		return control
 	end
 
 	function control:Comment(state: boolean): typeof(control)
 		if state then
-			table.insert(control._raw,'<!--')
+			table.insert(control._raw, "<!--")
 		else
-			table.insert(control._raw,'-->')
+			table.insert(control._raw, "-->")
 		end
-		
+
 		return self
 	end
 
 	function control:Font(name: string | EnumItem | boolean): typeof(control)
-		if typeof(name) == 'string' then
-			table.insert(control._raw,'<font face="'.. name ..'">')
-		elseif typeof(name) == 'EnumItem' then
-			table.insert(control._raw,'<font face="'.. name.Name ..'">')
+		if typeof(name) == "string" then
+			table.insert(control._raw, "<font face=\"" .. name .. "\">")
+		elseif typeof(name) == "EnumItem" then
+			table.insert(control._raw, "<font face=\"" .. name.Name .. "\">")
 		elseif not name then
-			table.insert(control._raw,'</font>')
+			table.insert(control._raw, "</font>")
 		end
-		
+
 		return control
 	end
 
 	function control:Size(number: number | boolean): typeof(control)
-		if typeof(number) == 'number' then
-			table.insert(control._raw,'<font size="'.. number ..'">')
+		if typeof(number) == "number" then
+			table.insert(control._raw, "<font size=\"" .. number .. "\">")
 		elseif not number then
-			table.insert(control._raw,'</font>')
+			table.insert(control._raw, "</font>")
 		end
-		
+
 		return control
 	end
 
 	function control:Color(color: Color3 | boolean): typeof(control)
-		if typeof(color) == 'Color3' then
-			table.insert(control._raw,'<font color="'.. FormatColor(color) ..'">')
+		if typeof(color) == "Color3" then
+			table.insert(control._raw, "<font color=\"" .. FormatColor(color) .. "\">")
 		elseif not color then
-			table.insert(control._raw,'</font>')
+			table.insert(control._raw, "</font>")
 		end
-		
+
 		return control
 	end
 
@@ -486,7 +489,7 @@ function Interface.Richtext(): typeof(Interface.Richtext())
 	function control:GetText(): typeof(control)
 		return table.concat(control._raw)
 	end
-	
+
 	return control
 end
 
@@ -497,78 +500,78 @@ end
 	@return KeybindObject
 ]=]
 function Interface.Keybind(name: string): typeof(Interface.Keybind())
-	Input:CreateButton(name,Container)
-	
+	Input:CreateButton(name, Container)
+
 	if not Input._InputCache[name] then
 		Input._InputCache[name] = {}
 	end
-	
+
 	local control = {}
-	
+
 	function control._Verify(): nil
-		if Input._InputCache[name]['Keys'] and Input._InputCache[name]['Function'] then
-			Input._InputCache[name]['Verify'] = true
+		if Input._InputCache[name]["Keys"] and Input._InputCache[name]["Function"] then
+			Input._InputCache[name]["Verify"] = true
 		else
-			Input._InputCache[name]['Verify'] = false
+			Input._InputCache[name]["Verify"] = false
 		end
 	end
-	
+
 	function control:Enabled(state: boolean): nil
-		Input._InputCache[name]['Enabled'] = state
-		Input:EnableButton(name,state)
+		Input._InputCache[name]["Enabled"] = state
+		Input:EnableButton(name, state)
 		control._Verify()
 	end
-	
+
 	function control:Keybinds(...): nil
 		local capture = {}
-		
-		for index,key in pairs({...}) do
-			assert(typeof(key) == 'EnumItem')
-			table.insert(capture,key)
+
+		for index, key in pairs({ ... }) do
+			assert(typeof(key) == "EnumItem")
+			table.insert(capture, key)
 		end
-		
-		Input._InputCache[name]['Keys'] = capture
+
+		Input._InputCache[name]["Keys"] = capture
 		control._Verify()
 	end
-	
+
 	function control:Mobile(state: boolean, image: string?): nil
-		Input._InputCache[name]['Mobile'] = state
+		Input._InputCache[name]["Mobile"] = state
 		local button = Input:GetButton(name)
-		
+
 		if button then
 			button.Visible = state
 			if image then
 				button.Icon.Image = image
 			end
 		end
-		
+
 		control._Verify()
 	end
-	
+
 	function control:Hook(code: () -> ()): nil
-		if Input._InputCache[name]['Function'] then
-			Input._InputCache[name]['Function'] = nil
+		if Input._InputCache[name]["Function"] then
+			Input._InputCache[name]["Function"] = nil
 		end
-		
-		Input._InputCache[name]['Function'] = code
+
+		Input._InputCache[name]["Function"] = code
 		control._Verify()
 	end
-	
+
 	function control:Destroy(): typeof(control:Destroy())
 		local button = Input:GetButton(name)
-		
+
 		if button then
 			Manager:DisconnectKey(name)
 			button:Destroy()
 		end
-		
+
 		for index in pairs(control) do
 			control[index] = nil
 		end
-		
-		return setmetatable(control,nil)
+
+		return setmetatable(control, nil)
 	end
-	
+
 	return control
 end
 
@@ -592,15 +595,15 @@ end
 	@return boolean
 ]=]
 function Interface:Update(name: string, keys: table): boolean
-	for index,key in pairs(keys) do
-		assert(typeof(key) == 'EnumItem')
+	for index, key in pairs(keys) do
+		assert(typeof(key) == "EnumItem")
 	end
-	
+
 	if Input._InputCallbacks[name] then
-		Input._InputCallbacks[name]['Keys'] = keys
+		Input._InputCallbacks[name]["Keys"] = keys
 		return true
 	end
-	
+
 	return false
 end
 
@@ -613,15 +616,15 @@ end
 	@return nil
 ]=]
 function Interface:Began(name: string, keys: table, code: (any) -> nil): nil
-	for index,key in pairs(keys) do
-		assert(typeof(key) == 'EnumItem')
+	for index, key in pairs(keys) do
+		assert(typeof(key) == "EnumItem")
 	end
-	
+
 	Interface:Disconnect(name)
 	Input._InputCallbacks[name] = {
-		['Keys'] = keys;
-		['Code'] = code;
-		['Type'] = 'Began';
+		["Keys"] = keys,
+		["Code"] = code,
+		["Type"] = "Began",
 	}
 end
 
@@ -634,15 +637,15 @@ end
 	@return nil
 ]=]
 function Interface:Ended(name: string, keys: table, code: (any) -> nil): nil
-	for index,key in pairs(keys) do
-		assert(typeof(key) == 'EnumItem')
+	for index, key in pairs(keys) do
+		assert(typeof(key) == "EnumItem")
 	end
-	
+
 	Interface:Disconnect(name)
 	Input._InputCallbacks[name] = {
-		['Keys'] = keys;
-		['Code'] = code;
-		['Type'] = 'Ended';
+		["Keys"] = keys,
+		["Code"] = code,
+		["Type"] = "Ended",
 	}
 end
 
@@ -654,32 +657,13 @@ end
 	@return nil
 ]=]
 function Interface:Tapped(name: string, code: (any) -> nil): nil
-	assert(typeof(name) == 'string')
-	assert(typeof(code) == 'function')
-	
-	Input._InputTouchCallbacks[name] = {
-		['Code'] = code;
-		['Type'] = 'Ended';
-	}
-end
+	assert(typeof(name) == "string")
+	assert(typeof(code) == "function")
 
---[=[
-	Play an animation located in the Animator lib
-	
-	@param name string -- an animation name & function in Animator
-	@param element GuiObject -- a GuiObject to animate
-	@param async boolean -- if the animation should yield or not
-	@return nil
-]=]
-function Interface:Play(name: string, element: GuiObject, async: boolean?): nil
-	assert(Animator[name] ~= nil)
-	
-	local code = Animator[name]
-	if async then
-		code(element)
-	else
-		Manager.wrap(code,element)
-	end
+	Input._InputTouchCallbacks[name] = {
+		["Code"] = code,
+		["Type"] = "Ended",
+	}
 end
 
 --[=[
@@ -689,9 +673,11 @@ end
 	@return Component?
 ]=]
 function Interface:Get(element: GuiObject): typeof(Interface:Create())?
-	for tag,data in pairs(Interface._ComponentCache) do
-		for index,obj in pairs(data) do
-			if index ~= element then continue end
+	for tag, data in pairs(Interface._ComponentCache) do
+		for index, obj in pairs(data) do
+			if index ~= element then
+				continue
+			end
 			return obj
 		end
 	end
@@ -715,7 +701,7 @@ end
 ]=]
 function Interface:GetComponent(tag: string): typeof(Interface:Create())?
 	local tags = Interface:GetAll(tag)
-	for index,component in pairs(tags) do
+	for index, component in pairs(tags) do
 		return component
 	end
 end
@@ -728,10 +714,13 @@ end
 	@return nil
 ]=]
 function Interface:Fire(name: string, ...): nil
-	assert(Components._Bindings[name],"Attempted to fire non-existant binding on '"..name.."'")
-	
+	assert(
+		Components._Bindings[name],
+		"Attempted to fire non-existant binding on '" .. name .. "'"
+	)
+
 	local code = Components._Bindings[name]
-	Manager.wrap(code,...)
+	Manager.wrap(code, ...)
 end
 
 --[=[
@@ -742,18 +731,18 @@ end
 	@return nil
 ]=]
 function Interface:Create(tag: string, code: (any) -> nil): nil
-	assert(Interface._ComponentCache[tag] == nil,"tag is claimed")
-	
+	assert(Interface._ComponentCache[tag] == nil, "tag is claimed")
+
 	Interface._ComponentCache[tag] = {}
 	Interface._ComponentCode[tag] = code
-	
+
 	CollectionService:GetInstanceAddedSignal(tag):Connect(function(component)
-		Manager.wrap(BindComponent,tag,component)
+		Manager.wrap(BindComponent, tag, component)
 	end)
-	
+
 	local tagged = CollectionService:GetTagged(tag)
-	for index,component in pairs(tagged) do
-		Manager.wrap(BindComponent,tag,component)
+	for index, component in pairs(tagged) do
+		Manager.wrap(BindComponent, tag, component)
 	end
 end
 
@@ -768,8 +757,8 @@ function Interface:__call(tag: string, code: ((any) -> nil)?): typeof(Interface:
 	if not code and Interface._ComponentCache[tag] then
 		return Interface:GetComponent(tag)
 	end
-	
-	Interface:Create(tag,code)
+
+	Interface:Create(tag, code)
 end
 
 Manager.wrap(function()
@@ -782,28 +771,30 @@ Manager.wrap(function()
 		Interface.Touch = Interface.IsTouch()
 		Interface.Gamepad = Interface.IsGamepad()
 		Interface.VR = Interface.IsVR()
-		
+
 		local Player = Players.LocalPlayer
-		local PlayerGui = Player:WaitForChild('PlayerGui')
-		
-		Container = Instance.new('ScreenGui'); do
-			Container.Name = 'DiceMobile'
+		local PlayerGui = Player:WaitForChild("PlayerGui")
+
+		Container = Instance.new("ScreenGui")
+		do
+			Container.Name = "DiceMobile"
 			Container.Enabled = false
 			Container.ResetOnSpawn = false
 			Container.Parent = PlayerGui
 		end
-		
+
 		if Interface.Mobile then
 			Container.Enabled = true
-			
-			local Size,Jump; do
-				local TouchGui = PlayerGui:WaitForChild('TouchGui',math.huge)
-				local TouchFrame = TouchGui:WaitForChild('TouchControlFrame',math.huge)
-				Jump = TouchFrame:WaitForChild('JumpButton',math.huge)
+
+			local Size, Jump
+			do
+				local TouchGui = PlayerGui:WaitForChild("TouchGui", math.huge)
+				local TouchFrame = TouchGui:WaitForChild("TouchControlFrame", math.huge)
+				Jump = TouchFrame:WaitForChild("JumpButton", math.huge)
 				Manager:WaitForCharacter(Player)
-				Size = UDim2.fromOffset(Jump.Size.X.Offset/1.25, Jump.Size.Y.Offset/1.25)
+				Size = UDim2.fromOffset(Jump.Size.X.Offset / 1.25, Jump.Size.Y.Offset / 1.25)
 			end
-			
+
 			local Log = {}
 			local Config = {
 				CENTER_BUTTON_POSITION = Jump.AbsolutePosition,
@@ -811,31 +802,37 @@ Manager.wrap(function()
 				N_BUTTONS = 4,
 				MIN_RADIUS_PADDING = 10,
 				BUTTON_PADDING = 5,
-				BUTTON_SIZE = UDim2.fromOffset(Jump.Size.X.Offset/1.25, Jump.Size.Y.Offset/1.25),
+				BUTTON_SIZE = UDim2.fromOffset(Jump.Size.X.Offset / 1.25, Jump.Size.Y.Offset / 1.25),
 				RESOLUTION = Container.AbsoluteSize,
 			}
-			
+
 			local function Organize()
 				local generate = Input.MakePositioning(#Log)
 				Config.MIN_RADIUS = 0
-				local positions = Input.GetPositionsWithRows(generate,Config)
-				for index,button in ipairs(Log) do
-					if not button then continue end
+				local positions = Input.GetPositionsWithRows(generate, Config)
+				for index, button in ipairs(Log) do
+					if not button then
+						continue
+					end
 					button.Position = positions[index]
 				end
 			end
-			
-			for index,button in ipairs(Container:GetChildren()) do
-				if table.find(Log,button) then continue end
-				table.insert(Log,button)
+
+			for index, button in ipairs(Container:GetChildren()) do
+				if table.find(Log, button) then
+					continue
+				end
+				table.insert(Log, button)
 				button.Size = Size
 				Input.Effects(button.Name)
 				Organize()
 			end
-			
+
 			Container.ChildAdded:Connect(function(button)
-				if table.find(Log,button) then return end
-				table.insert(Log,button)
+				if table.find(Log, button) then
+					return
+				end
+				table.insert(Log, button)
 				button.Size = Size
 				Input.Effects(button.Name)
 				Organize()

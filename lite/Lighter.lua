@@ -48,10 +48,7 @@
 	SOFTWARE.
 ]=]
 
-local RunService = game:GetService('RunService')
-
-local IsStudio = RunService:IsStudio() and 'Studio'
-local IsClient = RunService:IsClient() and 'Client'
+local RunService = game:GetService("RunService")
 
 local Lighter = {}
 Lighter.__index = Lighter
@@ -60,9 +57,9 @@ Lighter._Initialized = false
 Lighter._Name = string.upper(script.Name)
 Lighter._Container = script.Parent
 Lighter._Version = {
-	['MAJOR'] = 1;
-	['MINOR'] = 0;
-	['PATCH'] = 0;
+	["MAJOR"] = 1,
+	["MINOR"] = 0,
+	["PATCH"] = 0,
 }
 
 --[=[
@@ -87,34 +84,38 @@ Lighter.Filter = false
 ]=]
 local function SafeRequire(module: ModuleScript, requirer: Script): table?
 	local time = os.clock()
-	local event; event = RunService.Stepped:Connect(function()
+	local event
+	event = RunService.Stepped:Connect(function()
 		if os.clock() >= time + Lighter.Timeout then
-			warn(string.format('%s -> %s is taking too long',tostring(requirer),tostring(module)))
+			warn(string.format("%s -> %s is taking too long", tostring(requirer), tostring(module)))
 			if event then
 				event:Disconnect()
 				event = nil
 			end
 		end
 	end)
-	
+
 	local loaded
-	local success,response = pcall(function()
+	local success, response = pcall(function()
 		loaded = require(module)
 	end)
-	
+
 	if not success then
-		if type(loaded) == 'nil' and string.find(response,'exactly one value') then
+		if type(loaded) == "nil" and string.find(response, "exactly one value") then
 			error("Module did not return exactly one value: " .. module:GetFullName(), 3)
 		else
-			error("Module " .. module:GetFullName() .. " experienced an error while loading: " .. response, 3)
+			error(
+				"Module " .. module:GetFullName() .. " experienced an error while loading: " .. response,
+				3
+			)
 		end
 	end
-	
+
 	if event then
 		event:Disconnect()
 		event = nil
 	end
-	
+
 	return loaded
 end
 
@@ -127,15 +128,19 @@ end
 	@private
 ]=]
 local function DeepSearch(name: string, list: table): ModuleScript?
-	for count,asset in ipairs(list) do
-		if not asset:IsA('ModuleScript') then continue end
-		if Lighter.Filter and asset.Parent:IsA('ModuleScript') then continue end
-		
+	for count, asset in ipairs(list) do
+		if not asset:IsA("ModuleScript") then
+			continue
+		end
+		if Lighter.Filter and asset.Parent:IsA("ModuleScript") then
+			continue
+		end
+
 		if string.lower(asset.Name) == name then
 			return asset
 		end
 	end
-	
+
 	return nil
 end
 
@@ -149,28 +154,31 @@ end
 ]=]
 function Lighter.__require(module: ModuleScript, requirer: Script): table?
 	local clock = os.clock()
-	local name = string.lower(typeof(module) == 'Instance' and module.Name or module)
-	
+	local name = string.lower(typeof(module) == "Instance" and module.Name or module)
+
 	if Lighter._ModuleCache[name] then
 		return Lighter._ModuleCache[name]
 	end
-	
-	if typeof(module) == 'number' or typeof(module) == 'Instance' then
+
+	if typeof(module) == "number" or typeof(module) == "Instance" then
 		Lighter._ModuleCache[name] = require(module)
 		return Lighter._ModuleCache[name]
 	end
-	
+
 	while not Lighter._ModuleCache[name] and os.clock() - clock < Lighter.MaxRetryTime do
-		local asset = DeepSearch(name,Lighter._Container:GetDescendants())
+		local asset = DeepSearch(name, Lighter._Container:GetDescendants())
 		if asset then
-			Lighter._ModuleCache[name] = SafeRequire(asset,requirer)
+			Lighter._ModuleCache[name] = SafeRequire(asset, requirer)
 			return Lighter._ModuleCache[name]
 		end
-		
+
 		RunService.Heartbeat:Wait()
 	end
-	
-	assert(Lighter._ModuleCache[name],"attempted to require a non-existant module: '"..name.."'")
+
+	assert(
+		Lighter._ModuleCache[name],
+		"attempted to require a non-existant module: '" .. name .. "'"
+	)
 	return Lighter._ModuleCache[name]
 end
 
@@ -181,8 +189,8 @@ end
 	@return RequiredModule?
 ]=]
 function Lighter.require(module: ModuleScript | string | number): table?
-	local requirer = getfenv(2).script	
-	return Lighter.__require(module,requirer)
+	local requirer = getfenv(2).script
+	return Lighter.__require(module, requirer)
 end
 
 --[=[
@@ -192,8 +200,8 @@ end
 	@return table?
 ]=]
 function Lighter:__call(module: ModuleScript | string | number): table?
-	local requirer = getfenv(2).script	
-	return Lighter.__require(module,requirer)
+	local requirer = getfenv(2).script
+	return Lighter.__require(module, requirer)
 end
 
 --[=[
@@ -202,7 +210,7 @@ end
 	@return FormattedVersion
 ]=]
 function Lighter:__tostring(): string
-	return 'Lighter '..Lighter.__version()
+	return "Lighter " .. Lighter.__version()
 end
 
 --[=[
@@ -211,7 +219,8 @@ end
 	@return FormattedVersion
 ]=]
 function Lighter.__version(): string
-	return string.format('v%d.%d.%d',
+	return string.format(
+		"v%d.%d.%d",
 		Lighter._Version.MAJOR,
 		Lighter._Version.MINOR,
 		Lighter._Version.PATCH
@@ -219,4 +228,4 @@ function Lighter.__version(): string
 end
 Lighter.VERSION = Lighter.__version()
 
-return setmetatable(Lighter,Lighter)
+return setmetatable(Lighter, Lighter)

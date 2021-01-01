@@ -135,21 +135,26 @@ Compression.EscapeMap = {}
 Compression.Length = 0
 
 local Numbers = {}
-Numbers.Suffixes = {'k','M','B','T','qd','Qn','sx','Sp','O','N','de','Ud','DD','tdD','qdD','QnD','sxD','SpD','OcD','NvD',
-	'Vgn','UVg','DVg','TVg','qtV','QnV','SeV','SPG','OVG','NVG','TGN','UTG','DTG','tsTG','qtTG','QnTG','ssTG','SpTG','OcTG',
-	'NoTG','QdDR','uQDR','dQDR','tQDR','qdQDR','QnQDR','sxQDR','SpQDR','OQDDr','NQDDr','qQGNT','uQGNT','dQGNT','tQGNT',
-	'qdQGNT','QnQGNT','sxQGNT','SpQGNT', 'OQQGNT','NQQGNT','SXGNTL'}
+Numbers.Suffixes = {
+	"k", "M", "B", "T", "qd", "Qn", "sx", "Sp", "O", "N", "de",
+	"Ud", "DD", "tdD", "qdD", "QnD", "sxD", "SpD", "OcD", "NvD",
+	"Vgn", "UVg", "DVg", "TVg", "qtV", "QnV", "SeV", "SPG", "OVG",
+	"NVG", "TGN", "UTG", "DTG", "tsTG", "qtTG", "QnTG", "ssTG",
+	"SpTG", "OcTG", "NoTG", "QdDR", "uQDR", "dQDR", "tQDR", "qdQDR",
+	"QnQDR", "sxQDR", "SpQDR", "OQDDr", "NQDDr", "qQGNT", "uQGNT",
+	"dQGNT", "tQGNT", "qdQGNT", "QnQGNT", "sxQGNT", "SpQGNT",
+	"OQQGNT", "NQQGNT", "SXGNTL"
+}
 
 local Settings = {}
 Settings.Debug = false
-Settings.RunService = 'Stepped'
+Settings.RunService = "Stepped"
 
-local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local Workspace = game:GetService('Workspace')
-local CollectionService = game:GetService('CollectionService')
-local HttpService = game:GetService('HttpService')
-local RunService = game:GetService('RunService')
-local TweenService = game:GetService('TweenService')
+local Workspace = game:GetService("Workspace")
+local CollectionService = game:GetService("CollectionService")
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 --[=[
 	Remove escape characters and return the translation
@@ -159,8 +164,8 @@ local TweenService = game:GetService('TweenService')
 	@private
 ]=]
 local function Escape(s: string): string
-	return (string.gsub(s,"[%c\"\\]", function(c)
-		return '\127'.. Compression.EscapeMap[c]
+	return (string.gsub(s, "[%c\"\\]", function(c)
+		return "\127" .. Compression.EscapeMap[c]
 	end))
 end
 
@@ -172,7 +177,7 @@ end
 	@private
 ]=]
 local function Unescape(s: strng): string
-	return (string.gsub(s,'\127(.)', function(c)
+	return (string.gsub(s, "\127(.)", function(c)
 		return Compression.EscapeMap[c]
 	end))
 end
@@ -185,14 +190,14 @@ end
 	@private
 ]=]
 local function ToBase93(n: number): string
-	local value = ''
-	
+	local value = ""
+
 	repeat
 		local remainder = n % 93
-		value = Compression.Dictionary[remainder]..value
-		n = (n - remainder)/93
-	until n == 0
-	
+		value = Compression.Dictionary[remainder] .. value
+		n = (n - remainder) / 93
+until n == 0
+
 	return value
 end
 
@@ -205,11 +210,11 @@ end
 ]=]
 local function ToBase10(value: string): number
 	local n = 0
-	
+
 	for i = 1, #value do
-		n = n + 93 ^ (i - 1) * Compression.Dictionary[string.sub(value,-i,-i)]
+		n = n + 93 ^ (i - 1) * Compression.Dictionary[string.sub(value, -i, -i)]
 	end
-	
+
 	return n
 end
 
@@ -220,8 +225,8 @@ end
 	@return nil
 ]=]
 function Manager.set(properties: table): nil
-	Settings.Debug = properties['Debug'] or false
-	Settings.RunService = properties['RunService'] or 'Stepped'
+	Settings.Debug = properties["Debug"] or false
+	Settings.RunService = properties["RunService"] or "Stepped"
 end
 
 --[=[
@@ -233,12 +238,12 @@ end
 function Manager.wait(clock: number?): number
 	if clock then
 		local current = os.clock()
-		
+
 		while clock > os.clock() - current do
 			RunService[Settings.RunService]:Wait()
 		end
 	end
-	
+
 	return RunService[Settings.RunService]:Wait()
 end
 
@@ -251,11 +256,11 @@ end
 ]=]
 function Manager.wrap(code: (any) -> nil, ...): nil
 	local thread = coroutine.create(code)
-	local ran,response = coroutine.resume(thread,...)
-	
+	local ran, response = coroutine.resume(thread, ...)
+
 	if not ran then
 		local trace = debug.traceback(thread)
-		error(response .. "\n" .. trace,2)
+		error(response .. "\n" .. trace, 2)
 	end
 end
 
@@ -267,7 +272,7 @@ end
 	@return nil
 ]=]
 function Manager.spawn(code: (any) -> nil, ...): nil
-	coroutine.resume(coroutine.create(code),...)
+	coroutine.resume(coroutine.create(code), ...)
 end
 
 --[=[
@@ -279,18 +284,19 @@ end
 	@return RBXScriptConnection
 ]=]
 function Manager.loop(fps: number, code: (any) -> nil, ...): RBXScriptConnection
-	local data = {...}
-	local rate = 1/60
+	local data = { ... }
+	local rate = 1 / 60
 	local logged = 0
-	local event; event = RunService[Settings.RunService]:Connect(function(delta)
+	local event
+	event = RunService[Settings.RunService]:Connect(function(delta)
 		logged = logged + delta
-		
+
 		while logged >= rate do
 			logged = logged - rate
 			code(table.unpack(data))
 		end
 	end)
-	
+
 	return event
 end
 
@@ -303,14 +309,14 @@ end
 	@return nil
 ]=]
 function Manager.delay(clock: number, code: (any) -> nil, ...): nil
-	local data = {...}
+	local data = { ... }
 	Manager.wrap(function()
 		local current = os.clock()
-		
+
 		while clock > os.clock() - current do
 			Manager.wait()
 		end
-		
+
 		code(table.unpack(data))
 	end)
 end
@@ -325,11 +331,11 @@ end
 function Manager.garbage(clock: number, obj: Instance): nil
 	Manager.wrap(function()
 		local current = os.clock()
-		
+
 		while clock > os.clock() - current do
 			Manager.wait()
 		end
-		
+
 		obj:Destroy()
 	end)
 end
@@ -344,21 +350,21 @@ end
 ]=]
 function Manager.retry(clock: number, code: (any) -> nil, ...): boolean & (any?)
 	local current = os.clock()
-	local success,response
-	
+	local success, response
+
 	while not success and clock > os.clock() - current do
-		success,response = pcall(code,...)
-		
+		success, response = pcall(code, ...)
+
 		if not success then
 			Manager.wait()
 		end
 	end
-	
+
 	if not success and Settings.Debug then
-		warn(response,debug.traceback())
+		warn(response, debug.traceback())
 	end
-	
-	return success,response
+
+	return success, response
 end
 
 --[=[
@@ -371,20 +377,21 @@ end
 ]=]
 function Manager.rerun(times: number, code: (any) -> nil, ...): boolean & (any?)
 	local current = 0
-	local success,response; repeat
+	local success, response
+	repeat
 		current += 1
-		success,response = pcall(code,...)
-		
+		success, response = pcall(code, ...)
+
 		if not success then
 			Manager.wait()
 		end
-	until success or current >= times
-	
+until success or current >= times
+
 	if not success and Settings.Debug then
-		warn(response,debug.traceback())
+		warn(response, debug.traceback())
 	end
-	
-	return success,response
+
+	return success, response
 end
 
 --[=[
@@ -395,11 +402,13 @@ end
 	@return boolean | (any?)
 ]=]
 function Manager.debounce(key: any, code: (any) -> nil, ...): boolean | (any?)
-	if Manager._Bouncers[key] then return false end
+	if Manager._Bouncers[key] then
+		return false
+	end
 	Manager._Bouncers[key] = true
-	
+
 	local result = code(...)
-	
+
 	Manager._Bouncers[key] = false
 	return result
 end
@@ -413,15 +422,15 @@ end
 function Manager.debug(label: string?): nil
 	local backtrace = getfenv(3).script
 	label = label or string.lower(backtrace.Name)
-	
+
 	local timer = Manager._Timers[label]
 	if not timer then
 		timer = os.clock()
 	else
-		warn(label,'took:',os.clock() - timer..'ms')
+		warn(label, "took:", os.clock() - timer .. "ms")
 		timer = nil
 	end
-	
+
 	Manager._Timers[label] = timer
 end
 
@@ -436,7 +445,7 @@ function Manager.round(input: number, decimal: number?): number
 	if not decimal then
 		return math.round(input)
 	end
-	
+
 	return math.floor(input * (10 ^ decimal)) / (10 ^ decimal)
 end
 
@@ -449,9 +458,9 @@ end
 ]=]
 function Manager.formatCounter(input: number, decimal: number): string
 	local format = tostring(input)
-	local raw = '%.'..decimal..'f'
-	
-	return string.format(raw,format)
+	local raw = "%." .. decimal .. "f"
+
+	return string.format(raw, format)
 end
 
 --[=[
@@ -461,12 +470,12 @@ end
 	@return FormattedNumber -- 4000 -> 4,000
 ]=]
 function Manager.formatValue(input: number): string
-	local format,remain = tonumber(input)
-	
+	local format, remain = tonumber(input)
+
 	while remain ~= 0 do
-		format,remain = string.gsub(format,'^(-?%d+)(%d%d%d)','%1,%2')
+		format, remain = string.gsub(format, "^(-?%d+)(%d%d%d)", "%1,%2")
 	end
-	
+
 	return format
 end
 
@@ -481,25 +490,25 @@ function Manager.formatMoney(input: number): number | string
 	input = math.abs(input)
 
 	local paired = false
-	for i,v in pairs(Numbers.Suffixes) do
-		if not (input >= 10^(3 * i)) then
-			input = input / 10^(3*(i - 1))
-			local isComplex = (string.find(tostring(input),'.') and string.sub(tostring(input),4,4) ~= '.')
-			input = string.sub(tostring(input),1,(isComplex and 4) or 3) .. (Numbers.Suffixes[i - 1] or '')
+	for i, v in pairs(Numbers.Suffixes) do
+		if not (input >= 10 ^ (3 * i)) then
+			input = input / 10 ^ (3 * (i - 1))
+			local isComplex = (string.find(tostring(input), ".") and string.sub(tostring(input), 4, 4) ~= ".")
+			input = string.sub(tostring(input), 1, (isComplex and 4) or 3) .. (Numbers.Suffixes[i - 1] or "")
 			paired = true
-			break;
+			break
 		end
 	end
-	
+
 	if not paired then
 		local Rounded = math.floor(input)
 		input = tostring(Rounded)
 	end
 
 	if negative then
-		return '-'..input
+		return "-" .. input
 	end
-	
+
 	return input
 end
 
@@ -511,14 +520,14 @@ end
 ]=]
 function Manager.formatClock(input: number): string
 	local seconds = tonumber(input)
-	
+
 	if seconds <= 0 then
-		return '0:00';
+		return "0:00"
 	else
-		local mins = string.format('%01.f', math.floor(seconds / 60));
-		local secs = string.format('%02.f', math.floor(seconds - mins * 60));
-		
-		return mins..':'..secs
+		local mins = string.format("%01.f", math.floor(seconds / 60))
+		local secs = string.format("%02.f", math.floor(seconds - mins * 60))
+
+		return mins .. ":" .. secs
 	end
 end
 
@@ -530,15 +539,15 @@ end
 ]=]
 function Manager.format24H(input: number): string
 	local seconds = tonumber(input)
-	
+
 	if seconds <= 0 then
-		return '00:00:00';
+		return "00:00:00"
 	else
-		local hours = string.format('%02.f', math.floor(seconds / 3600));
-		local mins = string.format('%02.f', math.floor(seconds / 60 - (hours * 60)));
-		local secs = string.format('%02.f', math.floor(seconds - hours * 3600 - mins * 60));
-		
-		return hours..':'..mins..':'..secs
+		local hours = string.format("%02.f", math.floor(seconds / 3600))
+		local mins = string.format("%02.f", math.floor(seconds / 60 - (hours * 60)))
+		local secs = string.format("%02.f", math.floor(seconds - hours * 3600 - mins * 60))
+
+		return hours .. ":" .. mins .. ":" .. secs
 	end
 end
 
@@ -551,10 +560,10 @@ end
 function Manager.formatDate(input: number): string
 	local days = math.floor(input / 86400)
 	local hours = math.floor(math.fmod(input, 86400) / 3600)
-	local minutes = math.floor(math.fmod(input,3600) / 60)
-	local seconds = math.floor(math.fmod(input,60))
-	
-	return string.format("%d:%02d:%02d:%02d",days,hours,minutes,seconds)
+	local minutes = math.floor(math.fmod(input, 3600) / 60)
+	local seconds = math.floor(math.fmod(input, 60))
+
+	return string.format("%d:%02d:%02d:%02d", days, hours, minutes, seconds)
 end
 
 --[=[
@@ -569,20 +578,21 @@ end
 	@return TweenObject
 ]=]
 function Manager.Tween(object: Instance, properties: table, goals: any | table, duration: number?, style: EnumItem?, direction: EnumItem?): TweenObject
-	duration = typeof(duration) == 'number' and duration or 0.5
-	style = typeof(style) == 'EnumItem' and style or Enum.EasingStyle.Linear
-	direction = typeof(direction) == 'EnumItem' and direction or Enum.EasingDirection.InOut
-	
-	local values = {}; do
-		for index,prop in pairs(properties) do
-			values[prop] = typeof(goals) == 'table' and goals[index] or goals
+	duration = typeof(duration) == "number" and duration or 0.5
+	style = typeof(style) == "EnumItem" and style or Enum.EasingStyle.Linear
+	direction = typeof(direction) == "EnumItem" and direction or Enum.EasingDirection.InOut
+
+	local values = {}
+	do
+		for index, prop in pairs(properties) do
+			values[prop] = typeof(goals) == "table" and goals[index] or goals
 		end
 	end
-	
-	local info = TweenInfo.new(duration,style,direction)
-	local tween = TweenService:Create(object,info,values)
+
+	local info = TweenInfo.new(duration, style, direction)
+	local tween = TweenService:Create(object, info, values)
 	tween:Play()
-	
+
 	return tween
 end
 
@@ -594,11 +604,11 @@ end
 ]=]
 function Manager.Count(master: table): number
 	local count = 0
-	
-	for index,element in pairs(master) do
+
+	for index, element in pairs(master) do
 		count += 1
 	end
-	
+
 	return count
 end
 
@@ -610,8 +620,8 @@ end
 ]=]
 function Manager.Copy(master: table): table
 	local clone = {}
-	
-	for key,value in pairs(master) do
+
+	for key, value in pairs(master) do
 		if typeof(value) == "table" then
 			clone[key] = Manager.Copy(value)
 		else
@@ -630,11 +640,11 @@ end
 ]=]
 function Manager.DeepCopy(master: any): any?
 	local clone
-	
-	if typeof(master) == 'table' then
+
+	if typeof(master) == "table" then
 		clone = {}
-		for key,value in next, master, nil do
-		clone[Manager.DeepCopy(key)] = Manager.DeepCopy(value)
+		for key, value in next, master, nil do
+			clone[Manager.DeepCopy(key)] = Manager.DeepCopy(value)
 		end
 		setmetatable(clone, Manager.DeepCopy(getmetatable(master)))
 	else
@@ -652,12 +662,12 @@ end
 ]=]
 function Manager.Shuffle(master: table): table
 	local rng = Random.new()
-	
+
 	for index = #master, 2, -1 do
-		local random = rng:NextInteger(1,index)
-		master[index],master[random] = master[random],master[random]
+		local random = rng:NextInteger(1, index)
+		master[index], master[random] = master[random], master[random]
 	end
-	
+
 	return master
 end
 
@@ -668,11 +678,13 @@ end
 	@return EncodedString
 ]=]
 function Manager.Encode(data: any): any? | boolean
-	local success,response = Manager.rerun(5,function()
+	local success, response = Manager.rerun(5, function()
 		return HttpService:JSONEncode(data)
 	end)
-	
-	if success then return response end
+
+	if success then
+		return response
+	end
 	warn(response)
 	return success
 end
@@ -684,11 +696,13 @@ end
 	@return DecodedData
 ]=]
 function Manager.Decode(text: string): any? | boolean
-	local success,response = Manager.rerun(5,function()
+	local success, response = Manager.rerun(5, function()
 		return HttpService:JSONDecode(text)
 	end)
-	
-	if success then return response end
+
+	if success then
+		return response
+	end
 	warn(response)
 	return success
 end
@@ -701,23 +715,23 @@ end
 ]=]
 function Manager.Compress(text: any): string
 	text = Manager.Encode(text)
-	
+
 	local dictionary = Manager.Copy(Compression.Dictionary)
-	local key, sequence, size = '', {}, #dictionary
+	local key, sequence, size = "", {}, #dictionary
 	local width, spans, span = 1, {}, 0
-	
+
 	local function listkey(key)
 		local value = ToBase93(dictionary[key])
 		if #value > width then
 			width, span, spans[width] = #value, 0, span
 		end
-		sequence[#sequence + 1] = string.rep(' ',width - #value).. value
+		sequence[#sequence + 1] = string.rep(" ", width - #value) .. value
 		span = span + 1
 	end
-	
+
 	text = Escape(text)
 	for index = 1, #text do
-		local char = string.sub(text,index,index)
+		local char = string.sub(text, index, index)
 		local new = key .. char
 		if dictionary[new] then
 			key = new
@@ -727,11 +741,11 @@ function Manager.Compress(text: any): string
 			dictionary[new], dictionary[size] = size, new
 		end
 	end
-	
+
 	listkey(key)
 	spans[width] = span
-	
-    return table.concat(spans, ',')..'|'..table.concat(sequence)
+
+	return table.concat(spans, ",") .. "|" .. table.concat(sequence)
 end
 
 --[=[
@@ -742,25 +756,25 @@ end
 ]=]
 function Manager.Decompress(text: string): any?
 	local dictionary = Manager.Copy(Compression.Dictionary)
-	local sequence, spans, content = {}, string.match(text,'(.-)|(.*)')
+	local sequence, spans, content = {}, string.match(text, "(.-)|(.*)")
 	local groups, start = {}, 1
-	
-	for span in string.gmatch(spans,'%d+') do
+
+	for span in string.gmatch(spans, "%d+") do
 		local width = #groups + 1
-		groups[width] = string.sub(content,start,start + span * width - 1)
+		groups[width] = string.sub(content, start, start + span * width - 1)
 		start = start + span * width
 	end
-	
-	local previous;
+
+	local previous
 	for width = 1, #groups do
-		for value in string.gmatch(groups[width],string.rep('.',width)) do
+		for value in string.gmatch(groups[width], string.rep(".", width)) do
 			local entry = dictionary[ToBase10(value)]
 			if previous then
 				if entry then
 					sequence[#sequence + 1] = entry
-					dictionary[#dictionary + 1] = previous..string.sub(entry,1,1)
+					dictionary[#dictionary + 1] = previous .. string.sub(entry, 1, 1)
 				else
-					entry = previous..string.sub(previous,1,1)
+					entry = previous .. string.sub(previous, 1, 1)
 					sequence[#sequence + 1] = entry
 					dictionary[#dictionary + 1] = entry
 				end
@@ -770,7 +784,7 @@ function Manager.Decompress(text: string): any?
 			previous = entry
 		end
 	end
-	
+
 	return Manager.Decode(Unescape(table.concat(sequence)))
 end
 
@@ -784,7 +798,7 @@ function Manager:WaitForTag(tag: string): table
 	while not CollectionService:GetTagged(tag)[1] do
 		Manager.wait()
 	end
-	
+
 	return CollectionService:GetTagged(tag)
 end
 
@@ -798,11 +812,11 @@ function Manager:WaitForCharacter(player: Player): Instance
 	while not player.Character do
 		Manager.wait()
 	end
-	
+
 	while not player.Character:IsDescendantOf(Workspace) do
 		Manager.wait()
 	end
-	
+
 	return player.Character
 end
 
@@ -814,33 +828,33 @@ end
 ]=]
 function Manager:Connect(code: RBXScriptConnection | table | (any) -> nil): typeof(Manager:Connect())
 	local control = {}
-	
+
 	function control:Disconnect(): typeof(control)
 		control = nil
-		
-		if typeof(code) == 'RBXScriptConnection' then
+
+		if typeof(code) == "RBXScriptConnection" then
 			code:Disconnect()
-		elseif typeof(code) == 'table' then
-			local success,err = pcall(function()
+		elseif typeof(code) == "table" then
+			local success, err = pcall(function()
 				code:Disconnect()
 			end)
 			if not success and Settings.Debug then
 				warn(err)
 			end
 		end
-		
+
 		code = nil
-		return setmetatable(control,nil)
+		return setmetatable(control, nil)
 	end
-	
+
 	function control:Fire(...): any?
-		if typeof(code) == 'function' then
-			return Manager.wrap(code,...)
+		if typeof(code) == "function" then
+			return Manager.wrap(code, ...)
 		else
-			warn("Attempted to call ':Fire' on '".. typeof(code) .."'")
+			warn("Attempted to call ':Fire' on '" .. typeof(code) .. "'")
 		end
 	end
-	
+
 	return control
 end
 
@@ -855,37 +869,39 @@ function Manager:ConnectKey(key: any, code: RBXScriptConnection | table | (any) 
 	if not Manager._Connections[key] then
 		Manager._Connections[key] = {}
 	end
-	
+
 	local control = {}
-	
+
 	function control:Disconnect(): nil
-		if not Manager._Connections[key] then return end
+		if not Manager._Connections[key] then
+			return
+		end
 		Manager._Connections[key][code] = nil
-		
-		if typeof(code) == 'RBXScriptConnection' then
+
+		if typeof(code) == "RBXScriptConnection" then
 			code:Disconnect()
-		elseif typeof(code) == 'table' then
-			local success,err = pcall(function()
+		elseif typeof(code) == "table" then
+			local success, err = pcall(function()
 				code:Disconnect()
 			end)
-			
+
 			if not success and Settings.Debug then
 				warn(err)
 			end
 		end
-		
+
 		code = nil
-		return setmetatable(control,nil)
+		return setmetatable(control, nil)
 	end
-	
+
 	function control:Fire(...): any?
-		if typeof(code) == 'function' then
-			return Manager.wrap(code,...)
+		if typeof(code) == "function" then
+			return Manager.wrap(code, ...)
 		else
-			warn("Attempted to call ':Fire' on '".. typeof(code) .."'")
+			warn("Attempted to call ':Fire' on '" .. typeof(code) .. "'")
 		end
 	end
-	
+
 	Manager._Connections[key][code] = control
 	return control
 end
@@ -901,8 +917,8 @@ function Manager:FireKey(key: string, ...): nil
 	if not Manager._Connections[key] then
 		return
 	end
-	
-	for code,control in pairs(Manager._Connections[key]) do
+
+	for code, control in pairs(Manager._Connections[key]) do
 		control:Fire(...)
 	end
 end
@@ -916,12 +932,12 @@ function Manager:DisconnectKey(key: any): nil
 	if not Manager._Connections[key] then
 		return
 	end
-	
-	for code,control in pairs(Manager._Connections[key]) do
+
+	for code, control in pairs(Manager._Connections[key]) do
 		control:Disconnect()
 		Manager._Connections[key][code] = nil
 	end
-	
+
 	Manager._Connections[key] = nil
 end
 
@@ -933,7 +949,7 @@ end
 ]=]
 function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 	targetFPS = targetFPS or 60
-	
+
 	local control = {}
 	control.CodeQueue = {}
 	control.UpdateTable = {}
@@ -941,31 +957,35 @@ function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 	control.Sleeping = true
 	control.Paused = false
 	control.UpdateTableEvent = nil
-	
+
 	local start = os.clock()
 	Manager.wait()
-	
+
 	local function Frames(): number
 		return (((os.clock() - start) >= 1 and #control.UpdateTable) or (#control.UpdateTable / (os.clock() - start)))
 	end
-	
+
 	local function Update(): nil
 		Manager._LastIteration = os.clock()
-		
-		for index = #control.UpdateTable,1,-1 do
+
+		for index = #control.UpdateTable, 1, -1 do
 			control.UpdateTable[index + 1] = ((control.UpdateTable[index] >= (Manager._LastIteration - 1)) and control.UpdateTable[index] or nil)
 		end
-		
+
 		control.UpdateTable[1] = Manager._LastIteration
 	end
-	
+
 	local function Loop(): nil
 		control.UpdateTableEvent = RunService[Settings.RunService]:Connect(Update)
-		
+
 		while (true) do
-			if control.Sleeping then break end
-			if not control:Enabled() then break end
-			
+			if control.Sleeping then
+				break
+			end
+			if not control:Enabled() then
+				break
+			end
+
 			if targetFPS < 0 then
 				if (#control.CodeQueue > 0) then
 					control.CodeQueue[1]()
@@ -995,40 +1015,40 @@ function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 				end
 			end
 		end
-		
+
 		control.UpdateTableEvent:Disconnect()
 		control.UpdateTableEvent = nil
 	end
-	
+
 	function control:Enabled(): boolean
 		return control.Enable
 	end
-	
+
 	function control:Pause(): number
 		control.Paused = true
 		control.Sleeping = true
-		
+
 		return Frames()
 	end
-	
+
 	function control:Resume(): number
 		if control.Paused then
 			control.Paused = false
 			control.Sleeping = false
 			Loop()
 		end
-		
+
 		return Frames()
 	end
-	
+
 	function control:Wait(): number
 		while not control.Sleeping do
 			Manager.wait()
 		end
-		
+
 		return Frames()
 	end
-	
+
 	function control:Disconnect(): typeof(control)
 		control.Enable = false
 		control:Pause()
@@ -1036,32 +1056,34 @@ function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 		control.UpdateTable = nil
 		control.UpdateTableEvent:Disconnect()
 		control:Wait()
-		
+
 		for index in pairs(control) do
 			control[index] = nil
 		end
-		
-		return setmetatable(control,nil)
+
+		return setmetatable(control, nil)
 	end
-	
+
 	function control:Queue(code: () -> ()): nil
-		if not control.CodeQueue then return end
+		if not control.CodeQueue then
+			return
+		end
 		control.CodeQueue[#control.CodeQueue + 1] = code
-		
+
 		if (control.Sleeping and not control.Paused) then
 			control.Sleeping = false
 			Loop()
 		end
 	end
-	
+
 	return control
 end
 
 do
-	Manager.IsStudio = RunService:IsStudio() and 'Studio'
-	Manager.IsServer = RunService:IsServer() and 'Server'
-	Manager.IsClient = RunService:IsClient() and 'Client'
-	
+	Manager.IsStudio = RunService:IsStudio() and "Studio"
+	Manager.IsServer = RunService:IsServer() and "Server"
+	Manager.IsClient = RunService:IsClient() and "Client"
+
 	for index = 32, 127 do
 		if index ~= 34 and index ~= 92 then
 			local char = string.char(index)
@@ -1072,8 +1094,8 @@ do
 	end
 
 	for index = 1, 34 do
-		index = ({34, 92, 127})[index - 31] or index
-		local char,ending = string.char(index),string.char(index + 31)
+		index = ({ 34, 92, 127 })[index - 31] or index
+		local char, ending = string.char(index), string.char(index + 31)
 		Compression.EscapeMap[char] = ending
 		Compression.EscapeMap[ending] = char
 	end
