@@ -5,7 +5,7 @@
 
 --[=[
 [DOCUMENTATION]:
-	https://github.com/Mullets-Gavin/DiceManager
+	https://github.com/Mullets-Gavin/Manager
 	Listed below is a quick glance on the API, visit the link above for proper documentation.
 	
 	Manager.wait(time)
@@ -196,7 +196,7 @@ local function ToBase93(n: number): string
 		local remainder = n % 93
 		value = Compression.Dictionary[remainder] .. value
 		n = (n - remainder) / 93
-until n == 0
+	until n == 0
 
 	return value
 end
@@ -385,7 +385,7 @@ function Manager.rerun(times: number, code: (any) -> nil, ...): boolean & (any?)
 		if not success then
 			Manager.wait()
 		end
-until success or current >= times
+	until success or current >= times
 
 	if not success and Settings.Debug then
 		warn(response, debug.traceback())
