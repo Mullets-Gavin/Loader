@@ -65,36 +65,3 @@ print(shared.Example.this) --> this
 print(shared.Example.is == shared.Example.a) --> false
 print(shared.Example.test == shared.Example.test) --> true
 ```
-
-## API
-Temporary API docs until proper documentation is released.
-
-### Loader.require
-```lua
-Loader.require(module: string | number | Instance) -> RequiredModule?
-```
-Require a module instance or search containers for a module with a string
-
-### Loader.server
-```lua
-Loader.server(module: string | number | Instance) -> RequiredModule?
-```
-Require a module instance or search server containers for a module with a string
-
-### Loader.client
-```lua
-Loader.client(module: string | number | Instance) -> RequiredModule?
-```
-Require a module instance or search client containers for a module with a string
-
-### Loader.enum
-```lua
-Loader.enum(name: string, members: table) -> Enumerator
-```
-Create a custom enum library on `shared`
-
-### Loader()
-```lua
-Loader(module: string | number | Instance) -> RequiredModule?
-```
-Replace the require function by Roblox
