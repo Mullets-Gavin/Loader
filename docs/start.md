@@ -50,7 +50,7 @@ ReplicatedStorage
 
 Initialize Loader by requiring the module located in ReplicatedStorage. Paste this to each new script you make to stay consistent:
 ```lua
-local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
 ```
 
 It's recommended to set Loader as a `require` replacement since it works the same, with added perks of diagnosing problems.

@@ -3,7 +3,7 @@
 Loader is, at it's finest, a Roblox Luau library loader with some sweet built-in libraries. Loader aims to replace the require function within your game. By doing so, this allows you to lazy load modules, which means you can require modules by name like `require('Module')` & deep search your DataModel for that script.
 
 ```lua
-local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
 ```
 
 ## Reasoning
@@ -67,25 +67,25 @@ Lighter is pretty similar to Loader in API, so you can read about it's documenta
 ----------------
 
 -- recommended
-local require = require(Folder:WaitForChild('Lighter'))
+local require = require(Folder:WaitForChild("Lighter"))
 
 -- optional
-local Lighter = require(Folder:WaitForChild('Lighter'))
+local Lighter = require(Folder:WaitForChild("Lighter"))
 
 ---------------------
 -- Require Example --
 ---------------------
 
-local SomeModule = require('SomeModule') -- Lighter('SomeModule')
-local SomeModule = require.require('SomeModule') -- Lighter.require('SomeModule')
+local SomeModule = require("SomeModule") -- Lighter("SomeModule")
+local SomeModule = require.require("SomeModule") -- Lighter.require("SomeModule")
 
 --------------------
 -- Plugin Example --
 --------------------
 
-local plugin = script:FindFirstAncestorWhichIsA('Plugin')
-local require = require(plugin:FindFirstChild('Lighter',true))
-local SomeModule = require('SomeModule')
+local plugin = script:FindFirstAncestorWhichIsA("Plugin")
+local require = require(plugin:FindFirstChild("Lighter",true))
+local SomeModule = require("SomeModule")
 ```
 
 ### Hierarchy

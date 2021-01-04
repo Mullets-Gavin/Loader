@@ -17,25 +17,25 @@ Examples and instructions on initializing Loader & its counterpart libraries. Fo
 ----------------
 
 -- recommended
-local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
 
 -- optional
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
+local Loader = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
 
 ---------------------
 -- Require Example --
 ---------------------
 
-local SomeModule = require('SomeModule') -- Loader('SomeModule')
-local SomeModule = require.require('SomeModule') -- Loader.require('SomeModule')
-local SomeClient = require.client('SomeClient') -- Loader.client('SomeClient')
-local SomeServer = require.server('SomeServer') -- Loader.server('SomeServer')
+local SomeModule = require("SomeModule") -- Loader("SomeModule")
+local SomeModule = require.require("SomeModule") -- Loader.require("SomeModule")
+local SomeClient = require.client("SomeClient") -- Loader.client("SomeClient")
+local SomeServer = require.server("SomeServer") -- Loader.server("SomeServer")
 
 ------------------------
 -- Enumerator Example --
 ------------------------
 
-local Enums = Loader.enum('Example',{'this','is','a','test'})
+local Enums = Loader.enum("Example",{"this","is","a","test"})
 print(shared.Example.this) --> this
 print(shared.Example.is == shared.Example.a) --> false
 print(shared.Example.test == shared.Example.test) --> true
@@ -48,38 +48,38 @@ print(shared.Example.test == shared.Example.test) --> true
 -- Initialize --
 ----------------
 
-local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-local DataSync = require('DataSync')
+local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
+local DataSync = require("DataSync")
 
 -------------------
 -- Store Example --
 -------------------
 
-local Store = DataSync.GetStore('DataStoreKey',{
-    ['Cash'] = 0;
-    ['Banned'] = false;
-    ['Inventory'] = {
-        ['Apple'] = 3;
+local Store = DataSync.GetStore("DataStoreKey",{
+    ["Cash"] = 0;
+    ["Banned"] = false;
+    ["Inventory"] = {
+        ["Apple"] = 3;
     }
 })
 
-Store:FilterKeys('Banned')
+Store:FilterKeys("Banned")
 
 ------------------
 -- File Example --
 ------------------
 
 local File = Store:GetFile(player.UserId)
-print(File:GetData('Cash'))
+print(File:GetData("Cash"))
 
 --------------------------
 -- Subscription Example --
 --------------------------
 
 local Subscription;
-Subscription = Store:Subscribe(player.UserId,'all',function(new,old)
-    print(new.Stat,'updated:',new.Value)
-    print('Previously',old.Value)
+Subscription = Store:Subscribe(player.UserId,"all",function(new,old)
+    print(new.Stat,"updated:",new.Value)
+    print("Previously",old.Value)
 
     if new.Value >= 10 then
         Subscription:Disconnect()
