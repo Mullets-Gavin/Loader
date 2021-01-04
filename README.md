@@ -1,67 +1,17 @@
 <div align="center">
 <h1>Loader</h1>
 
-[![version](https://img.shields.io/badge/version-v1.1.3-red)](https://github.com/Mullets-Gavin/Loader/releases) [![tests: passing](https://img.shields.io/badge/tests-passing-brightgreen)](https://github.com/Mullets-Gavin/Loader/tree/master/tests) [![chat](https://img.shields.io/discord/281959162470989834?color=blue)](https://discord.gg/dZYyvBu) [![examples](https://img.shields.io/badge/examples-2-blueviolet)](https://github.com/Mullets-Gavin/Loader/tree/master/examples)
+[![version](https://img.shields.io/badge/version-v1.1.3-red?style=flat-square)](https://github.com/Mullets-Gavin/Loader/releases)
+[![docs](https://img.shields.io/badge/docs-website-blueviolet?style=flat-square)](https://mullets-gavin.github.io/Loader/)
+[![support](https://img.shields.io/badge/support-mullets-blue?style=flat-square)](https://www.buymeacoffee.com/mullets)
 
-A Roblox Luau lazy-library loader with built-in libraries and functions.
+*A library loader in Roblox Luau with lazy-loader compatibility and packaged with efficient libraries.*
 </div>
 
-## What's Loader?
-Loader is, at it's finest, a Roblox Luau library loader with some sweet built-in libraries. Loader aims to replace the require function within your game. By doing so, this allows you to lazy load modules, which means you can require modules by name like `require('Module')` & deep search your DataModel for that script. This can be pretty taxing at times, so check out the lite weight version of Loader here, [Lighter.](https://github.com/Mullets-Gavin/Loader/tree/master/lite)
+## [Read the documentation!](https://mullets-gavin.github.io/Loader/)
 
-## Installation
-You can install Loader with two methods, though it is recommended that you install Loader via the `rbxm` model located in the releases.
+Loader is, at it’s finest, a Roblox Luau library loader with some sweet built-in libraries. Loader aims to replace the require function within your game. By doing so, this allows you to lazy load modules, which means you can require modules by name like `require('Module')` & deep search your DataModel for that script.
 
-### Method 1, Model:
-* Download the `rbxm` model [here](https://github.com/Mullets-Gavin/Loader/releases)
-* Drag and drop the file into a Roblox place
-* Set Loader in `ReplicatedStorage`
-* You're all set!
+## License
 
-### Method 2, Filesystem:
-* Download the `src` of this repository
-* Use a File-syncing plugin like [Rojo](https://github.com/rojo-rbx/rojo) to sync to a Roblox place
-* Set Loader in `ReplicatedStorage`
-* You're all set!
-
-## Hierarchy
-```
-ReplicatedStorage
-└─ Loader
-   ├─ DataSync
-   ├─ Interface
-   ├─ Manager
-   ├─ Network
-   └─ Roblox
-```
-
-## Example
-```lua
-----------------
--- Initialize --
-----------------
-
--- recommended
-local require = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
--- optional
-local Loader = require(game:GetService('ReplicatedStorage'):WaitForChild('Loader'))
-
----------------------
--- Require Example --
----------------------
-
-local SomeModule = require('SomeModule') -- Loader('SomeModule')
-local SomeModule = require.require('SomeModule') -- Loader.require('SomeModule')
-local SomeClient = require.client('SomeClient') -- Loader.client('SomeClient')
-local SomeServer = require.server('SomeServer') -- Loader.server('SomeServer')
-
-------------------------
--- Enumerator Example --
-------------------------
-
-local Enums = Loader.enum('Example',{'this','is','a','test'})
-print(shared.Example.this) --> this
-print(shared.Example.is == shared.Example.a) --> false
-print(shared.Example.test == shared.Example.test) --> true
-```
+This project is licensed under the MIT license. See [LICENSE](https://github.com/Mullets-Gavin/Loader/blob/master/LICENSE) for details.
