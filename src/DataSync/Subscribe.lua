@@ -15,84 +15,9 @@ Subscribe._Remotes = {
 local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
 local Manager = require("Manager")
 local Network = require("Network")
+
 local Players = game:GetService("Players")
-
---[=[
-	Get a player from an index
-	
-	@param index Instance | string | number -- index to search
-	@return Player?
-	@private
-]=]
-local function GetPlayer(index: string | number | Instance): Player?
-	local player
-	do
-		local success, response = pcall(function()
-			return Players:GetPlayerByUserId(index)
-		end)
-
-		if success then
-			player = response
-		end
-	end
-
-	if typeof(index) == "Instance" and index:IsA("Player") then
-		return player
-	end
-
-	return player
-end
-
---[=[
-	Get the subscription cache
-	
-	@param key any -- the key of the DataStore
-	@param index any -- the index of the DataFile
-	@param value any -- the value of a DataFile
-	@return SubscriptionCache
-	@private
-]=]
-local function GetCache(key: string, index: string, value: string): table
-	if not Subscribe._Cache[key] then
-		Subscribe._Cache[key] = {}
-	end
-
-	if not Subscribe._Cache[key][index] then
-		Subscribe._Cache[key][index] = {}
-	end
-
-	if not Subscribe._Cache[key][index][value] then
-		Subscribe._Cache[key][index][value] = {
-			["Clients"] = {},
-			["Code"] = {},
-		}
-	end
-
-	return Subscribe._Cache[key][index][value]
-end
-
---[=[
-	Get all subscription cache
-	
-	@param key any -- the key of the DataStore
-	@param index any -- the index of the DataFile
-	@return SubscriptionCache
-	@private
-]=]
-local function GetAll(key: string, index: string): table
-	if not Subscribe._All[key] then
-		Subscribe._All[key] = {}
-	end
-
-	if not Subscribe._All[key][index] then
-		Subscribe._All[key][index] = {
-			["Clients"] = {},
-			["Code"] = {},
-		}
-	end
-
-	return Subscribe._All[key][index]
-end
+local HttpService = game:GetService("HttpService")
 
 --[=[
 	Fire a subscription
@@ -106,50 +31,39 @@ end
 ]=]
 function Subscribe.FireSubscription(key: any, index: any, value: any, data: any): nil
 	index = tostring(index)
+	local store = Subscribe._Cache[key] or {}
+	local caught = {}
 
-	local cache = GetCache(key, index, value)
-	local all = GetAll(key, index)
-	local player = GetPlayer(index)
-
-	if Manager.IsServer then
-		local sent = {}
-
-		for count, client in pairs(cache["Clients"]) do
-			table.insert(sent, client)
-			Manager.wrap(function()
-				Network:FireClient(Subscribe._Remotes.Download, client, key, index, value, data)
-			end)
-		end
-
-		for count, client in pairs(all["Clients"]) do
-			if table.find(sent, client) then
-				continue
-			end
-			Manager.wrap(function()
-				Network:FireClient(Subscribe._Remotes.Download, client, key, index, value, data)
-			end)
-		end
-	end
-
-	local params = {
-		["Stat"] = value,
-		["Value"] = data,
-		["Key"] = key,
-		["Index"] = index,
-		["Player"] = player,
-	}
-
-	local called = {}
-	for hash, code in pairs(cache["Code"]) do
-		table.insert(called, code)
-		Manager.wrap(code, params)
-	end
-
-	for hash, code in pairs(all["Code"]) do
-		if table.find(called, code) then
+	for guid, file in pairs(store) do
+		if index ~= file.Index then
 			continue
 		end
-		Manager.wrap(code, params)
+
+		if not table.find(file.Values, value) and not table.find(file.Values, "all") then
+			continue
+		end
+
+		local client = file.Client
+		if Manager.IsServer and typeof(client) == "Instance" and client:IsA("Player") then
+			local catch = caught[client]
+			if not catch or catch and not table.find(catch, value) then
+				catch = catch or {}
+				table.insert(catch, value)
+				caught[client] = catch
+
+				Network:FireClient(Subscribe._Remotes.Download, client, key, index, value, data)
+			end
+		end
+
+		if file.Code then
+			Manager.Wrap(file.Code, {
+				["Key"] = key,
+				["Stat"] = value,
+				["Value"] = data,
+				["Index"] = index,
+				["Client"] = file.Client,
+			})
+		end
 	end
 end
 
@@ -159,52 +73,37 @@ end
 	@param info Instance | any -- player or index
 	@param key any -- DataStore key
 	@param index any -- DataFile index
-	@param value any -- DataFile value
+	@param value table -- DataFile value
 	@param code function -- the function to callback
 	@return nil
 	@private
 --]]
-function Subscribe.ConnectSubscription(info: Instance | any, key: any, index: any, value: any, code: (any) -> nil): nil
-	index = tostring(index)
-
-	local plr
+function Subscribe.ConnectSubscription(info: Instance | any, key: any, index: any, values: table, code: ((any) -> nil)?, uid: string?): nil
+	local client
 	if typeof(info) == "Instance" and info:IsA("Player") then
-		plr = info
-		info = plr.UserId
+		client = info
+		info = client.UserId
 	end
 	info = tostring(info)
+	index = tostring(index)
 
-	local cache = GetCache(key, index, value)
-	local all = string.lower(value) == "all" and GetAll(key, index)
+	local store = Subscribe._Cache[key] or {}
+	local guid = uid or HttpService:GenerateGUID(false)
+	local cache = {
+		["Code"] = code,
+		["Index"] = index,
+		["Client"] = client,
+		["Values"] = values,
+	}
 
-	if typeof(code) == "function" then
-		cache["Code"][info] = code
-		if all then
-			all["Code"][info] = code
-		end
-	end
-
-	if plr then
-		if not table.find(cache["Clients"], plr) then
-			table.insert(cache["Clients"], plr)
-		end
-
-		if all then
-			if not table.find(all["Clients"], plr) then
-				table.insert(all["Clients"], plr)
-			end
-		end
-	end
-
-	Subscribe._Cache[key][index][value] = cache
-
-	if all then
-		Subscribe._All[key][index] = all
-	end
+	store[guid] = cache
+	Subscribe._Cache[key] = store
 
 	if Manager.IsClient then
-		Network:FireServer(Subscribe._Remotes.Subscribe, key, index, value)
+		Network:FireServer(Subscribe._Remotes.Subscribe, key, index, values, guid)
 	end
+
+	return guid
 end
 
 --[=[
@@ -217,43 +116,12 @@ end
 	@return nil
 	@private
 ]=]
-function Subscribe.DisconnectSubscription(info: Instance | any, key: any, index: any, value: any): nil
-	value = value or "all"
+function Subscribe.DisconnectSubscription(key: string, guid: string): nil
+	local store = Subscribe._Cache[key]
 
-	if typeof(info) == "Instance" and info:IsA("Player") then
-		info = info.UserId
-	end
-	info = tostring(info)
-
-	local cache = GetCache(key, index, value)
-	local all = GetAll(key, index)
-
-	if cache["Code"][info] ~= nil then
-		cache["Code"][info] = nil
-	end
-
-	if all then
-		if all["Code"][info] ~= nil then
-			all["Code"][info] = nil
-		end
-	end
-
-	if typeof(info) == "Instance" and info:IsA("Player") then
-		if table.find(cache["Clients"], info) then
-			table.remove(cache["Clients"], table.find(cache["Clients"], info))
-		end
-
-		if all then
-			if table.find(all["Clients"], info) then
-				table.remove(all["Clients"], table.find(all["Clients"], info))
-			end
-		end
-	end
-
-	Subscribe._Cache[key][index][value] = nil
-
-	if all then
-		Subscribe._All[key][index] = all
+	if store[guid] then
+		store[guid] = nil
+		Subscribe._Cache[key] = store
 	end
 end
 
