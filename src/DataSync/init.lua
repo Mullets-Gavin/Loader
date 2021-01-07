@@ -91,7 +91,7 @@ DataSync.Sync = true -- allow data to sync - highly recommended to leave this to
 DataSync.Shutdown = true -- support BindToClose & autosave all DataFiles
 DataSync.AutoSave = true -- can DataFiles autosave
 DataSync.AutoSaveTimer = 30 -- how often, in seconds, a DataFile autosaves
-DataSync.FailProof = true -- kick the player if the datastore failed loading player-based data
+DataSync.FailProof = false -- kick the player if the datastore failed loading player-based data
 DataSync.All = "all" -- the 'all' variable for streamlining data types
 
 local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
@@ -136,6 +136,7 @@ end
 	@param key string -- the DataStore key required
 	@param data? table -- if you set a default table to load player data
 	@return DataStoreObject
+	@outline GetStore
 ]=]
 function DataSync.GetStore(key: string, data: table?): typeof(DataSync.GetStore())
 	if DataSync._Stores[key] and not data then
@@ -165,6 +166,7 @@ end
 
 	@param keys table -- the keys to filter
 	@param filter? boolean -- if true, only save these keys, if false, don't save those keys
+	@outline FilterKeys
 ]=]
 function DataSync:FilterKeys(keys: table, filter: boolean?): typeof(DataSync.GetStore())
 	assert(self._key, "':FilterKeys' can only be used with a store")
@@ -187,6 +189,7 @@ end
 	
 	@param index string | number | nil & client -- the index on the DataStore
 	@return DataFileObject
+	@outline GetFile
 ]=]
 function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile())
 	assert(self._key, "':GetFile' can only be used with a store")
@@ -197,7 +200,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 
 	if DataSync._Sessions[index] then
 		while not DataSync._Files[index] do
-			Manager.wait()
+			Manager.Wait()
 		end
 
 		return DataSync._Files[index]
@@ -217,7 +220,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 
 		if not DataSync._Defaults[self._key] then
 			while not DataSync._Files[index] do
-				Manager.wait()
+				Manager.Wait()
 			end
 
 			return DataSync._Files[index]
@@ -227,7 +230,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		if not success then
 			if load == "__OCCUPIED" or DataSync._Sessions[index] then
 				while not DataSync._Files[index] do
-					Manager.wait()
+					Manager.Wait()
 				end
 
 				return DataSync._Files[index]
@@ -240,6 +243,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 				return nil
 			end
 
+			self.Loaded = false
 			load = Manager.Copy(DataSync._Defaults[self._key])
 		end
 
@@ -247,12 +251,11 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		self._sesh = false
 	end
 
+	local info = player or index
 	local data = {
 		_key = self._key,
 		_file = index,
 	}
-
-	local info = player or index
 
 	if info then
 		self:Subscribe(info, index, "all")
@@ -268,10 +271,10 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 	setmetatable(data, DataSync)
 
 	if DataSync.AutoSave and Manager.IsServer then
-		Manager.wrap(function()
-			while Manager.wait(DataSync.AutoSaveTimer) do
+		Manager.Wrap(function()
+			while Manager.Wait(DataSync.AutoSaveTimer) do
 				if player then
-					local success, response = Manager.retry(1, function()
+					local success, response = Manager.Retry(1, function()
 						return Players:GetPlayerByUserId(index)
 					end)
 
@@ -303,6 +306,7 @@ end
 	
 	@param value? string | number -- the value to grab data from
 	@return DataValue | DataFile?
+	@outline GetData
 ]=]
 function DataSync:GetData(value: string | number | nil): any? | table
 	assert(self._file, "':GetData' can only be used with a data file")
@@ -310,7 +314,7 @@ function DataSync:GetData(value: string | number | nil): any? | table
 	local file = DataSync._Cache[self._key][self._file]
 
 	while not DataSync._Cache[self._key][self._file] do
-		Manager.wait()
+		Manager.Wait()
 	end
 
 	file = DataSync._Cache[self._key][self._file]
@@ -333,6 +337,7 @@ end
 	@param value string -- the specific value in a DataFile
 	@param data any? -- any valid type can be provided to a value
 	@return DataFileObject
+	@outline UpdateData
 ]=]
 function DataSync:UpdateData(value: string, data: any?): typeof(DataSync:GetFile())
 	assert(self._file, "':UpdateData' can only be used with a data file")
@@ -344,7 +349,7 @@ function DataSync:UpdateData(value: string, data: any?): typeof(DataSync:GetFile
 
 	if file == nil and Manager.IsServer then
 		while DataSync._Cache[self._key][self._file] == nil do
-			Manager.wait()
+			Manager.Wait()
 		end
 
 		file = DataSync._Cache[self._key][self._file]
@@ -379,6 +384,7 @@ end
 	@param value string -- the specific value in a DataFile
 	@param num number -- how much to increment/decrement
 	@return DataFileObject
+	@outline IncrementData
 ]=]
 function DataSync:IncrementData(value: string, num: number): typeof(DataSync:GetFile())
 	assert(self._file, "':UpdateData' can only be used with a data file")
@@ -397,6 +403,7 @@ end
 	Save a DataFile to the cloud (Roblox DataStores)
 	
 	@return DataFileObject
+	@outline SaveData
 ]=]
 function DataSync:SaveData(override: boolean?): typeof(DataSync:GetFile())
 	assert(self._file, "':SaveData' can only be used with a data file")
@@ -444,6 +451,7 @@ end
 	Remove & destroy a DataFile from cache
 	
 	@return DestroyedDataFileObject
+	@outline RemoveData
 ]=]
 function DataSync:RemoveData(override: boolean?): typeof(DataSync:RemoveData())
 	assert(self._file, "':RemoveData' can only be used with a data file")
@@ -477,6 +485,7 @@ end
 	Wipe a DataFile from the cloud (Roblox DataStores)
 	
 	@Return DataFileObject
+	@outline WipeData
 ]=]
 function DataSync:WipeData(): typeof(DataSync:GetFile())
 	assert(self._file, "':WipeData' can only be used with a data file")
@@ -493,50 +502,49 @@ end
 	@param index number | string | Instance -- the index can be a number or Player, and converted to string
 	@param value string -- the value for the file
 	@param code function -- the function which to be called whenever the value changes
+	@outline Subscribe
 ]=]
-function DataSync:Subscribe(index: string | number | Player, value: string, code: (any) -> nil, _sent: Player?): typeof(DataSync:Subscribe())
+function DataSync:Subscribe(index: string | number | Player, value: string | table, code: (any) -> nil, _sent: Player?): typeof(DataSync:Subscribe())
 	assert(self._key, "':Subscribe' can only be used with a store")
 
+	value = typeof(value) == "table" and value or { value }
 	local index, player = tostring(GetPlayer(index))
 	local player = Manager.IsClient and Players.LocalPlayer or Manager.IsServer and _sent
 	local info = player or index
-
-	local _subscription = {
-		value = value,
-		info = info,
-		index = index,
+	local guid = Subscribe.ConnectSubscription(info, self._key, index, value, code)
+	local sub = {
+		_key = self._key,
+		_index = index,
+		_value = value,
+		_info = info,
+		_guid = guid,
 	}
-	self._subscription = _subscription
 
-	Subscribe.ConnectSubscription(info, self._key, index, value, code)
-	DataSync._Subscriptions[index .. value] = self._subscription
+	setmetatable(sub, DataSync)
 
-	return self
+	DataSync._Subscriptions[self._key .. index] = sub
+	return sub
 end
 
 --[=[
 	Unsubscribe from a subscription on a store
 	
 	@return SubscriptionObject
+	@outline Unsubscribe
 ]=]
 function DataSync:Unsubscribe(): typeof(DataSync:Unsubscribe())
 	assert(self._key, "':Unsubscribe' can only be used with a store")
 	assert(
-		self._subscription,
+		self._guid,
 		"':Unsubscribe' can only be used with a subscription created with ':Subscribe'"
 	)
 
-	if not DataSync._Subscriptions[self._subscription.index .. self._subscription.value] then
+	if self._deactivated then
 		return self
 	end
 
-	Subscribe.DisconnectSubscription(
-		self._subscription.info,
-		self._key,
-		self._subscription.index,
-		self._subscription.value
-	)
-	DataSync._Subscriptions[self._subscription.index .. self._subscription.value] = nil
+	Subscribe.DisconnectSubscription(self._key, self._guid)
+	self._deactivated = true
 
 	return self
 end
@@ -548,6 +556,7 @@ end
 	@param value string -- the value to fire
 	@param data any? -- this can be any data
 	@return nil
+	@outline _FireSubscriptions
 ]=]
 function DataSync:_FireSubscriptions(index: string, value: string, data: any?): nil
 	assert(self._key, "':Subscribe' can only be used with a store")
@@ -571,14 +580,14 @@ if Manager.IsServer then
 			print("Shutting down and saving DataSync files")
 
 			for index, file in pairs(DataSync._Files) do
-				Manager.wrap(function()
+				Manager.Wrap(function()
 					file:SaveData(true):RemoveData(true)
 					DataSync._Files[index] = nil
 				end)
 			end
 
 			while Manager.Count(DataSync._Files) > 0 do
-				Manager.wait()
+				Manager.Wait()
 			end
 		end)
 	end
@@ -593,12 +602,13 @@ if Manager.IsServer then
 		return success and response or nil
 	end)
 
-	Network:HookEvent(DataSync._Remotes.Subscribe, function(client, key, index, value)
+	Network:HookEvent(DataSync._Remotes.Subscribe, function(client, key, index, value, uid)
 		local store = DataSync.GetStore(key)
-		store:Subscribe(index, value, nil, client)
+
+		store:Subscribe(index, value, nil, client, nil, uid)
 	end)
 elseif Manager.IsClient then
-	Network:HookEvent(DataSync._Remotes.Download, function(key, index, value, data)
+	Network:HookEvent(DataSync._Remotes.Download, function(key, index, value, data, uid)
 		if not DataSync._Cache[key] then
 			DataSync._Cache[key] = {}
 		end
@@ -613,7 +623,7 @@ elseif Manager.IsClient then
 			DataSync._Cache[key][index][value] = data
 		end
 
-		Subscribe.FireSubscription(key, index, value, data)
+		Subscribe.FireSubscription(key, index, value, data, uid)
 	end)
 end
 
