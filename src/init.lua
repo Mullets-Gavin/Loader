@@ -190,6 +190,7 @@ end
 	@param requirer Script -- the script that required this function to simulate require()
 	@return table?
 	@private
+	@outline ___require
 ]=]
 function Loader.__require(module: ModuleScript, requirer: Script): table?
 	local clock = os.clock()
@@ -253,6 +254,7 @@ end
 	@param requirer Instance -- the script that required this function to simulate require()
 	@return RequiredModule?
 	@private
+	@outline ___server
 ]=]
 function Loader.__server(module: ModuleScript, requirer: Script): table?
 	local name = string.lower(typeof(module) == "Instance" and module.Name or module)
@@ -280,6 +282,7 @@ end
 	@param requirer Instance -- the script that required this function to simulate require()
 	@return RequiredModule?
 	@private
+	@outline ___client
 ]=]
 function Loader.__client(module: ModuleScript, requirer: Script, __disabled: boolean?): table?
 	local clock = os.clock()
@@ -327,6 +330,7 @@ end
 	
 	@param module string | number | Instance -- the module type to require
 	@return RequiredModule?
+	@outline require
 ]=]
 function Loader.require(module: ModuleScript | string | number): table?
 	local requirer = getfenv(2).script
@@ -338,6 +342,7 @@ end
 	
 	@param module string | number | Instance -- the module type to require
 	@return RequiredModule?
+	@outline server
 ]=]
 function Loader.server(module: ModuleScript | string | number): table?
 	assert(IsServer, "Attempted to access .server from the client")
@@ -351,6 +356,7 @@ end
 	
 	@param module string | number | Instance -- the module type to require
 	@return RequiredModule?
+	@outline client
 ]=]
 function Loader.client(module: ModuleScript | string | number): table?
 	assert(IsClient, "Attempted to access .client from the server")
@@ -365,6 +371,7 @@ end
 	@param name string -- the name & index of the enum
 	@param members table -- list of all the enum members
 	@return table
+	@outline enum
 ]=]
 function Loader.enum(name: string, members: table): table
 	assert(shared[name] == nil, "Error claiming enum '" .. name .. "': already claimed")
@@ -384,6 +391,7 @@ end
 	
 	@param module string | number | Instance -- the module type to require
 	@return table?
+	@outline __call
 ]=]
 function Loader:__call(module: ModuleScript | string | number): table?
 	local requirer = getfenv(2).script
@@ -394,6 +402,7 @@ end
 	Provides the Loader version when called tostring()
 	
 	@return FormattedVersion
+	@outline __tostring
 ]=]
 function Loader:__tostring(): string
 	return "Loader " .. Loader.__version()
@@ -403,6 +412,7 @@ end
 	Returns the current version of Loader
 	
 	@return FormattedVersion
+	@outline __version
 ]=]
 function Loader.__version(): string
 	return string.format(
@@ -417,7 +427,7 @@ Loader.VERSION = Loader.__version()
 do
 	if not shared.Loader and (not IsStudio or (IsStudio and IsServer)) then
 		Loader.enum("Loader", { "Initialized" })
-		print("Loader by Mullet Mafia Dev initialized", "|", Loader.VERSION)
+		print("Loader initialized", "|", Loader.VERSION)
 	end
 
 	if IsClient and not IsStudio then
