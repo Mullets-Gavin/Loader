@@ -73,7 +73,7 @@ function Components:Fire(name: string, ...): nil
 	)
 
 	local code = Components._Bindings[name]
-	Manager.wrap(code, ...)
+	Manager.Wrap(code, ...)
 end
 
 --[=[
@@ -145,14 +145,14 @@ function Components:Attribute(name: string, code: (any, any) -> nil): RBXScriptC
 
 	assert(last ~= nil, "Attempted to bind to nil attribute '" .. name .. "'")
 
-	Manager.wrap(code, last, last)
+	Manager.Wrap(code, last, last)
 
 	local obj = self.config:FindFirstChild(name)
 	local signal
 	do
 		if obj then
 			signal = obj.Changed:Connect(function(new)
-				Manager.wrap(code, new, last)
+				Manager.Wrap(code, new, last)
 
 				last = new
 			end)
@@ -160,7 +160,7 @@ function Components:Attribute(name: string, code: (any, any) -> nil): RBXScriptC
 			signal = self.config:GetAttributeChangedSignal(name):Connect(function()
 				local new = self:Get(name)
 
-				Manager.wrap(code, new, last)
+				Manager.Wrap(code, new, last)
 
 				last = new
 			end)

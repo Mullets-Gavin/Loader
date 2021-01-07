@@ -266,7 +266,7 @@ if Manager.IsClient then
 			if data["Verify"] and data["Enabled"] and data["Function"] and data["Keys"] then
 				if table.find(data["Keys"], obj.KeyCode) or table.find(data["Keys"], obj.UserInputType) then
 					local code = data["Function"]
-					Manager.wrap(code, obj)
+					Manager.Wrap(code, obj)
 				end
 			end
 		end
@@ -275,7 +275,7 @@ if Manager.IsClient then
 			if data["Type"] == "Began" then
 				if table.find(data["Keys"], obj.KeyCode) or table.find(data["Keys"], obj.UserInputType) then
 					local code = data["Code"]
-					Manager.wrap(code, obj)
+					Manager.Wrap(code, obj)
 				end
 			end
 		end
@@ -289,7 +289,7 @@ if Manager.IsClient then
 			if data["Type"] == "Ended" then
 				if table.find(data["Keys"], obj.KeyCode) or table.find(data["Keys"], obj.UserInputType) then
 					local code = data["Code"]
-					Manager.wrap(code, obj)
+					Manager.Wrap(code, obj)
 				end
 			end
 		end
@@ -301,7 +301,7 @@ if Manager.IsClient then
 		end
 		for index, data in pairs(Input._InputTouchCallbacks) do
 			local code = data["Code"]
-			Manager.wrap(code, obj)
+			Manager.Wrap(code, obj)
 		end
 	end)
 end
