@@ -51,7 +51,7 @@ function Subscribe.FireSubscription(key: any, index: any, value: any, data: any)
 				table.insert(catch, value)
 				caught[client] = catch
 
-				Network:FireClient(Subscribe._Remotes.Download, client, key, index, value, data)
+				Network.FireClient(Subscribe._Remotes.Download, client, key, index, value, data)
 			end
 		end
 
@@ -100,7 +100,7 @@ function Subscribe.ConnectSubscription(info: Instance | any, key: any, index: an
 	Subscribe._Cache[key] = store
 
 	if Manager.IsClient then
-		Network:FireServer(Subscribe._Remotes.Subscribe, key, index, values, guid)
+		Network.FireServer(Subscribe._Remotes.Subscribe, key, index, values, guid)
 	end
 
 	return guid
