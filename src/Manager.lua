@@ -8,24 +8,24 @@
 	https://github.com/Mullets-Gavin/Manager
 	Listed below is a quick glance on the API, visit the link above for proper documentation.
 	
-	Manager.wait(time)
-	Manager.set(dictionary)
-	Manager.wrap(function,...)
-	Manager.spawn(function,...)
-	Manager.garbage(time,instance)
-	Manager.delay(time,function,...)
-	Manager.retry(time,function,...)
-	Manager.rerun(tries,function,...)
-	Manager.debounce(key,function,...)
-	Manager.debug(label)
-	Manager.round(number[,decimal])
+	Manager.Wait(time)
+	Manager.Set(dictionary)
+	Manager.Wrap(function,...)
+	Manager.Spawn(function,...)
+	Manager.Garbage(time,instance)
+	Manager.Delay(time,function,...)
+	Manager.Retry(time,function,...)
+	Manager.Rerun(tries,function,...)
+	Manager.Debounce(key,function,...)
+	Manager.Debug(label)
+	Manager.Round(number[,decimal])
 	
-	Manager.formatCounter(number,decimal)
-	Manager.formatValue(number)
-	Manager.formatMoney(number)
-	Manager.formatClock(number)
-	Manager.format24H(number)
-	Manager.formatDate(number)
+	Manager.FormatCounter(number,decimal)
+	Manager.FormatValue(number)
+	Manager.FormatMoney(number)
+	Manager.FormatClock(number)
+	Manager.Format24H(number)
+	Manager.FormatDate(number)
 	
 	Manager.Tween(object,properties,goals[,duration,style,direction])
 	Manager.Copy(table)
@@ -223,8 +223,9 @@ end
 	
 	@param properties table -- a dictionary with the settings & boolean
 	@return nil
+	@outline Set
 ]=]
-function Manager.set(properties: table): nil
+function Manager.Set(properties: table): nil
 	Settings.Debug = properties["Debug"] or false
 	Settings.RunService = properties["RunService"] or "Stepped"
 end
@@ -234,8 +235,9 @@ end
 	
 	@param clock? number -- provide a time you want to wait for
 	@return delta
+	@outline Wait
 ]=]
-function Manager.wait(clock: number?): number
+function Manager.Wait(clock: number?): number
 	if clock then
 		local current = os.clock()
 
@@ -253,8 +255,9 @@ end
 	@param code function -- the function to wrap
 	@param ...? any -- optional parameters to pass in the function
 	@return nil
+	@outline Wrap
 ]=]
-function Manager.wrap(code: (any) -> nil, ...): nil
+function Manager.Wrap(code: (any) -> nil, ...): nil
 	local thread = coroutine.create(code)
 	local ran, response = coroutine.resume(thread, ...)
 
@@ -270,8 +273,9 @@ end
 	@param code function -- the function to spawn
 	@param ...? any -- optional parameters to pass in the function
 	@return nil
+	@outline Spawn
 ]=]
-function Manager.spawn(code: (any) -> nil, ...): nil
+function Manager.Spawn(code: (any) -> nil, ...): nil
 	coroutine.resume(coroutine.create(code), ...)
 end
 
@@ -282,8 +286,9 @@ end
 	@param code function -- the function to callback
 	@param ...? any -- optional parameters to pass in the function
 	@return RBXScriptConnection
+	@outline Loop
 ]=]
-function Manager.loop(fps: number, code: (any) -> nil, ...): RBXScriptConnection
+function Manager.Loop(fps: number, code: (any) -> nil, ...): RBXScriptConnection
 	local data = { ... }
 	local rate = 1 / 60
 	local logged = 0
@@ -307,14 +312,15 @@ end
 	@param code function -- the function to callback
 	@param ...? any -- optional parameters to pass in the function
 	@return nil
+	@outline Delay
 ]=]
-function Manager.delay(clock: number, code: (any) -> nil, ...): nil
+function Manager.Delay(clock: number, code: (any) -> nil, ...): nil
 	local data = { ... }
-	Manager.wrap(function()
+	Manager.Wrap(function()
 		local current = os.clock()
 
 		while clock > os.clock() - current do
-			Manager.wait()
+			Manager.Wait()
 		end
 
 		code(table.unpack(data))
@@ -327,13 +333,14 @@ end
 	@param clock number -- the time to wait
 	@param obj Instance -- the Instance to destroy
 	@return nil
+	@outline Garbage
 ]=]
-function Manager.garbage(clock: number, obj: Instance): nil
-	Manager.wrap(function()
+function Manager.Garbage(clock: number, obj: Instance): nil
+	Manager.Wrap(function()
 		local current = os.clock()
 
 		while clock > os.clock() - current do
-			Manager.wait()
+			Manager.Wait()
 		end
 
 		obj:Destroy()
@@ -347,8 +354,9 @@ end
 	@param code function -- the function to run for success
 	@param ...? any -- optional parameters to pass in the function
 	@return boolean & (any?)
+	@outline Retry
 ]=]
-function Manager.retry(clock: number, code: (any) -> nil, ...): boolean & (any?)
+function Manager.Retry(clock: number, code: (any) -> nil, ...): boolean & (any?)
 	local current = os.clock()
 	local success, response
 
@@ -356,7 +364,7 @@ function Manager.retry(clock: number, code: (any) -> nil, ...): boolean & (any?)
 		success, response = pcall(code, ...)
 
 		if not success then
-			Manager.wait()
+			Manager.Wait()
 		end
 	end
 
@@ -374,8 +382,9 @@ end
 	@param code function -- the function to run for success
 	@param ...? any -- optional parameters to pass in the function
 	@return boolean & (any?)
+	@outline Rerun
 ]=]
-function Manager.rerun(times: number, code: (any) -> nil, ...): boolean & (any?)
+function Manager.Rerun(times: number, code: (any) -> nil, ...): boolean & (any?)
 	local current = 0
 	local success, response
 	repeat
@@ -383,7 +392,7 @@ function Manager.rerun(times: number, code: (any) -> nil, ...): boolean & (any?)
 		success, response = pcall(code, ...)
 
 		if not success then
-			Manager.wait()
+			Manager.Wait()
 		end
 	until success or current >= times
 
@@ -400,8 +409,9 @@ end
 	@param key string -- the key of the debounce
 	@param code function -- the function to wait for
 	@return boolean | (any?)
+	@outline Debounce
 ]=]
-function Manager.debounce(key: any, code: (any) -> nil, ...): boolean | (any?)
+function Manager.Debounce(key: any, code: (any) -> nil, ...): boolean | (any?)
 	if Manager._Bouncers[key] then
 		return false
 	end
@@ -418,8 +428,9 @@ end
 	
 	@param label? string -- provide a label to use & track otherwise the requirer script name is used
 	@return nil
+	@outline Debug
 ]=]
-function Manager.debug(label: string?): nil
+function Manager.Debug(label: string?): nil
 	local backtrace = getfenv(3).script
 	label = label or string.lower(backtrace.Name)
 
@@ -440,8 +451,9 @@ end
 	@param input number -- the input to round
 	@param decimal? number -- optional decimal to round to
 	@return RoundedNumber
+	@outline Round
 ]=]
-function Manager.round(input: number, decimal: number?): number
+function Manager.Round(input: number, decimal: number?): number
 	if not decimal then
 		return math.round(input)
 	end
@@ -455,8 +467,9 @@ end
 	@param input number -- the number to format
 	@param decimal number -- how many decimals it should display
 	@return FormattedNumber -- 4 -> 4.0
+	@outline FormatCounter
 ]=]
-function Manager.formatCounter(input: number, decimal: number): string
+function Manager.FormatCounter(input: number, decimal: number): string
 	local format = tostring(input)
 	local raw = "%." .. decimal .. "f"
 
@@ -468,8 +481,9 @@ end
 	
 	@param input number -- the number to format
 	@return FormattedNumber -- 4000 -> 4,000
+	@outline FormatValue
 ]=]
-function Manager.formatValue(input: number): string
+function Manager.FormatValue(input: number): string
 	local format, remain = tonumber(input)
 
 	while remain ~= 0 do
@@ -484,8 +498,9 @@ end
 	
 	@param input number -- the number to format
 	@return FormattedNumber -- 4000 -> 4k
+	@outline FormatMoney
 ]=]
-function Manager.formatMoney(input: number): number | string
+function Manager.FormatMoney(input: number): number | string
 	local negative = input < 0
 	input = math.abs(input)
 
@@ -517,8 +532,9 @@ end
 	
 	@param input number -- the number to format
 	@return FormattedNumber -- 3000 -> 5:00
+	@outline FormatClock
 ]=]
-function Manager.formatClock(input: number): string
+function Manager.FormatClock(input: number): string
 	local seconds = tonumber(input)
 
 	if seconds <= 0 then
@@ -536,8 +552,9 @@ end
 	
 	@param input number -- the number to format
 	@return FormattedNumber -- HH:MM:SS
+	@outline Format24H
 ]=]
-function Manager.format24H(input: number): string
+function Manager.Format24H(input: number): string
 	local seconds = tonumber(input)
 
 	if seconds <= 0 then
@@ -556,8 +573,9 @@ end
 	
 	@param input number -- the number to format
 	@return FormattedNumber -- DD:HH:MM:SS
+	@outline FormatDate
 ]=]
-function Manager.formatDate(input: number): string
+function Manager.FormatDate(input: number): string
 	local days = math.floor(input / 86400)
 	local hours = math.floor(math.fmod(input, 86400) / 3600)
 	local minutes = math.floor(math.fmod(input, 3600) / 60)
@@ -576,6 +594,7 @@ end
 	@param style EnumItem -- an Enum.EasingStyle
 	@param direction EnumItem -- an Enum.EasingDirection
 	@return TweenObject
+	@outline Tween
 ]=]
 function Manager.Tween(object: Instance, properties: table, goals: any | table, duration: number?, style: EnumItem?, direction: EnumItem?): TweenObject
 	duration = typeof(duration) == "number" and duration or 0.5
@@ -601,6 +620,7 @@ end
 	
 	@param master table -- table to count
 	@return number
+	@outline Count
 ]=]
 function Manager.Count(master: table): number
 	local count = 0
@@ -617,6 +637,7 @@ end
 	
 	@param master table -- the table to copy
 	@return table
+	@outline Copy
 ]=]
 function Manager.Copy(master: table): table
 	local clone = {}
@@ -637,6 +658,7 @@ end
 	
 	@param master table -- the table to copy
 	@return table
+	@outline DeepCopy
 ]=]
 function Manager.DeepCopy(master: any): any?
 	local clone
@@ -659,6 +681,7 @@ end
 	
 	@param master table -- the table to shuffle
 	@return table
+	@outline Shuffle
 ]=]
 function Manager.Shuffle(master: table): table
 	local rng = Random.new()
@@ -676,9 +699,10 @@ end
 	
 	@param data any -- the data to convert to a string
 	@return EncodedString
+	@outline Encode
 ]=]
 function Manager.Encode(data: any): any? | boolean
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return HttpService:JSONEncode(data)
 	end)
 
@@ -694,9 +718,10 @@ end
 	
 	@param text string -- the encoded string to decode
 	@return DecodedData
+	@outline Decode
 ]=]
 function Manager.Decode(text: string): any? | boolean
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return HttpService:JSONDecode(text)
 	end)
 
@@ -712,6 +737,7 @@ end
 	
 	@param text any -- data to compress
 	@return CompressedString
+	@outline Compress
 ]=]
 function Manager.Compress(text: any): string
 	text = Manager.Encode(text)
@@ -753,6 +779,7 @@ end
 	
 	@param text string -- the compressed string to decode
 	@return DecompressedData
+	@outline Decompress
 ]=]
 function Manager.Decompress(text: string): any?
 	local dictionary = Manager.Copy(Compression.Dictionary)
@@ -793,10 +820,11 @@ end
 	
 	@param tag string -- the tag to yield for
 	@return table
+	@outline WaitForTag
 ]=]
 function Manager:WaitForTag(tag: string): table
 	while not CollectionService:GetTagged(tag)[1] do
-		Manager.wait()
+		Manager.Wait()
 	end
 
 	return CollectionService:GetTagged(tag)
@@ -807,10 +835,11 @@ end
 	
 	@param player Instance -- the player instance
 	@return Character
+	@outline WaitForCharacter
 ]=]
 function Manager:WaitForCharacter(player: Player): Instance
 	while not player.Character do
-		Manager.wait()
+		Manager.Wait()
 	end
 
 	while not player.Character:IsDescendantOf(Workspace) do
@@ -825,6 +854,7 @@ end
 	
 	@param code function -- the function to connect
 	@return ScriptSignal
+	@outline Connect
 ]=]
 function Manager:Connect(code: RBXScriptConnection | table | (any) -> nil): typeof(Manager:Connect())
 	local control = {}
@@ -849,7 +879,7 @@ function Manager:Connect(code: RBXScriptConnection | table | (any) -> nil): type
 
 	function control:Fire(...): any?
 		if typeof(code) == "function" then
-			return Manager.wrap(code, ...)
+			return Manager.Wrap(code, ...)
 		else
 			warn("Attempted to call ':Fire' on '" .. typeof(code) .. "'")
 		end
@@ -864,6 +894,7 @@ end
 	@param key string -- name of the connection key
 	@param code function -- the function to connect
 	@return RBXScriptConnection
+	@outline ConnectKey
 ]=]
 function Manager:ConnectKey(key: any, code: RBXScriptConnection | table | (any) -> nil): typeof(Manager:ConnectKey())
 	if not Manager._Connections[key] then
@@ -896,7 +927,7 @@ function Manager:ConnectKey(key: any, code: RBXScriptConnection | table | (any) 
 
 	function control:Fire(...): any?
 		if typeof(code) == "function" then
-			return Manager.wrap(code, ...)
+			return Manager.Wrap(code, ...)
 		else
 			warn("Attempted to call ':Fire' on '" .. typeof(code) .. "'")
 		end
@@ -912,6 +943,7 @@ end
 	@param key string -- name of the connection key
 	@param ...? any -- optional parameters to pass
 	@return nil
+	@outline FireKey
 ]=]
 function Manager:FireKey(key: string, ...): nil
 	if not Manager._Connections[key] then
@@ -927,6 +959,7 @@ end
 	Disconnect all connections on a key
 	
 	@param key any -- name of the connection key
+	@outline DisconnectKey
 ]=]
 function Manager:DisconnectKey(key: any): nil
 	if not Manager._Connections[key] then
@@ -946,6 +979,7 @@ end
 	
 	@param targetFPS number -- the FPS to run at, default 60
 	@return TaskScheduler
+	@outline Task
 ]=]
 function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 	targetFPS = targetFPS or 60
@@ -959,7 +993,7 @@ function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 	control.UpdateTableEvent = nil
 
 	local start = os.clock()
-	Manager.wait()
+	Manager.Wait()
 
 	local function Frames(): number
 		return (((os.clock() - start) >= 1 and #control.UpdateTable) or (#control.UpdateTable / (os.clock() - start)))
@@ -1011,7 +1045,7 @@ function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 						break
 					end
 				elseif control:Enabled() then
-					Manager.wait()
+					Manager.Wait()
 				end
 			end
 		end
@@ -1043,7 +1077,7 @@ function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 
 	function control:Wait(): number
 		while not control.Sleeping do
-			Manager.wait()
+			Manager.Wait()
 		end
 
 		return Frames()
