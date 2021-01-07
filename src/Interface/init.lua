@@ -209,13 +209,14 @@ local function BindComponent(tag: string, element: GuiObject): nil
 	local create = Components.new(element)
 	Interface._ComponentCache[tag][element] = create
 
-	Manager.wrap(code, create)
+	Manager.Wrap(code, create)
 end
 
 --[=[
 	Returns whether the clients device is a computer
 	
 	@return boolean
+	@outline IsComputer
 ]=]
 function Interface.IsComputer(): boolean
 	local check = Interface.IsKeyboard() and Interface.IsMouse() and true or false
@@ -226,6 +227,7 @@ end
 	Returns whether the clients device is a mobile device
 	
 	@return boolean
+	@outline IsMobile
 ]=]
 function Interface.IsMobile(): boolean
 	local check = Interface.IsTouch() and not Interface.IsKeyboard() and true or false
@@ -236,6 +238,7 @@ end
 	Returns whether the clients device is a console
 	
 	@return boolean
+	@outline IsConsole
 ]=]
 function Interface.IsConsole(): boolean
 	return GuiService:IsTenFootInterface()
@@ -245,6 +248,7 @@ end
 	Returns whether the clients device has a keyboard
 	
 	@return boolean
+	@outline IsKeyboard
 ]=]
 function Interface.IsKeyboard(): boolean
 	return UserInputService.KeyboardEnabled
@@ -254,6 +258,7 @@ end
 	Returns whether the clients device has a mouse
 	
 	@return boolean
+	@outline IsMouse
 ]=]
 function Interface.IsMouse(): boolean
 	return UserInputService.MouseEnabled
@@ -263,6 +268,7 @@ end
 	Returns whether the clients device is touch enabled
 	
 	@return boolean
+	@outline IsTouch
 ]=]
 function Interface.IsTouch(): boolean
 	return UserInputService.TouchEnabled
@@ -272,6 +278,7 @@ end
 	Returns whether the clients device has a controller
 	
 	@return boolean
+	@outline IsGamepad
 ]=]
 function Interface.IsGamepad(): boolean
 	return UserInputService.GamepadEnabled
@@ -281,6 +288,7 @@ end
 	Returns whether the clients device is virtual reality
 	
 	@return boolean
+	@outline IsVR
 ]=]
 function Interface.IsVR(): boolean
 	return UserInputService.VREnabled
@@ -290,6 +298,7 @@ end
 	Replicate GuiObject containers, skipping Roblox character dependency
 	
 	@return nil
+	@outline Replicate
 ]=]
 function Interface.Replicate(): nil -- TODO
 
@@ -303,6 +312,7 @@ end
 	@param min number -- the minimum size of the element
 	@param max number -- the maximum size of the element
 	@return nil
+	@outline AssignSizes
 ]=]
 function Interface.AssignSizes(element: GuiObject, scale: number, min: number, max: number): typeof(Interface.AssignSizes())
 	local control = {}
@@ -380,8 +390,9 @@ end
 	Create a RichText Object
 	
 	@return RichTextObject
+	@outline RichText
 ]=]
-function Interface.Richtext(): typeof(Interface.Richtext())
+function Interface.RichText(): typeof(Interface.RichText())
 	local control = {}
 	control._raw = {}
 	control._append = {}
@@ -498,6 +509,7 @@ end
 	
 	@param name string -- the internal name of the keybind, be unique
 	@return KeybindObject
+	@outline Keybind
 ]=]
 function Interface.Keybind(name: string): typeof(Interface.Keybind())
 	Input:CreateButton(name, Container)
@@ -580,6 +592,7 @@ end
 	
 	@param name string -- the name of the keybind to find
 	@return nil
+	@outline Disconnect
 ]=]
 function Interface:Disconnect(name: string): nil
 	if Input._InputCallbacks[name] then
@@ -593,6 +606,7 @@ end
 	@param name string -- the name of the keybind
 	@param keys table -- a list of the enum keycodes to switch to
 	@return boolean
+	@outline Update
 ]=]
 function Interface:Update(name: string, keys: table): boolean
 	for index, key in pairs(keys) do
@@ -614,6 +628,7 @@ end
 	@param keys table -- a list of the enum keycodes
 	@param code function -- a callback function when a key presses
 	@return nil
+	@outline Began
 ]=]
 function Interface:Began(name: string, keys: table, code: (any) -> nil): nil
 	for index, key in pairs(keys) do
@@ -635,6 +650,7 @@ end
 	@param keys table -- a list of the enum keycodes
 	@param code function -- a callback function when a key depresses
 	@return nil
+	@outline Ended
 ]=]
 function Interface:Ended(name: string, keys: table, code: (any) -> nil): nil
 	for index, key in pairs(keys) do
@@ -655,6 +671,7 @@ end
 	@param name string -- the name of the keybind
 	@param code function -- a callback function when there is a tap
 	@return nil
+	@outline Tapped
 ]=]
 function Interface:Tapped(name: string, code: (any) -> nil): nil
 	assert(typeof(name) == "string")
@@ -671,6 +688,7 @@ end
 	
 	@param element GuiObject -- the element to get a component from
 	@return Component?
+	@outline Get
 ]=]
 function Interface:Get(element: GuiObject): typeof(Interface:Create())?
 	for tag, data in pairs(Interface._ComponentCache) do
@@ -688,6 +706,7 @@ end
 	
 	@param tag string -- the tag to get from
 	@return table
+	@outline GetAll
 ]=]
 function Interface:GetAll(tag: string): table
 	return Interface._ComponentCache[tag]
@@ -698,6 +717,7 @@ end
 	
 	@param tag string
 	@return Component?
+	@outline GetComponent
 ]=]
 function Interface:GetComponent(tag: string): typeof(Interface:Create())?
 	local tags = Interface:GetAll(tag)
@@ -712,6 +732,7 @@ end
 	@param name string -- the name of the binding
 	@param ...? any -- optional parameters to pass
 	@return nil
+	@outline Fire
 ]=]
 function Interface:Fire(name: string, ...): nil
 	assert(
@@ -720,7 +741,7 @@ function Interface:Fire(name: string, ...): nil
 	)
 
 	local code = Components._Bindings[name]
-	Manager.wrap(code, ...)
+	Manager.Wrap(code, ...)
 end
 
 --[=[
@@ -729,6 +750,7 @@ end
 	@param tag string -- the CollectionService tag to track
 	@param code function -- the function to run when you get a component
 	@return nil
+	@outline Create
 ]=]
 function Interface:Create(tag: string, code: (any) -> nil): nil
 	assert(Interface._ComponentCache[tag] == nil, "tag is claimed")
@@ -737,12 +759,12 @@ function Interface:Create(tag: string, code: (any) -> nil): nil
 	Interface._ComponentCode[tag] = code
 
 	CollectionService:GetInstanceAddedSignal(tag):Connect(function(component)
-		Manager.wrap(BindComponent, tag, component)
+		Manager.Wrap(BindComponent, tag, component)
 	end)
 
 	local tagged = CollectionService:GetTagged(tag)
 	for index, component in pairs(tagged) do
-		Manager.wrap(BindComponent, tag, component)
+		Manager.Wrap(BindComponent, tag, component)
 	end
 end
 
@@ -752,6 +774,7 @@ end
 	@param tag string -- the CollectionService tag to track
 	@param code? function -- the function to run when you get a component
 	@return typeof(Interface:Create())?
+	@outline __call
 ]=]
 function Interface:__call(tag: string, code: ((any) -> nil)?): typeof(Interface:Create())?
 	if not code and Interface._ComponentCache[tag] then
@@ -761,7 +784,7 @@ function Interface:__call(tag: string, code: ((any) -> nil)?): typeof(Interface:
 	Interface:Create(tag, code)
 end
 
-Manager.wrap(function()
+Manager.Wrap(function()
 	if Manager.IsClient then
 		Interface.Computer = Interface.IsComputer()
 		Interface.Mobile = Interface.IsMobile()
