@@ -14,10 +14,10 @@
 	:UnhookEvent()
 	:UnhookFunction()
 	
-	:FireServer()
-	:FireClient()
-	:FireClients()
-	:FireAllClients()
+	.FireServer()
+	.FireClient()
+	.FireClients()
+	.FireAllClients()
 	
 	:InvokeServer()
 	:InvokeClient()
@@ -28,7 +28,7 @@
 	:UnbindEvent()
 	:UnbindFunction()
 	
-	:FireBindable()
+	.FireBindable()
 	:InvokeBindable()
 	
 [OUTLINE]:
@@ -43,11 +43,11 @@
 	├─ :UnhookEvent(name)
 	├─ :HookFunction(name,code)
 	├─ :UnhookFunction(name)
-	├─ :FireServer(name,...)
-	├─ :FireClient(name,player,...)
-	├─ :FireClients(name,clients,...)
-	├─ :FireAllClients(name,...)
-	├─ :FireAllClientsExcept(name,player,...)
+	├─ .FireServer(name,...)
+	├─ .FireClient(name,player,...)
+	├─ .FireClients(name,clients,...)
+	├─ .FireAllClients(name,...)
+	├─ .FireAllClientsExcept(name,player,...)
 	├─ :InvokeServer(name,...)
 	├─ :InvokeClient(name,player,...)
 	├─ :InvokeAllClients(name,timeout,...)
@@ -55,7 +55,7 @@
 	├─ :UnbindEvent(name)
 	├─ :BindFunction(name,code)
 	├─ :UnbindFunction(name)
-	├─ :FireBindable(name,...)
+	├─ .FireBindable(name,...)
 	└─ :InvokeBindable(name,...)
 
 [LICENSE]:
@@ -351,7 +351,7 @@ end
 	@return nil
 	@outline FireServer
 ]=]
-function Network:FireServer(name: string, ...): nil
+function Network.FireServer(name: string, ...): nil
 	assert(Manager.IsClient)
 
 	local remote = GetRemote(name, Network.Enums.Event)
@@ -367,7 +367,7 @@ end
 	@return nil
 	@outline FireClient
 ]=]
-function Network:FireClient(name: string, player: Player, ...): nil
+function Network.FireClient(name: string, player: Player, ...): nil
 	assert(Manager.IsServer)
 
 	local remote = GetRemote(name, Network.Enums.Event)
@@ -383,7 +383,7 @@ end
 	@return nil
 	@outline FireClients
 ]=]
-function Network:FireClients(name: string, clients: table, ...): nil
+function Network.FireClients(name: string, clients: table, ...): nil
 	assert(Manager.IsServer)
 
 	for index, player in pairs(clients) do
@@ -402,7 +402,7 @@ end
 	@return nil
 	@outline FireAllClients
 ]=]
-function Network:FireAllClients(name: string, ...): nil
+function Network.FireAllClients(name: string, ...): nil
 	assert(Manager.IsServer)
 
 	local remote = GetRemote(name, Network.Enums.Event)
@@ -418,7 +418,7 @@ end
 	@return nil
 	@outline FireAllClientsExcept
 ]=]
-function Network:FireAllClientsExcept(name: string, player: Player, ...): nil
+function Network.FireAllClientsExcept(name: string, player: Player, ...): nil
 	assert(Manager.IsServer)
 
 	local remote = GetRemote(name, Network.Enums.Event)
@@ -586,7 +586,7 @@ end
 	@return nil
 	@outline FireBindable
 ]=]
-function Network:FireBindable(name: string, ...): nil
+function Network.FireBindable(name: string, ...): nil
 	local bindable = GetBindable(name, Network.Enums.Event)
 	bindable:Fire(...)
 end
