@@ -98,6 +98,7 @@ Roblox._SetCoreTypes = {
 
 local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
 local Manager = require("Manager")
+
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 local TextService = game:GetService("TextService")
@@ -110,11 +111,12 @@ local ContentProvider = game:GetService("ContentProvider")
 	
 	@param toPlayer Instance -- toPlayer should be a Player Instance
 	@return any | boolean
+	@outline PromptFriendRequest
 ]=]
 function Roblox:PromptFriendRequest(toPlayer: Player): any | boolean
 	assert(Manager.IsClient)
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptFriendRequest, toPlayer)
 	end)
 
@@ -130,11 +132,12 @@ end
 	
 	@param toPlayer Instance -- toPlayer should be a Player Instance
 	@return any | boolean
+	@outline PromptUnfriendRequest
 ]=]
 function Roblox:PromptUnfriendRequest(toPlayer: Player): any | boolean
 	assert(Manager.IsClient)
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptUnfriendRequest, toPlayer)
 	end)
 
@@ -150,11 +153,12 @@ end
 	
 	@param toPlayer Instance -- toPlayer should be a Player Instance
 	@return any | boolean
+	@outline PromptBlockRequest
 ]=]
 function Roblox:PromptBlockRequest(toPlayer: Player): any | boolean
 	assert(Manager.IsClient)
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptBlockRequest, toPlayer)
 	end)
 
@@ -170,11 +174,12 @@ end
 	
 	@param toPlayer Instance -- toPlayer should be a Player Instance
 	@return any | boolean
+	@outline PromptUnblockRequest
 ]=]
 function Roblox:PromptUnblockRequest(toPlayer: Player): any | boolean
 	assert(Manager.IsClient)
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptUnblockRequest, toPlayer)
 	end)
 
@@ -190,13 +195,14 @@ end
 	
 	@param player Instance -- player should be the Player to prompt
 	@return any | boolean
+	@outline PromptGameInvite
 ]=]
 function Roblox:PromptGameInvite(player: Player): any | boolean
 	if not Roblox:CanSendGameInviteAsync(player) then
 		return false
 	end
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		SocialService:PromptGameInvite(player)
 		return true
 	end)
@@ -213,9 +219,10 @@ end
 	
 	@param player Instance -- player should be a Player Instance
 	@return any | boolean
+	@outline GetFriends
 ]=]
 function Roblox:GetFriends(player: Player): any | boolean
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		local proxy = {}
 		local pages = Players:GetFriendsAsync(player.UserId)
 
@@ -246,6 +253,7 @@ end
 	Get the local players Blocked list
 	
 	@return any | boolean
+	@outline GetBlocked
 ]=]
 function Roblox:GetBlocked(): any | boolean
 	assert(Manager.IsClient)
@@ -254,7 +262,7 @@ function Roblox:GetBlocked(): any | boolean
 		return {}
 	end
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return StarterGui:GetCore(Roblox._SetCoreTypes.GetBlocked)
 	end)
 
@@ -271,9 +279,10 @@ end
 	@param player Instance -- player should be a Player Instance
 	@param group number -- the group Id
 	@return any | boolean
+	@outline GetRankInGroup
 ]=]
 function Roblox:GetRankInGroup(player: Player, group: number): any | boolean
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return player:GetRankInGroup(group)
 	end)
 
@@ -290,11 +299,12 @@ end
 	@param player Instance -- player should be a Player Instance
 	@param num? number -- an optional number of online friends to return (default 200)
 	@return any | boolean
+	@outline GetFriendsOnline
 ]=]
 function Roblox:GetFriendsOnline(player: Player, num: number?): any | boolean
 	num = num or 200
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return player:GetFriendsOnline(num)
 	end)
 
@@ -311,6 +321,7 @@ end
 	@param userId number -- the required player userId
 	@param enumSize? EnumItem -- optional size argument, default 420x420px (max)
 	@return any | boolean
+	@outline GetUserHeadshot
 ]=]
 function Roblox:GetUserHeadshot(userId: Number, enumSize: EnumItem?): any | boolean
 	enumSize = enumSize == typeof("EnumItem") and enumSize or Enum.ThumbnailSize.Size420x420
@@ -322,7 +333,7 @@ function Roblox:GetUserHeadshot(userId: Number, enumSize: EnumItem?): any | bool
 		return image
 	end
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		image = Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, enumSize)
 		return image
 	end)
@@ -342,6 +353,7 @@ end
 	@param userId number -- the required player userId
 	@param enumSize? EnumItem -- optional size argument, default 420x420px (max)
 	@return any | boolean
+	@outline GetUserBust
 ]=]
 function Roblox:GetUserBust(userId: number, enumSize: EnumItem?): any | boolean
 	enumSize = enumSize == typeof("EnumItem") and enumSize or Enum.ThumbnailSize.Size420x420
@@ -353,7 +365,7 @@ function Roblox:GetUserBust(userId: number, enumSize: EnumItem?): any | boolean
 		return image
 	end
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		image = Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.AvatarBust, enumSize)
 		return image
 	end)
@@ -373,6 +385,7 @@ end
 	@param userId number -- the required player userId
 	@param enumSize? EnumItem -- optional size argument, default 420x420px (max)
 	@return any | boolean
+	@outline GetUserAvatar
 ]=]
 function Roblox:GetUserAvatar(userId: number, enumSize: EnumItem?): any | boolean
 	enumSize = enumSize == typeof("EnumItem") and enumSize or Enum.ThumbnailSize.Size420x420
@@ -384,7 +397,7 @@ function Roblox:GetUserAvatar(userId: number, enumSize: EnumItem?): any | boolea
 		return image
 	end
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		image = Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.AvatarThumbnail, enumSize)
 		return image
 	end)
@@ -403,6 +416,7 @@ end
 	
 	@param userId number -- the userId of the player to check info on
 	@return inServer bool, placeId number, serverId JobId | boolean
+	@outline GetUserTeleportInfo
 ]=]
 function Roblox:GetUserTeleportInfo(userId: number): (any | boolean)
 	assert(Manager.IsServer)
@@ -424,11 +438,12 @@ end
 	@param player Instance -- the player Instance to check with
 	@param userId number -- the user Id to compare against
 	@return any | boolean
+	@outline IsFriendsWith
 ]=]
 function Roblox:IsFriendsWith(player: Player, userId: number): any | boolean
 	assert(Manager.IsClient)
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return player:IsFriendsWith(userId)
 	end)
 
@@ -445,11 +460,12 @@ end
 	@param player Instance -- the player Instance to check with
 	@param userId number -- the user Id to compare against
 	@return any | boolean
+	@outline IsBlockedWith
 ]=]
 function Roblox:IsBlockedWith(player: Player, userId: number): any | boolean
 	assert(Manager.IsClient)
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		if typeof(player) == "table" then
 			if player:IsBlockedWith(userId) then
 				return true
@@ -475,9 +491,10 @@ end
 	
 	@param player Instance -- the player Instance to check
 	@return any | boolean
+	@outline IsGameCreator
 ]=]
 function Roblox:IsGameCreator(player: Player): any | boolean
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		if game.CreatorType == Enum.CreatorType.User then
 			if Manager.IsClient and Manager.IsStudio then
 				if player.UserId == Players.LocalPlayer.UserId then
@@ -506,11 +523,12 @@ end
 	
 	@param player Instance -- the player Instance to check
 	@return any | boolean
+	@outline CanSendGameInviteAsync
 ]=]
 function Roblox:CanSendGameInviteAsync(player: Player): any | boolean
 	assert(Manager.IsClient)
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return SocialService:CanSendGameInviteAsync(player)
 	end)
 
@@ -528,12 +546,13 @@ end
 	@param userId number -- the userId sent by
 	@param context? EnumItem -- the context of the filtering
 	@return any | boolean
+	@outline FilterText
 ]=]
 function Roblox:FilterText(text: string, userId: number, context: EnumItem?): any | boolean
 	assert(Manager.IsServer)
 	context = context or Enum.TextFilterContext.PublicChat
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return TextService:FilterStringAsync(text, userId, context)
 	end)
 
@@ -550,11 +569,12 @@ end
 	@param filter FilterObject -- the FilterObject created
 	@param userId number -- the userId to filter for
 	@return any | boolean
+	@outline FilterChatForUser
 ]=]
 function Roblox:FilterChatForUser(filter: Instance, toUserId: number): any | boolean
 	assert(Manager.IsServer)
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return filter:GetChatForUserAsync(toUserId)
 	end)
 
@@ -571,11 +591,12 @@ end
 	@param filter FilterObject -- the FilterObject created
 	@param userId number -- the userId to filter for
 	@return any | boolean
+	@outline FilterStringForUser
 ]=]
 function Roblox:FilterStringForUser(filter: Instance, toUserId: number): any | boolean
 	assert(Manager.IsServer)
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return filter:GetNonChatStringForUserAsync(toUserId)
 	end)
 
@@ -591,11 +612,12 @@ end
 	
 	@param filter FilterObject -- the FilterObject created
 	@return any | boolean
+	@outline FilterStringForBroadcast
 ]=]
 function Roblox:FilterStringForBroadcast(filter: Instance): any | boolean
 	assert(Manager.IsServer)
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return filter:GetNonChatStringForBroadcastAsync()
 	end)
 
@@ -612,11 +634,12 @@ end
 	@param enum EnumItem -- the enum to set state
 	@param state boolean -- the state to set
 	@return any | boolean
+	@outline SetCoreGuiEnabled
 ]=]
 function Roblox:SetCoreGuiEnabled(enum: EnumItem, state: boolean?): any | boolean
 	state = typeof(state) == "boolean" and state or false
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCoreGuiEnabled(enum, state)
 	end)
 
@@ -633,11 +656,12 @@ end
 	@param enum string -- the enum to set state
 	@param state boolean -- the state to set
 	@return any | boolean
+	@outline SetCoreEnabled
 ]=]
 function Roblox:SetCoreEnabled(enum: string, state: boolean?): any | boolean
 	state = typeof(state) == "boolean" and state or false
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCore(enum, state)
 	end)
 
@@ -653,6 +677,7 @@ end
 	
 	@param properties table -- a dictionary of the notification properties. see devhub 'SendNotification'
 	@return any | boolean
+	@outline PostNotification
 ]=]
 function Roblox:PostNotification(properties: table): any | boolean
 	local code = typeof(properties.Callback) == "function"
@@ -673,7 +698,7 @@ function Roblox:PostNotification(properties: table): any | boolean
 		Callback = code,
 	}
 
-	local success, response = Manager.rerun(5, function()
+	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PostNotification, params)
 	end)
 
@@ -690,6 +715,7 @@ end
 	@param assets Instance | table -- either provide a singular Instance or a table of Instances
 	@param code? function -- a callback function made on completion
 	@return boolean
+	@outline PreloadAssets
 ]=]
 function Roblox:PreloadAssets(assets: Instance | table, code: () -> ()): boolean
 	assert(Manager.IsClient)
