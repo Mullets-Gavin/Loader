@@ -10,6 +10,7 @@ Subscribe._Remotes = {
 	["Download"] = "_DOWNLOAD",
 	["Upload"] = "_UPLOAD",
 	["Subscribe"] = "_SUBSCRIBE",
+	["Unsubscribe"] = "_UNSUBSCRIBE",
 }
 
 local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
@@ -122,6 +123,10 @@ function Subscribe.DisconnectSubscription(key: string, guid: string): nil
 	if store[guid] then
 		store[guid] = nil
 		Subscribe._Cache[key] = store
+	end
+	
+	if Manager.IsClient then
+		Network.FireServer(Subscribe._Remotes.Unsubscribe, key, guid)
 	end
 end
 

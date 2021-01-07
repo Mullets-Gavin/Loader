@@ -85,6 +85,7 @@ DataSync._Remotes = {
 	["Download"] = "_DOWNLOAD",
 	["Upload"] = "_UPLOAD",
 	["Subscribe"] = "_SUBSCRIBE",
+	["Unsubscribe"] = "_UNSUBSCRIBE",
 }
 
 DataSync.Sync = true -- allow data to sync - highly recommended to leave this to true
@@ -606,6 +607,10 @@ if Manager.IsServer then
 		local store = DataSync.GetStore(key)
 
 		store:Subscribe(index, value, nil, client, nil, uid)
+	end)
+	
+	Network:HookEvent(DataSync._Remotes.Unsubscribe, function(client, key, uid)
+		Subscribe.DisconnectSubscription(key, uid)
 	end)
 elseif Manager.IsClient then
 	Network:HookEvent(DataSync._Remotes.Download, function(key, index, value, data, uid)
