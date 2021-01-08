@@ -46,11 +46,8 @@ function Subscribe.FireSubscription(key: any, index: any, value: any, data: any)
 
 		local client = file.Client
 		if Manager.IsServer and typeof(client) == "Instance" and client:IsA("Player") then
-			local catch = caught[client]
-			if not catch or catch and not table.find(catch, value) then
-				catch = catch or {}
-				table.insert(catch, value)
-				caught[client] = catch
+			if not table.find(caught, client) then
+				table.insert(caught, client)
 
 				Network.FireClient(Subscribe._Remotes.Download, client, key, index, value, data)
 			end

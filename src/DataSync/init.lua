@@ -543,7 +543,7 @@ function DataSync:Subscribe(index: string | number | Player, value: string | tab
 	assert(self._key, "':Subscribe' can only be used with a store")
 
 	value = typeof(value) == "table" and value or { value }
-	local index, player = tostring(GetPlayer(index))
+	index = typeof(index) == "Instance" and index:IsA("Player") and tostring(index.UserId) or tostring(index)
 	local player = Manager.IsClient and Players.LocalPlayer or Manager.IsServer and _sent
 	local info = player or index
 	local guid = Subscribe.ConnectSubscription(info, self._key, index, value, code)
@@ -594,8 +594,6 @@ end
 	@outline _FireSubscriptions
 ]=]
 function DataSync:_FireSubscriptions(index: string, value: string, data: any?): nil
-	assert(self._key, "':Subscribe' can only be used with a store")
-
 	if string.sub(tostring(tostring(value)), 1, #DataSync._Private) == DataSync._Private then
 		return true
 	end
