@@ -17,6 +17,8 @@
 	file:SaveData()
 	file:RemoveData()
 	file:WipeData()
+	file:Loaded()
+	file:Ready()
 	
 	subscriptionParameters = {
 		Stat = 'string';
@@ -35,6 +37,8 @@
 	DataSync
 	└─ .GetStore(key[,data])
 	   ├─ :GetFile(index)
+	   │  ├─ :Ready()
+	   │  ├─ :Loaded()
 	   │  ├─ :GetData([value])
 	   │  ├─ :UpdateData(value,data)
 	   │  ├─ :IncrementData(value,num)
@@ -197,6 +201,8 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 
 	if not index and Manager.IsClient and Players.LocalPlayer then
 		index = tostring(Players.LocalPlayer.UserId)
+	else
+		index = tostring(index)
 	end
 
 	if DataSync._Sessions[index] then
@@ -229,7 +235,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 
 		local load, success = Methods.LoadData(self._key, index, DataSync._Defaults[self._key])
 		if not success then
-			if load == "__OCCUPIED" or DataSync._Sessions[index] then
+			if load == "__OCCUPIED" then
 				while not DataSync._Files[index] do
 					Manager.Wait()
 				end
@@ -244,8 +250,9 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 				return nil
 			end
 
-			self.Loaded = false
-			load = Manager.Copy(DataSync._Defaults[self._key])
+			self._loaded = false
+		else
+			self._loaded = true
 		end
 
 		DataSync._Cache[self._key][index] = load
@@ -256,13 +263,13 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 	local data = {
 		_key = self._key,
 		_file = index,
+		_loaded = self._loaded,
+		_ready = true,
 	}
 
 	if info then
 		self:Subscribe(info, index, "all")
 	end
-
-	self.IsReady = true
 
 	if Manager.IsClient and DataSync.Sync then
 		local download = Network:InvokeServer(DataSync._Remotes.Upload, self._key, index)
@@ -303,6 +310,38 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 end
 
 --[=[
+	Validates if the DataFile loaded or not
+	
+	@return boolean
+	@outline Loaded
+]=]
+function DataSync:Loaded(): boolean
+	assert(self._key, "':Loaded' can only be used with a DataFile")
+
+	while self._loaded == nil do
+		Manager.Wait()
+	end
+
+	return self._loaded
+end
+
+--[=[
+	Validates if the DataFile is ready
+	
+	@return boolean
+	@outline Ready
+]=]
+function DataSync:Ready(): boolean
+	assert(self._key, "':Ready' can only be used with a DataFile")
+
+	while self._ready == nil do
+		Manager.Wait()
+	end
+
+	return self._ready
+end
+
+--[=[
 	Get the value of a specified data or the entire DataFile
 	
 	@param value? string | number -- the value to grab data from
@@ -319,11 +358,6 @@ function DataSync:GetData(value: string | number | nil): any? | table
 	end
 
 	file = DataSync._Cache[self._key][self._file]
-
-	--if file == nil then
-	--	DataSync._Cache[self._key][self._file] = Manager.Copy(DataSync._Defaults[self._key])
-	--	file = DataSync._Cache[self._key][self._file]
-	--end
 
 	if value ~= nil then
 		return file[value]
@@ -608,7 +642,7 @@ if Manager.IsServer then
 
 		store:Subscribe(index, value, nil, client, nil, uid)
 	end)
-	
+
 	Network:HookEvent(DataSync._Remotes.Unsubscribe, function(client, key, uid)
 		Subscribe.DisconnectSubscription(key, uid)
 	end)
