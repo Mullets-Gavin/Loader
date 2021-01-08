@@ -1,6 +1,9 @@
 {
     "Lua.diagnostics.disable": [
-		"trailing-space"
+		"trailing-space",
+		"incorrect-call-arguments",
+		"set-for-state",
+		"undefined-rbx-member"
 	],
     "Lua.diagnostics.ignore": [
 		"Connect",
