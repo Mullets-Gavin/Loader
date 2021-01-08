@@ -124,7 +124,7 @@ function Subscribe.DisconnectSubscription(key: string, guid: string): nil
 		store[guid] = nil
 		Subscribe._Cache[key] = store
 	end
-	
+
 	if Manager.IsClient then
 		Network.FireServer(Subscribe._Remotes.Unsubscribe, key, guid)
 	end
