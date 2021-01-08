@@ -1,6 +1,6 @@
 --[=[
 	@Author: Gavin "Mullets" Rosenthal
-	@Desc: Lighter, a lite variant of Loader, a Roblox Luau Library Loader by Mullet Mafia Dev
+	@Desc: Lighter, a lite variant of Loader, a Roblox Luau Library Loader
 	@Notes: Lighter has the bare basics for requiring modules with a lazy-load string method
 ]=]
 
@@ -27,7 +27,7 @@
 [LICENSE]:
 	MIT License
 	
-	Copyright (c) 2020 Mullet Mafia Dev
+	Copyright (c) 2020 Gavin "Mullets" Rosenthal
 	
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
