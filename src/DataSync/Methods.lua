@@ -30,7 +30,7 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 
 	Methods._Occupants[key .. index] = true
 
-	local success, store = Manager.rerun(Methods._MaxRetries, function()
+	local success, store = Manager.Rerun(Methods._MaxRetries, function()
 		return DataStoreService:GetDataStore(key, index)
 	end)
 
@@ -38,7 +38,7 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 		warn(store)
 	end
 
-	local success, data = Manager.rerun(Methods._MaxRetries, function()
+	local success, data = Manager.Rerun(Methods._MaxRetries, function()
 		return store:UpdateAsync(index, function(last)
 			if typeof(last) == "string" then
 				last = Manager.Decompress(last)
@@ -95,11 +95,11 @@ function Methods.SaveData(key: string, index: string, file: table): table & bool
 
 	Methods._Occupants[key .. index] = true
 
-	local success, store = Manager.rerun(Methods._MaxRetries, function()
+	local success, store = Manager.Rerun(Methods._MaxRetries, function()
 		return DataStoreService:GetDataStore(key, index)
 	end)
 
-	local success, data = Manager.rerun(Methods._MaxRetries, function()
+	local success, data = Manager.Rerun(Methods._MaxRetries, function()
 		return store:UpdateAsync(index, function(last)
 			file["__HasChanged"] = false
 			file = Manager.Compress(file)
@@ -130,11 +130,11 @@ function Methods.WipeData(key: string, index: string): table & boolean
 
 	Methods._Occupants[key .. index] = true
 
-	local success, store = Manager.rerun(Methods._MaxRetries, function()
+	local success, store = Manager.Rerun(Methods._MaxRetries, function()
 		return DataStoreService:GetDataStore(key, index)
 	end)
 
-	local success, data = Manager.rerun(Methods._MaxRetries, function()
+	local success, data = Manager.Rerun(Methods._MaxRetries, function()
 		return store:RemoveAsync(index)
 	end)
 
