@@ -259,6 +259,18 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		self._sesh = false
 	end
 
+	if Manager.IsClient and DataSync.Sync then
+		local download = Network:InvokeServer(DataSync._Remotes.Upload, self._key, index)
+		local cache = download or {}
+		DataSync._Cache[self._key][index] = cache
+
+		if cache["__CanSave"] then
+			self._loaded = true
+		else
+			self._loaded = false
+		end
+	end
+
 	local info = player or index
 	local data = {
 		_key = self._key,
@@ -269,11 +281,6 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 
 	if info then
 		self:Subscribe(info, index, "all")
-	end
-
-	if Manager.IsClient and DataSync.Sync then
-		local download = Network:InvokeServer(DataSync._Remotes.Upload, self._key, index)
-		DataSync._Cache[self._key][index] = download or {}
 	end
 
 	setmetatable(data, DataSync)
