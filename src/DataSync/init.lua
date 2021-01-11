@@ -115,9 +115,9 @@ local RunService = game:GetService("RunService")
 ]=]
 local function GetPlayer(index: string | number | Instance): ((number | string) & (Player?))
 	local player
-	do
+	if tonumber(index) then
 		local success, response = pcall(function()
-			return Players:GetPlayerByUserId(index)
+			return Players:GetPlayerByUserId(tonumber(index))
 		end)
 
 		if success then
@@ -269,11 +269,12 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		else
 			self._loaded = false
 		end
-		
-		self:Subscribe(index, { "all" })
+
+		if player and player == Players.LocalPlayer then
+			self:Subscribe(index, { "all" })
+		end
 	end
 
-	local info = player or index
 	local data = {
 		_key = self._key,
 		_file = index,
