@@ -1,6 +1,6 @@
 --[=[
 	@Author: Gavin "Mullets" Rosenthal
-	@Desc: DataSync, a custom DataStoreService wrapper
+	@Desc: DataSync, a custom DataStoreService wrapper by Mullet Mafia Dev
 ]=]
 
 --[=[
@@ -51,7 +51,7 @@
 [LICENSE]:
 	MIT License
 	
-	Copyright (c) 2020 Gavin "Mullets" Rosenthal
+	Copyright (c) 2020 Mullet Mafia Dev
 	
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -269,6 +269,8 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		else
 			self._loaded = false
 		end
+		
+		self:Subscribe(index, { "all" })
 	end
 
 	local info = player or index
@@ -278,10 +280,6 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		_loaded = self._loaded,
 		_ready = true,
 	}
-
-	if info then
-		self:Subscribe(info, index, "all")
-	end
 
 	setmetatable(data, DataSync)
 
