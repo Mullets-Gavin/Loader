@@ -101,7 +101,7 @@
 [LICENSE]:
 	MIT License
 	
-	Copyright (c) 2020 Gavin "Mullets" Rosenthal
+	Copyright (c) 2020 Mullet Mafia Dev
 	
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -156,67 +156,9 @@ local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
---[=[
-	Remove escape characters and return the translation
-	
-	@param s string -- the string to check for characters
-	@return string
-	@private
-]=]
-local function Escape(s: string): string
-	return (string.gsub(s, "[%c\"\\]", function(c)
-		return "\127" .. Compression.EscapeMap[c]
-	end))
-end
-
---[=[
-	Unescape characters and return the translation
-	
-	@param s string -- the string to check for characters
-	@return string
-	@private
-]=]
-local function Unescape(s: strng): string
-	return (string.gsub(s, "\127(.)", function(c)
-		return Compression.EscapeMap[c]
-	end))
-end
-
---[=[
-	Take a value and make it base 93
-	
-	@param value number -- the number required
-	@return string
-	@private
-]=]
-local function ToBase93(n: number): string
-	local value = ""
-
-	repeat
-		local remainder = n % 93
-		value = Compression.Dictionary[remainder] .. value
-		n = (n - remainder) / 93
-	until n == 0
-
-	return value
-end
-
---[=[
-	Take a value and make it base 10
-	
-	@param value number -- the number required
-	@return number
-	@private
-]=]
-local function ToBase10(value: string): number
-	local n = 0
-
-	for i = 1, #value do
-		n = n + 93 ^ (i - 1) * Compression.Dictionary[string.sub(value, -i, -i)]
-	end
-
-	return n
-end
+Manager.IsStudio = RunService:IsStudio() and "Studio"
+Manager.IsServer = RunService:IsServer() and "Server"
+Manager.IsClient = RunService:IsClient() and "Client"
 
 --[=[
 	Set the internal settings of Manager with a dictionary
@@ -238,15 +180,19 @@ end
 	@outline Wait
 ]=]
 function Manager.Wait(clock: number?): number
+	local start = os.clock()
+	
 	if clock then
 		local current = os.clock()
 
 		while clock > os.clock() - current do
 			RunService[Settings.RunService]:Wait()
 		end
+	else
+		RunService[Settings.RunService]:Wait()
 	end
 
-	return RunService[Settings.RunService]:Wait()
+	return os.clock() - start
 end
 
 --[=[
@@ -702,7 +648,7 @@ end
 	@outline Encode
 ]=]
 function Manager.Encode(data: any): any? | boolean
-	local success, response = Manager.Rerun(5, function()
+	local success, response = pcall(function()
 		return HttpService:JSONEncode(data)
 	end)
 
@@ -721,7 +667,7 @@ end
 	@outline Decode
 ]=]
 function Manager.Decode(text: string): any? | boolean
-	local success, response = Manager.Rerun(5, function()
+	local success, response = pcall(function()
 		return HttpService:JSONDecode(text)
 	end)
 
@@ -730,89 +676,6 @@ function Manager.Decode(text: string): any? | boolean
 	end
 	warn(response)
 	return success
-end
-
---[=[
-	Compress text and data
-	
-	@param text any -- data to compress
-	@return CompressedString
-	@outline Compress
-]=]
-function Manager.Compress(text: any): string
-	text = Manager.Encode(text)
-
-	local dictionary = Manager.Copy(Compression.Dictionary)
-	local key, sequence, size = "", {}, #dictionary
-	local width, spans, span = 1, {}, 0
-
-	local function listkey(key)
-		local value = ToBase93(dictionary[key])
-		if #value > width then
-			width, span, spans[width] = #value, 0, span
-		end
-		sequence[#sequence + 1] = string.rep(" ", width - #value) .. value
-		span = span + 1
-	end
-
-	text = Escape(text)
-	for index = 1, #text do
-		local char = string.sub(text, index, index)
-		local new = key .. char
-		if dictionary[new] then
-			key = new
-		else
-			listkey(key)
-			key, size = char, size + 1
-			dictionary[new], dictionary[size] = size, new
-		end
-	end
-
-	listkey(key)
-	spans[width] = span
-
-	return table.concat(spans, ",") .. "|" .. table.concat(sequence)
-end
-
---[=[
-	Decompress a CompressedString with JSON
-	
-	@param text string -- the compressed string to decode
-	@return DecompressedData
-	@outline Decompress
-]=]
-function Manager.Decompress(text: string): any?
-	local dictionary = Manager.Copy(Compression.Dictionary)
-	local sequence, spans, content = {}, string.match(text, "(.-)|(.*)")
-	local groups, start = {}, 1
-
-	for span in string.gmatch(spans, "%d+") do
-		local width = #groups + 1
-		groups[width] = string.sub(content, start, start + span * width - 1)
-		start = start + span * width
-	end
-
-	local previous
-	for width = 1, #groups do
-		for value in string.gmatch(groups[width], string.rep(".", width)) do
-			local entry = dictionary[ToBase10(value)]
-			if previous then
-				if entry then
-					sequence[#sequence + 1] = entry
-					dictionary[#dictionary + 1] = previous .. string.sub(entry, 1, 1)
-				else
-					entry = previous .. string.sub(previous, 1, 1)
-					sequence[#sequence + 1] = entry
-					dictionary[#dictionary + 1] = entry
-				end
-			else
-				sequence[1] = entry
-			end
-			previous = entry
-		end
-	end
-
-	return Manager.Decode(Unescape(table.concat(sequence)))
 end
 
 --[=[
@@ -1111,28 +974,6 @@ function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 	end
 
 	return control
-end
-
-do
-	Manager.IsStudio = RunService:IsStudio() and "Studio"
-	Manager.IsServer = RunService:IsServer() and "Server"
-	Manager.IsClient = RunService:IsClient() and "Client"
-
-	for index = 32, 127 do
-		if index ~= 34 and index ~= 92 then
-			local char = string.char(index)
-			Compression.Dictionary[char] = Compression.Length
-			Compression.Dictionary[Compression.Length] = char
-			Compression.Length = Compression.Length + 1
-		end
-	end
-
-	for index = 1, 34 do
-		index = ({ 34, 92, 127 })[index - 31] or index
-		local char, ending = string.char(index), string.char(index + 31)
-		Compression.EscapeMap[char] = ending
-		Compression.EscapeMap[ending] = char
-	end
 end
 
 return Manager
