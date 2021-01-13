@@ -41,10 +41,10 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 	local success, data = Manager.Rerun(Methods._MaxRetries, function()
 		return store:UpdateAsync(index, function(last)
 			if typeof(last) == "string" then
-				last = Manager.Decompress(last)
+				last = Manager.Decode(last)
 			end
 
-			if last == nil then
+			if not last then
 				last = Manager.DeepCopy(file)
 			elseif typeof(last) == "table" then
 				for index, value in pairs(file) do
@@ -102,7 +102,7 @@ function Methods.SaveData(key: string, index: string, file: table): table & bool
 	local success, data = Manager.Rerun(Methods._MaxRetries, function()
 		return store:UpdateAsync(index, function(last)
 			file["__HasChanged"] = false
-			file = Manager.Compress(file)
+			file = Manager.Encode(file)
 			return file
 		end)
 	end)
