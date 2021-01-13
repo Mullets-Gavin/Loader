@@ -1,7 +1,7 @@
 <div align="center">
 <h1>Loader</h1>
 
-[![version](https://img.shields.io/badge/version-v1.2.1-red?style=flat-square)](https://github.com/Mullets-Gavin/Loader/releases)
+[![version](https://img.shields.io/badge/version-v1.2.2-red?style=flat-square)](https://github.com/Mullets-Gavin/Loader/releases)
 [![docs](https://img.shields.io/badge/docs-website-blueviolet?style=flat-square)](https://mullets-gavin.github.io/Loader/)
 [![support](https://img.shields.io/badge/support-mullets-blue?style=flat-square)](https://www.buymeacoffee.com/mullets)
 
