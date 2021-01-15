@@ -111,28 +111,20 @@ local RunService = game:GetService("RunService")
 	Get the Player from either the instance or UserId
 	
 	@param index string | number | Instance -- find the player from the index
-	@return Index & Player?
+	@return Player?
 ]=]
-local function GetPlayer(index: string | number | Instance): ((number | string) & (Player?))
-	local player
-	if tonumber(index) then
-		local success, response = pcall(function()
+local function GetPlayer(index: string | number | Instance): Player?
+	if typeof(index) == "Instance" and index:IsA("Player") then
+		return index
+	elseif tonumber(index) then
+		local success, player = pcall(function()
 			return Players:GetPlayerByUserId(tonumber(index))
 		end)
 
 		if success then
-			player = response
+			return player
 		end
 	end
-
-	if typeof(index) == "Instance" and index:IsA("Player") then
-		player = index
-		index = tostring(player.UserId)
-	elseif tostring(index) then
-		index = tostring(index)
-	end
-
-	return index, player
 end
 
 --[=[
@@ -205,27 +197,34 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		index = tostring(index)
 	end
 
-	if DataSync._Sessions[index] then
+	if not DataSync._Sessions[index] then
+		DataSync._Sessions[index] = {
+			lock = false,
+			loading = false,
+		}
+	end
+
+	if DataSync._Files[index] or DataSync._Sessions[index].lock then
 		while not DataSync._Files[index] do
 			Manager.Wait()
 		end
 
 		return DataSync._Files[index]
 	end
+	DataSync._Sessions[index].lock = true
 
-	if DataSync._Files[index] then
-		return DataSync._Files[index]
-	end
+	local player = GetPlayer(index)
+	local data = {
+		_key = self._key,
+		_file = index,
+		_loaded = false,
+		_ready = false,
+	}
 
-	DataSync._Sessions[index] = true
+	if not DataSync._Cache[data._key][index] and Manager.IsServer and not DataSync._Sessions[index].loading then
+		DataSync._Sessions[index].loading = true
 
-	local player
-	index, player = GetPlayer(index)
-
-	if not DataSync._Cache[self._key][index] and Manager.IsServer and not self._sesh then
-		self._sesh = true
-
-		if not DataSync._Defaults[self._key] then
+		if not DataSync._Defaults[data._key] then
 			while not DataSync._Files[index] do
 				Manager.Wait()
 			end
@@ -233,7 +232,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 			return DataSync._Files[index]
 		end
 
-		local load, success = Methods.LoadData(self._key, index, DataSync._Defaults[self._key])
+		local load, success = Methods.LoadData(data._key, index, DataSync._Defaults[data._key])
 		if not success then
 			if load == "__OCCUPIED" then
 				while not DataSync._Files[index] do
@@ -250,39 +249,32 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 				return nil
 			end
 
-			self._loaded = false
+			data._loaded = false
 		else
-			self._loaded = true
+			data._loaded = true
 		end
 
-		DataSync._Cache[self._key][index] = load
-		self._sesh = false
+		DataSync._Cache[data._key][index] = load
+		DataSync._Sessions[index].loading = false
 	end
 
+	setmetatable(data, DataSync)
+
 	if Manager.IsClient and DataSync.Sync then
-		local download = Network:InvokeServer(DataSync._Remotes.Upload, self._key, index)
+		local download = Network:InvokeServer(DataSync._Remotes.Upload, data._key, index)
 		local cache = download or {}
-		DataSync._Cache[self._key][index] = cache
+		DataSync._Cache[data._key][index] = cache
 
 		if cache["__CanSave"] then
-			self._loaded = true
+			data._loaded = true
 		else
-			self._loaded = false
+			data._loaded = false
 		end
 
 		if player and player == Players.LocalPlayer then
 			self:Subscribe(index, { "all" })
 		end
 	end
-
-	local data = {
-		_key = self._key,
-		_file = index,
-		_loaded = self._loaded,
-		_ready = true,
-	}
-
-	setmetatable(data, DataSync)
 
 	if DataSync.AutoSave and Manager.IsServer then
 		Manager.Wrap(function()
@@ -297,7 +289,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 					end
 				end
 
-				if DataSync._Cache[self._key][index] == nil then
+				if DataSync._Cache[data._key][index] == nil then
 					break
 				end
 
@@ -310,7 +302,8 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 	data:UpdateData("__HasChanged", false)
 
 	DataSync._Files[index] = data
-	DataSync._Sessions[index] = false
+	DataSync._Sessions[index].lock = false
+	data._ready = true
 
 	return data
 end
