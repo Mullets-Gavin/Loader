@@ -204,15 +204,6 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		}
 	end
 
-	if DataSync._Files[index] or DataSync._Sessions[index].lock then
-		while not DataSync._Files[index] do
-			Manager.Wait()
-		end
-
-		return DataSync._Files[index]
-	end
-	DataSync._Sessions[index].lock = true
-
 	local player = GetPlayer(index)
 	local data = {
 		_key = self._key,
@@ -221,16 +212,17 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		_ready = false,
 	}
 
+	if (not DataSync._Defaults[data._key] and Manager.IsServer) or DataSync._Files[index] or DataSync._Sessions[index].lock then
+		while not DataSync._Files[index] do
+			Manager.Wait()
+		end
+
+		return DataSync._Files[index]
+	end
+	DataSync._Sessions[index].lock = true
+
 	if not DataSync._Cache[data._key][index] and Manager.IsServer and not DataSync._Sessions[index].loading then
 		DataSync._Sessions[index].loading = true
-
-		if not DataSync._Defaults[data._key] then
-			while not DataSync._Files[index] do
-				Manager.Wait()
-			end
-
-			return DataSync._Files[index]
-		end
 
 		local load, success = Methods.LoadData(data._key, index, DataSync._Defaults[data._key])
 		if not success then
