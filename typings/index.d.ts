@@ -101,7 +101,7 @@ interface Interface {
 
 	AssignSizes: () => AssignSizesObject;
 	RichText: () => RichTextObject;
-	Keybind: () => KeybindObject;
+	Keybind: (name: string) => KeybindObject;
 
 	Disconnect(name: string): void;
 	Update(name: string, keys: Array<EnumItem>): boolean;
