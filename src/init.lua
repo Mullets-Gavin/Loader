@@ -167,7 +167,7 @@ end
 	@private
 ]=]
 local function DeepSearch(name: string, list: table): ModuleScript?
-	for count, asset in ipairs(list) do
+	for _, asset in ipairs(list) do
 		if not asset:IsA("ModuleScript") then
 			continue
 		end
@@ -212,7 +212,7 @@ function Loader.__require(module: ModuleScript, requirer: Script): table?
 			return Loader._ModuleCache[name]
 		end
 
-		for index, service in pairs(Loader._Services.Shared) do
+		for _, service in pairs(Loader._Services.Shared) do
 			local sharedModule = DeepSearch(name, service:GetDescendants())
 
 			if sharedModule then
@@ -263,7 +263,7 @@ function Loader.__server(module: ModuleScript, requirer: Script): table?
 		return Loader._ModuleCache[name]
 	end
 
-	for index, service in pairs(Loader._Services.Server) do
+	for _, service in pairs(Loader._Services.Server) do
 		local serverModule = DeepSearch(name, service:GetDescendants())
 
 		if serverModule then
@@ -295,7 +295,7 @@ function Loader.__client(module: ModuleScript, requirer: Script, __disabled: boo
 	while not Loader._ModuleCache[name] and os.clock() - clock < Loader.MaxRetryTime do
 		local player = Players.LocalPlayer
 
-		for index, container in pairs(player:GetChildren()) do
+		for _, container in pairs(player:GetChildren()) do
 			if not table.find(Loader._Containers, container.Name) then
 				continue
 			end
@@ -308,7 +308,7 @@ function Loader.__client(module: ModuleScript, requirer: Script, __disabled: boo
 			end
 		end
 
-		for index, service in pairs(Loader._Services.Client) do
+		for _, service in pairs(Loader._Services.Client) do
 			local clientModule = DeepSearch(name, service:GetDescendants())
 
 			if clientModule then
@@ -348,7 +348,7 @@ function Loader.server(module: ModuleScript | string | number): table?
 	assert(IsServer, "Attempted to access .server from the client")
 
 	local requirer = getfenv(2).script
-	return Loader.__server(module, require())
+	return Loader.__server(module, requirer)
 end
 
 --[=[
@@ -378,7 +378,7 @@ function Loader.enum(name: string, members: table): table
 
 	local proxy = {}
 
-	for index, enum in ipairs(members) do
+	for _, enum in ipairs(members) do
 		proxy[enum] = enum
 	end
 
