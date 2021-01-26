@@ -34,18 +34,18 @@
 	Manager.Encode(any)
 	Manager.Decode(encodedText)
 	
-	event = Manager:Connect(function)
+	event = Manager.Connect(function)
 	event:Disconnect()
 	event:Fire(...)
 	
-	event = Manager:ConnectKey(key,function)
+	event = Manager.ConnectKey(key,function)
 	event:Disconnect()
 	event:Fire(...)
 	
-	Manager:FireKey(key,...)
-	Manager:DisconnectKey(key)
+	Manager.FireKey(key,...)
+	Manager.DisconnectKey(key)
 	
-	event = Manager:Task([fps])
+	event = Manager.Task([fps])
 	event:Queue(function)
 	event:Pause()
 	event:Resume()
@@ -222,15 +222,14 @@ function Manager.Spawn(code: (any) -> nil, ...): nil
 end
 
 --[=[
-	Create an infinite loop at a given rate
+	Create an infinite loop at a 60fps
 	
-	@param fps number -- the FPS to run at, default 60
 	@param code function -- the function to callback
 	@param ...? any -- optional parameters to pass in the function
 	@return RBXScriptConnection
 	@outline Loop
 ]=]
-function Manager.Loop(fps: number, code: (any) -> nil, ...): RBXScriptConnection
+function Manager.Loop(code: (any) -> nil, ...): RBXScriptConnection
 	local data = { ... }
 	local rate = 1 / 60
 	local logged = 0
@@ -447,11 +446,11 @@ function Manager.FormatMoney(input: number): number | string
 	input = math.abs(input)
 
 	local paired = false
-	for i, v in pairs(Numbers.Suffixes) do
-		if not (input >= 10 ^ (3 * i)) then
-			input = input / 10 ^ (3 * (i - 1))
+	for index, _ in pairs(Numbers.Suffixes) do
+		if not (input >= 10 ^ (3 * index)) then
+			input = input / 10 ^ (3 * (index - 1))
 			local isComplex = (string.find(tostring(input), ".") and string.sub(tostring(input), 4, 4) ~= ".")
-			input = string.sub(tostring(input), 1, (isComplex and 4) or 3) .. (Numbers.Suffixes[i - 1] or "")
+			input = string.sub(tostring(input), 1, (isComplex and 4) or 3) .. (Numbers.Suffixes[index - 1] or "")
 			paired = true
 			break
 		end
@@ -567,7 +566,7 @@ end
 function Manager.Count(master: table): number
 	local count = 0
 
-	for index, element in pairs(master) do
+	for _, _ in pairs(master) do
 		count += 1
 	end
 
@@ -681,7 +680,7 @@ end
 	@return table
 	@outline WaitForTag
 ]=]
-function Manager:WaitForTag(tag: string): table
+function Manager.WaitForTag(tag: string): table
 	while not CollectionService:GetTagged(tag)[1] do
 		Manager.Wait()
 	end
@@ -696,7 +695,7 @@ end
 	@return Character
 	@outline WaitForCharacter
 ]=]
-function Manager:WaitForCharacter(player: Player): Instance
+function Manager.WaitForCharacter(player: Player): Instance
 	while not player.Character do
 		Manager.Wait()
 	end
@@ -715,11 +714,11 @@ end
 	@return ScriptSignal
 	@outline Connect
 ]=]
-function Manager:Connect(code: RBXScriptConnection | table | (any) -> nil): typeof(Manager:Connect())
+function Manager.Connect(code: RBXScriptConnection | table | (any) -> nil): typeof(Manager.Connect())
 	local control = {}
 
 	function control:Disconnect(): typeof(control)
-		control = nil
+		self = nil
 
 		if typeof(code) == "RBXScriptConnection" then
 			code:Disconnect()
@@ -733,7 +732,7 @@ function Manager:Connect(code: RBXScriptConnection | table | (any) -> nil): type
 		end
 
 		code = nil
-		return setmetatable(control, nil)
+		return setmetatable(self, nil)
 	end
 
 	function control:Fire(...): any?
@@ -755,7 +754,7 @@ end
 	@return RBXScriptConnection
 	@outline ConnectKey
 ]=]
-function Manager:ConnectKey(key: any, code: RBXScriptConnection | table | (any) -> nil): typeof(Manager:ConnectKey())
+function Manager.ConnectKey(key: any, code: RBXScriptConnection | table | (any) -> nil): typeof(Manager.ConnectKey())
 	if not Manager._Connections[key] then
 		Manager._Connections[key] = {}
 	end
@@ -781,7 +780,7 @@ function Manager:ConnectKey(key: any, code: RBXScriptConnection | table | (any) 
 		end
 
 		code = nil
-		return setmetatable(control, nil)
+		return setmetatable(self, nil)
 	end
 
 	function control:Fire(...): any?
@@ -804,12 +803,12 @@ end
 	@return nil
 	@outline FireKey
 ]=]
-function Manager:FireKey(key: string, ...): nil
+function Manager.FireKey(key: string, ...): nil
 	if not Manager._Connections[key] then
 		return
 	end
 
-	for code, control in pairs(Manager._Connections[key]) do
+	for _, control in pairs(Manager._Connections[key]) do
 		control:Fire(...)
 	end
 end
@@ -820,7 +819,7 @@ end
 	@param key any -- name of the connection key
 	@outline DisconnectKey
 ]=]
-function Manager:DisconnectKey(key: any): nil
+function Manager.DisconnectKey(key: any): nil
 	if not Manager._Connections[key] then
 		return
 	end
@@ -840,7 +839,7 @@ end
 	@return TaskScheduler
 	@outline Task
 ]=]
-function Manager:Task(targetFPS: number?): typeof(Manager:Task())
+function Manager.Task(targetFPS: number?): typeof(Manager.Task())
 	targetFPS = targetFPS or 60
 
 	local control = {}
@@ -854,118 +853,120 @@ function Manager:Task(targetFPS: number?): typeof(Manager:Task())
 	local start = os.clock()
 	Manager.Wait()
 
-	local function Frames(): number
-		return (((os.clock() - start) >= 1 and #control.UpdateTable) or (#control.UpdateTable / (os.clock() - start)))
+	function control:_Frames(): number
+		return (((os.clock() - start) >= 1 and #self.UpdateTable) or (#self.UpdateTable / (os.clock() - start)))
 	end
 
-	local function Update(): nil
+	function control:_Update(): nil
 		Manager._LastIteration = os.clock()
 
-		for index = #control.UpdateTable, 1, -1 do
-			control.UpdateTable[index + 1] = ((control.UpdateTable[index] >= (Manager._LastIteration - 1)) and control.UpdateTable[index] or nil)
+		for index = #self.UpdateTable, 1, -1 do
+			self.UpdateTable[index + 1] = ((self.UpdateTable[index] >= (Manager._LastIteration - 1)) and self.UpdateTable[index] or nil)
 		end
 
-		control.UpdateTable[1] = Manager._LastIteration
+		self.UpdateTable[1] = Manager._LastIteration
 	end
 
-	local function Loop(): nil
-		control.UpdateTableEvent = RunService[Settings.RunService]:Connect(Update)
+	function control:_Loop(): nil
+		self.UpdateTableEvent = RunService[Settings.RunService]:Connect(function()
+			self:_Update()
+		end)
 
-		while (true) do
-			if control.Sleeping then
+		while true do
+			if self.Sleeping then
 				break
 			end
-			if not control:Enabled() then
+			if not self:Enabled() then
 				break
 			end
 
 			if targetFPS < 0 then
-				if (#control.CodeQueue > 0) then
-					control.CodeQueue[1]()
-					table.remove(control.CodeQueue, 1)
-					if not control:Enabled() then
+				if #self.CodeQueue > 0 then
+					self.CodeQueue[1]()
+					table.remove(self.CodeQueue, 1)
+					if not self:Enabled() then
 						break
 					end
 				else
-					control.Sleeping = true
+					self.Sleeping = true
 					break
 				end
 			else
-				local fps = (((os.clock() - start) >= 1 and #control.UpdateTable) or (#control.UpdateTable / (os.clock() - start)))
-				if (fps >= targetFPS and (os.clock() - control.UpdateTable[1]) < (1 / targetFPS)) then
-					if (#control.CodeQueue > 0) then
-						control.CodeQueue[1]()
-						table.remove(control.CodeQueue, 1)
-						if not control:Enabled() then
+				local fps = (((os.clock() - start) >= 1 and #self.UpdateTable) or (#self.UpdateTable / (os.clock() - start)))
+				if fps >= targetFPS and (os.clock() - self.UpdateTable[1]) < (1 / targetFPS) then
+					if #self.CodeQueue > 0 then
+						self.CodeQueue[1]()
+						table.remove(self.CodeQueue, 1)
+						if not self:Enabled() then
 							break
 						end
 					else
-						control.Sleeping = true
+						self.Sleeping = true
 						break
 					end
-				elseif control:Enabled() then
+				elseif self:Enabled() then
 					Manager.Wait()
 				end
 			end
 		end
 
-		control.UpdateTableEvent:Disconnect()
-		control.UpdateTableEvent = nil
+		self.UpdateTableEvent:Disconnect()
+		self.UpdateTableEvent = nil
 	end
 
 	function control:Enabled(): boolean
-		return control.Enable
+		return self.Enable
 	end
 
 	function control:Pause(): number
-		control.Paused = true
-		control.Sleeping = true
+		self.Paused = true
+		self.Sleeping = true
 
-		return Frames()
+		return self:_Frames()
 	end
 
 	function control:Resume(): number
-		if control.Paused then
-			control.Paused = false
-			control.Sleeping = false
-			Loop()
+		if self.Paused then
+			self.Paused = false
+			self.Sleeping = false
+			self:_Loop()
 		end
 
-		return Frames()
+		return self:_Frames()
 	end
 
 	function control:Wait(): number
-		while not control.Sleeping do
+		while not self.Sleeping do
 			Manager.Wait()
 		end
 
-		return Frames()
+		return self:_Frames()
 	end
 
 	function control:Disconnect(): typeof(control)
-		control.Enable = false
-		control:Pause()
-		control.CodeQueue = nil
-		control.UpdateTable = nil
-		control.UpdateTableEvent:Disconnect()
-		control:Wait()
+		self.Enable = false
+		self:Pause()
+		self.CodeQueue = nil
+		self.UpdateTable = nil
+		self.UpdateTableEvent:Disconnect()
+		self:Wait()
 
-		for index in pairs(control) do
-			control[index] = nil
+		for index in pairs(self) do
+			self[index] = nil
 		end
 
-		return setmetatable(control, nil)
+		return setmetatable(self, nil)
 	end
 
 	function control:Queue(code: () -> ()): nil
-		if not control.CodeQueue then
+		if not self.CodeQueue then
 			return
 		end
-		control.CodeQueue[#control.CodeQueue + 1] = code
+		self.CodeQueue[#self.CodeQueue + 1] = code
 
-		if (control.Sleeping and not control.Paused) then
-			control.Sleeping = false
-			Loop()
+		if self.Sleeping and not self.Paused then
+			self.Sleeping = false
+			self:_Loop()
 		end
 	end
 
