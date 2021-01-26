@@ -17,7 +17,6 @@ local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loade
 local Manager = require("Manager")
 local Network = require("Network")
 
-local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 
 --[=[
@@ -35,7 +34,7 @@ function Subscribe.FireSubscription(key: any, index: any, value: any, data: any)
 	local store = Subscribe._Cache[key] or {}
 	local caught = {}
 
-	for guid, file in pairs(store) do
+	for _, file in pairs(store) do
 		if index ~= file.Index then
 			continue
 		end
