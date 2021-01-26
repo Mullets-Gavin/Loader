@@ -114,7 +114,7 @@ local ContentProvider = game:GetService("ContentProvider")
 	@outline PromptFriendRequest
 ]=]
 function Roblox:PromptFriendRequest(toPlayer: Player): any | boolean
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to call a player method on server")
 
 	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptFriendRequest, toPlayer)
@@ -135,7 +135,7 @@ end
 	@outline PromptUnfriendRequest
 ]=]
 function Roblox:PromptUnfriendRequest(toPlayer: Player): any | boolean
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to call a player method on server")
 
 	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptUnfriendRequest, toPlayer)
@@ -156,7 +156,7 @@ end
 	@outline PromptBlockRequest
 ]=]
 function Roblox:PromptBlockRequest(toPlayer: Player): any | boolean
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to call a player method on server")
 
 	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptBlockRequest, toPlayer)
@@ -177,7 +177,7 @@ end
 	@outline PromptUnblockRequest
 ]=]
 function Roblox:PromptUnblockRequest(toPlayer: Player): any | boolean
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to call a player method on server")
 
 	local success, response = Manager.Rerun(5, function()
 		return StarterGui:SetCore(Roblox._SetCoreTypes.PromptUnblockRequest, toPlayer)
@@ -228,7 +228,7 @@ function Roblox:GetFriends(player: Player): any | boolean
 
 		while true do
 			local current = pages:GetCurrentPage()
-			for index, data in pairs(current) do
+			for _, data in pairs(current) do
 				table.insert(proxy, data.UserId)
 			end
 
@@ -256,7 +256,7 @@ end
 	@outline GetBlocked
 ]=]
 function Roblox:GetBlocked(): any | boolean
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to call a player method on server")
 
 	if Manager.IsStudio then
 		return {}
@@ -419,7 +419,7 @@ end
 	@outline GetUserTeleportInfo
 ]=]
 function Roblox:GetUserTeleportInfo(userId: number): (any | boolean)
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to call a server method on the client")
 
 	local success, current, err, placeId, jobId = pcall(function()
 		return TeleportService:GetPlayerPlaceInstanceAsync(userId)
@@ -441,7 +441,7 @@ end
 	@outline IsFriendsWith
 ]=]
 function Roblox:IsFriendsWith(player: Player, userId: number): any | boolean
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to call a player method on server")
 
 	local success, response = Manager.Rerun(5, function()
 		return player:IsFriendsWith(userId)
@@ -463,7 +463,7 @@ end
 	@outline IsBlockedWith
 ]=]
 function Roblox:IsBlockedWith(player: Player, userId: number): any | boolean
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to call a player method on server")
 
 	local success, response = Manager.Rerun(5, function()
 		if typeof(player) == "table" then
@@ -526,7 +526,7 @@ end
 	@outline CanSendGameInviteAsync
 ]=]
 function Roblox:CanSendGameInviteAsync(player: Player): any | boolean
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to call a player method on server")
 
 	local success, response = Manager.Rerun(5, function()
 		return SocialService:CanSendGameInviteAsync(player)
@@ -549,7 +549,7 @@ end
 	@outline FilterText
 ]=]
 function Roblox:FilterText(text: string, userId: number, context: EnumItem?): any | boolean
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to call a server method on the client")
 	context = context or Enum.TextFilterContext.PublicChat
 
 	local success, response = Manager.Rerun(5, function()
@@ -572,7 +572,7 @@ end
 	@outline FilterChatForUser
 ]=]
 function Roblox:FilterChatForUser(filter: Instance, toUserId: number): any | boolean
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to call a server method on the client")
 
 	local success, response = Manager.Rerun(5, function()
 		return filter:GetChatForUserAsync(toUserId)
@@ -594,7 +594,7 @@ end
 	@outline FilterStringForUser
 ]=]
 function Roblox:FilterStringForUser(filter: Instance, toUserId: number): any | boolean
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to call a server method on the client")
 
 	local success, response = Manager.Rerun(5, function()
 		return filter:GetNonChatStringForUserAsync(toUserId)
@@ -615,7 +615,7 @@ end
 	@outline FilterStringForBroadcast
 ]=]
 function Roblox:FilterStringForBroadcast(filter: Instance): any | boolean
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to call a server method on the client")
 
 	local success, response = Manager.Rerun(5, function()
 		return filter:GetNonChatStringForBroadcastAsync()
@@ -718,7 +718,7 @@ end
 	@outline PreloadAssets
 ]=]
 function Roblox:PreloadAssets(assets: Instance | table, code: () -> ()): boolean
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to call a player method on server")
 	assets = typeof(assets) == "table" and assets or { assets }
 
 	ContentProvider:PreloadAsync(assets, code)
