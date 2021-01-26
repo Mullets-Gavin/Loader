@@ -1,5 +1,6 @@
 --[=[
 	@Author: Gavin "Mullets" Rosenthal
+	@Author: Lucas Wolschick (codes4breakfast)
 	@Desc: Internal input functions
 ]=]
 
