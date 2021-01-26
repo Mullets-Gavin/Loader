@@ -30,15 +30,15 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 
 	Methods._Occupants[key .. index] = true
 
-	local success, store = Manager.Rerun(Methods._MaxRetries, function()
+	local success1, store = Manager.Rerun(Methods._MaxRetries, function()
 		return DataStoreService:GetDataStore(key, index)
 	end)
 
-	if not success then
+	if not success1 then
 		warn(store)
 	end
 
-	local success, data = Manager.Rerun(Methods._MaxRetries, function()
+	local success2, data = Manager.Rerun(Methods._MaxRetries, function()
 		return store:UpdateAsync(index, function(last)
 			if typeof(last) == "string" then
 				last = Manager.Decode(last)
@@ -47,11 +47,11 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 			if not last then
 				last = Manager.DeepCopy(file)
 			elseif typeof(last) == "table" then
-				for index, value in pairs(file) do
-					if last[index] ~= nil then
+				for scope, value in pairs(file) do
+					if last[scope] ~= nil then
 						continue
 					end
-					last[index] = value
+					last[scope] = value
 				end
 			end
 
@@ -62,7 +62,7 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 		end)
 	end)
 
-	if not success then
+	if not success2 then
 		warn(data)
 
 		data = Manager.DeepCopy(file)
@@ -73,7 +73,7 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 
 	Methods._Occupants[key .. index] = nil
 
-	return data, success
+	return data, success2
 end
 
 --[=[
@@ -95,12 +95,12 @@ function Methods.SaveData(key: string, index: string, file: table): table & bool
 
 	Methods._Occupants[key .. index] = true
 
-	local success, store = Manager.Rerun(Methods._MaxRetries, function()
+	local _, store = Manager.Rerun(Methods._MaxRetries, function()
 		return DataStoreService:GetDataStore(key, index)
 	end)
 
 	local success, data = Manager.Rerun(Methods._MaxRetries, function()
-		return store:UpdateAsync(index, function(last)
+		return store:UpdateAsync(index, function()
 			file["__HasChanged"] = false
 			file = Manager.Encode(file)
 			return file
@@ -130,7 +130,7 @@ function Methods.WipeData(key: string, index: string): table & boolean
 
 	Methods._Occupants[key .. index] = true
 
-	local success, store = Manager.Rerun(Methods._MaxRetries, function()
+	local _, store = Manager.Rerun(Methods._MaxRetries, function()
 		return DataStoreService:GetDataStore(key, index)
 	end)
 
