@@ -105,7 +105,6 @@ local Network = require("Network")
 local Methods = require(script:WaitForChild("Methods"))
 local Subscribe = require(script:WaitForChild("Subscribe"))
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 
 --[=[
 	Get the Player from either the instance or UserId
@@ -272,7 +271,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		Manager.Wrap(function()
 			while Manager.Wait(DataSync.AutoSaveTimer) do
 				if player then
-					local success, response = Manager.Retry(1, function()
+					local success, _ = Manager.Retry(1, function()
 						return Players:GetPlayerByUserId(index)
 					end)
 
@@ -446,20 +445,20 @@ function DataSync:SaveData(override: boolean?): typeof(DataSync:GetFile())
 	local filter = DataSync._Filters[self._key]
 
 	if filter and filter["Type"] == "Whitelist" then
-		for key, data in pairs(file) do
+		for key, _ in pairs(file) do
 			if not table.find(filter["Keys"], key) then
 				clone[key] = nil
 			end
 		end
 	elseif filter and filter["Type"] == "Blacklist" then
-		for key, data in pairs(file) do
+		for key, _ in pairs(file) do
 			if table.find(filter["Keys"], key) then
 				clone[key] = nil
 			end
 		end
 	end
 
-	local load, success = Methods.SaveData(self._key, self._file, clone)
+	local _, success = Methods.SaveData(self._key, self._file, clone)
 	if not success then
 		warn("!URGENT! Failed to save file '" .. self._file .. "' on store '" .. self._key .. "'")
 	end
@@ -490,7 +489,7 @@ function DataSync:RemoveData(override: boolean?): typeof(DataSync:RemoveData())
 	end
 
 	if DataSync._Cache[self._key][self._file] ~= nil then
-		for index, value in pairs(DataSync._Cache[self._key][self._file]) do
+		for index, _ in pairs(DataSync._Cache[self._key][self._file]) do
 			DataSync._Cache[self._key][self._file][index] = nil
 		end
 		DataSync._Cache[self._key][self._file] = nil
@@ -618,7 +617,7 @@ if Manager.IsServer then
 
 	Network.CreateEvent(DataSync._Remotes.Download)
 
-	Network:HookFunction(DataSync._Remotes.Upload, function(client, key, index, value)
+	Network:HookFunction(DataSync._Remotes.Upload, function(_, key, index, value)
 		local success, response = pcall(function()
 			return DataSync.GetStore(key):GetFile(index):GetData(value)
 		end)
@@ -632,7 +631,7 @@ if Manager.IsServer then
 		store:Subscribe(index, value, nil, client, nil, uid)
 	end)
 
-	Network:HookEvent(DataSync._Remotes.Unsubscribe, function(client, key, uid)
+	Network:HookEvent(DataSync._Remotes.Unsubscribe, function(_, key, uid)
 		Subscribe.DisconnectSubscription(key, uid)
 	end)
 elseif Manager.IsClient then
