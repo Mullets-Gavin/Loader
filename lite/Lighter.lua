@@ -128,7 +128,7 @@ end
 	@private
 ]=]
 local function DeepSearch(name: string, list: table): ModuleScript?
-	for count, asset in ipairs(list) do
+	for _, asset in ipairs(list) do
 		if not asset:IsA("ModuleScript") then
 			continue
 		end
