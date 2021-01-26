@@ -352,7 +352,7 @@ end
 	@outline FireServer
 ]=]
 function Network.FireServer(name: string, ...): nil
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to call 'FireServer' on server")
 
 	local remote = GetRemote(name, Network.Enums.Event)
 	remote:FireServer(...)
@@ -368,7 +368,7 @@ end
 	@outline FireClient
 ]=]
 function Network.FireClient(name: string, player: Player, ...): nil
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to call 'FireClient' on client")
 
 	local remote = GetRemote(name, Network.Enums.Event)
 	remote:FireClient(player, ...)
@@ -384,9 +384,9 @@ end
 	@outline FireClients
 ]=]
 function Network.FireClients(name: string, clients: table, ...): nil
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to call 'FireClients' on client")
 
-	for index, player in pairs(clients) do
+	for _, player in pairs(clients) do
 		assert(typeof(player) == "Instance" and player:IsA("Player"))
 
 		local remote = GetRemote(name, Network.Enums.Event)
@@ -403,7 +403,7 @@ end
 	@outline FireAllClients
 ]=]
 function Network.FireAllClients(name: string, ...): nil
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to call 'FireAllClients' on client")
 
 	local remote = GetRemote(name, Network.Enums.Event)
 	remote:FireAllClients(...)
@@ -419,10 +419,10 @@ end
 	@outline FireAllClientsExcept
 ]=]
 function Network.FireAllClientsExcept(name: string, player: Player, ...): nil
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to call 'FireAllClientsExcept' on client")
 
 	local remote = GetRemote(name, Network.Enums.Event)
-	for index, client in pairs(Players:GetPlayers()) do
+	for _, client in pairs(Players:GetPlayers()) do
 		if client == player then
 			continue
 		end
@@ -439,7 +439,7 @@ end
 	@outline InvokeServer
 ]=]
 function Network:InvokeServer(name: string, ...): any?
-	assert(Manager.IsClient)
+	assert(Manager.IsClient, "Attempted to invoke the server on the server")
 
 	local remote = GetRemote(name)
 	return remote:InvokeServer(...)
@@ -455,7 +455,7 @@ end
 	@outline InvokeClient
 ]=]
 function Network:InvokeClient(name: string, player: Player, ...): any?
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to invoke the client on the client")
 
 	local data = { ... }
 	local remote = GetRemote(name)
@@ -482,7 +482,7 @@ end
 	@outline InvokeAllClients
 ]=]
 function Network:InvokeAllClients(name: string, timeout: number, ...): table
-	assert(Manager.IsServer)
+	assert(Manager.IsServer, "Attempted to invoke all clients on the client")
 
 	local remote = GetRemote(name)
 	local clock = os.clock()
@@ -491,7 +491,7 @@ function Network:InvokeAllClients(name: string, timeout: number, ...): table
 	local data = { ... }
 	local proxy = {}
 
-	for index, player in pairs(Players:GetPlayers()) do
+	for _, player in pairs(Players:GetPlayers()) do
 		Manager.Spawn(function()
 			local response = remote:InvokeClient(player, data)
 			if response then
