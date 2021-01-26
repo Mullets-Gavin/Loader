@@ -101,23 +101,19 @@
 ]=]
 
 local Interface = {}
-Interface.__index = Interface
 Interface._Name = string.upper(script.Name)
 Interface._ComponentCode = {}
 Interface._ComponentCache = {}
 Interface._AssignSizesCache = {}
 Interface._AssignSizesOveride = false
-setmetatable(Interface, Interface)
 
 local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
 local Manager = require("Manager")
 local Input = require(script:WaitForChild("Input"))
-local Components = require(script:WaitForChild("Components"))
 local Workspace = game:GetService("Workspace")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local CollectionService = game:GetService("CollectionService")
 local Camera = Workspace.CurrentCamera
 local Container
 
@@ -130,9 +126,9 @@ local Container
 local function FormatColor(color: Color3): string
 	return string.format(
 		"rgb(%i,%i,%i)",
-		math.floor(color.r * 255),
-		math.floor(color.g * 255),
-		math.floor(color.b * 255)
+		math.floor(color.R * 255),
+		math.floor(color.G * 255),
+		math.floor(color.B * 255)
 	)
 end
 
@@ -184,32 +180,6 @@ local function ResizeContainer(element: GuiObject, scale: number, min: number, m
 			ResizeContainer(element, scale * 2, min, max)
 		end
 	end
-end
-
---[=[
-	Bind & create a component with an element
-	
-	@param tag string -- the tag used
-	@param element GuiObject -- the object used for the component
-	@return nil
-]=]
-local function BindComponent(tag: string, element: GuiObject): nil
-	if Interface._ComponentCache[tag][element] then
-		return
-	end
-
-	local Player = Players.LocalPlayer
-	local PlayerGui = Player.PlayerGui
-
-	while not element:IsDescendantOf(PlayerGui) do
-		element.AncestryChanged:Wait()
-	end
-
-	local code = Interface._ComponentCode[tag]
-	local create = Components.new(element)
-	Interface._ComponentCache[tag][element] = create
-
-	Manager.Wrap(code, create)
 end
 
 --[=[
@@ -292,16 +262,6 @@ end
 ]=]
 function Interface.IsVR(): boolean
 	return UserInputService.VREnabled
-end
-
---[=[
-	Replicate GuiObject containers, skipping Roblox character dependency
-	
-	@return nil
-	@outline Replicate
-]=]
-function Interface.Replicate(): nil -- TODO
-
 end
 
 --[=[
@@ -402,7 +362,7 @@ function Interface.RichText(): typeof(Interface.RichText())
 			table.insert(control._raw, value)
 			table.insert(control._append, value)
 		elseif typeof(value) == "table" then
-			for index, format in ipairs(value._raw) do
+			for _, format in ipairs(value._raw) do
 				table.insert(control._raw, format)
 				table.insert(control._append, format)
 			end
@@ -512,79 +472,151 @@ end
 	@outline Keybind
 ]=]
 function Interface.Keybind(name: string): typeof(Interface.Keybind())
-	Input:CreateButton(name, Container)
+	local uid = "KEYBIND_"..name
 
-	if not Input._InputCache[name] then
-		Input._InputCache[name] = {}
+	if Input._Objects[uid] then
+		return Input._Objects[uid]
 	end
 
-	local control = {}
+	local keybind = {
+		_uid = uid,
+		_name = name,
+		_button = Input.Button(uid, name, Container),
+		_enabled = false,
 
-	function control._Verify(): nil
-		if Input._InputCache[name]["Keys"] and Input._InputCache[name]["Function"] then
-			Input._InputCache[name]["Verify"] = true
-		else
-			Input._InputCache[name]["Verify"] = false
+		_keys = nil,
+		_mobile = nil,
+		_icon = nil,
+		_hook = nil,
+		_bind = nil,
+	}
+
+	--[=[
+		Enable the keybind object
+
+		@param state Boolean? -- if true, enables the keybind, false/nil disables it
+		@return self
+	]=]
+	function keybind:Enabled(state: boolean?): keybind
+		state = state ~= nil and state or false
+
+		self._enabled = state
+		self._button:Enable(state)
+
+		Input._Objects[uid] = self
+		return self
+	end
+
+	--[=[
+		Set the keybinds in the object
+
+		@param ... table | tuple -- must be EnumItems, provide a table OR tuple - converts to table
+		@return self
+	]=]
+	function keybind:Keybinds(...): keybind
+		local keys = {...}
+		keys = typeof(keys[1]) == "table" and keys[1] or keys
+
+		for _, key in ipairs(keys) do
+			assert(typeof(key) == "EnumItem", "Keybind must be an EnumItem")
 		end
+
+		self._keys = keys
+
+		Input._Objects[uid] = self
+		return self
 	end
 
-	function control:Enabled(state: boolean): nil
-		Input._InputCache[name]["Enabled"] = state
-		Input:EnableButton(name, state)
-		control._Verify()
-	end
+	--[=[
+		Enable mobile usage
 
-	function control:Keybinds(...): nil
-		local capture = {}
+		@param state boolean -- whether or not to enable mobile
+		@param icon string | boolean | nil -- an optional icon, false to remove the icon
+		@return self
+	]=]
+	function keybind:Mobile(state: boolean, icon: string | boolean | nil): keybind
+		self._mobile = state ~= nil and state or false
+		self._icon = self._icon ~= nil and icon ~= false and self._icon or icon
 
-		for index, key in pairs({ ... }) do
-			assert(typeof(key) == "EnumItem")
-			table.insert(capture, key)
-		end
-
-		Input._InputCache[name]["Keys"] = capture
-		control._Verify()
-	end
-
-	function control:Mobile(state: boolean, image: string?): nil
-		Input._InputCache[name]["Mobile"] = state
-		local button = Input:GetButton(name)
-
-		if button then
+		local button = self._button:Get()
+		if button ~= nil then
 			button.Visible = state
-			if image then
-				button.Icon.Image = image
+			if icon then
+				button.Title.Text = ""
+				button.Icon.Image = icon
+			elseif not self._icon then
+				button.Icon.Image = ""
+				button.Title.Text = name
 			end
 		end
 
-		control._Verify()
+		Input._Objects[uid] = self
+		return self
 	end
 
-	function control:Hook(code: () -> ()): nil
-		if Input._InputCache[name]["Function"] then
-			Input._InputCache[name]["Function"] = nil
+	--[=[
+		Hook a cheap function to the InputBegan of the keybind
+		
+		@param code function -- the function to hook
+		@return self
+	]=]
+	function keybind:Hook(code: (InputObject) -> nil): keybind
+		assert(typeof(code) == "function", "'Hook' requires a function parameter")
+		
+		self._hook = code
+		
+		Input._Objects[uid] = self
+		return self
+	end
+
+	--[=[
+		Bind a more expensive function to Began/Changed/Ended
+		
+		@param code function -- the function to bind, has higher priority than hook
+		@return self
+	]=]
+	function keybind:Bind(code: (InputState, InputObject) -> nil): keybind
+		assert(typeof(code) == "function", "'Bind' requires a function parameter")
+
+		self._bind = code
+		
+		Input._Objects[uid] = self
+		return self
+	end
+
+	--[=[
+		Disconnects both Hook and Bind functions only
+
+		@return nil
+	]=]
+	function keybind:Disconnect(): nil
+		self._bind = nil
+		self._hook = nil
+
+		Input._Objects[uid] = self
+	end
+
+	--[=[
+		Completely destroys the entire keybind object
+
+		@return nil
+	]=]
+	function keybind:Destroy(): nil
+		if not Input._Objects[uid] then
+			return nil
 		end
 
-		Input._InputCache[name]["Function"] = code
-		control._Verify()
-	end
-
-	function control:Destroy(): typeof(control:Destroy())
-		local button = Input:GetButton(name)
-
-		if button then
-			Manager:DisconnectKey(name)
+		local button = self._button:Get()
+		if button ~= nil then
 			button:Destroy()
 		end
 
-		for index in pairs(control) do
-			control[index] = nil
-		end
-
-		return setmetatable(control, nil)
+		Manager.DisconnectKey(uid)
+		Input._Objects[uid] = nil
 	end
 
-	return control
+	Input._Objects[uid] = keybind
+	return keybind
 end
 
 --[=[
@@ -609,7 +641,7 @@ end
 	@outline Update
 ]=]
 function Interface:Update(name: string, keys: table): boolean
-	for index, key in pairs(keys) do
+	for _, key in pairs(keys) do
 		assert(typeof(key) == "EnumItem")
 	end
 
@@ -631,7 +663,7 @@ end
 	@outline Began
 ]=]
 function Interface:Began(name: string, keys: table, code: (any) -> nil): nil
-	for index, key in pairs(keys) do
+	for _, key in pairs(keys) do
 		assert(typeof(key) == "EnumItem")
 	end
 
@@ -653,7 +685,7 @@ end
 	@outline Ended
 ]=]
 function Interface:Ended(name: string, keys: table, code: (any) -> nil): nil
-	for index, key in pairs(keys) do
+	for _, key in pairs(keys) do
 		assert(typeof(key) == "EnumItem")
 	end
 
@@ -681,107 +713,6 @@ function Interface:Tapped(name: string, code: (any) -> nil): nil
 		["Code"] = code,
 		["Type"] = "Ended",
 	}
-end
-
---[=[
-	Return a component on an element
-	
-	@param element GuiObject -- the element to get a component from
-	@return Component?
-	@outline Get
-]=]
-function Interface:Get(element: GuiObject): typeof(Interface:Create())?
-	for tag, data in pairs(Interface._ComponentCache) do
-		for index, obj in pairs(data) do
-			if index ~= element then
-				continue
-			end
-			return obj
-		end
-	end
-end
-
---[=[
-	Returns all the components on a tag in PlayerGui
-	
-	@param tag string -- the tag to get from
-	@return table
-	@outline GetAll
-]=]
-function Interface:GetAll(tag: string): table
-	return Interface._ComponentCache[tag]
-end
-
---[=[
-	Get the first component on a tag in the PlayerGui
-	
-	@param tag string
-	@return Component?
-	@outline GetComponent
-]=]
-function Interface:GetComponent(tag: string): typeof(Interface:Create())?
-	local tags = Interface:GetAll(tag)
-	for index, component in pairs(tags) do
-		return component
-	end
-end
-
---[=[
-	Fires a function with the tag
-	
-	@param name string -- the name of the binding
-	@param ...? any -- optional parameters to pass
-	@return nil
-	@outline Fire
-]=]
-function Interface:Fire(name: string, ...): nil
-	assert(
-		Components._Bindings[name],
-		"Attempted to fire non-existant binding on '" .. name .. "'"
-	)
-
-	local code = Components._Bindings[name]
-	Manager.Wrap(code, ...)
-end
-
---[=[
-	Create a component out of a collection service tag!
-	
-	@param tag string -- the CollectionService tag to track
-	@param code function -- the function to run when you get a component
-	@return nil
-	@outline Create
-]=]
-function Interface:Create(tag: string, code: (any) -> nil): nil
-	assert(Interface._ComponentCache[tag] == nil, "tag is claimed")
-
-	Interface._ComponentCache[tag] = {}
-	Interface._ComponentCode[tag] = code
-
-	CollectionService:GetInstanceAddedSignal(tag):Connect(function(component)
-		Manager.Wrap(BindComponent, tag, component)
-	end)
-
-	local tagged = CollectionService:GetTagged(tag)
-	for index, component in pairs(tagged) do
-		Manager.Wrap(BindComponent, tag, component)
-	end
-end
-
---[=[
-	Redirects to either Interface:Create() or Interface:GetComponent(), streamlines shortcutting to Interface()
-	
-	@param tag string -- the CollectionService tag to track
-	@param code? function -- the function to run when you get a component
-	@return typeof(Interface:Create())?
-	@outline __call
-]=]
-function Interface:__call(tag: string, code: ((any) -> nil)?): typeof(Interface:Create())?
-	if not code and Interface._ComponentCache[tag] then
-		return Interface:GetComponent(tag)
-	end
-
-	Interface:Create(tag, code)
 end
 
 Manager.Wrap(function()
@@ -814,7 +745,7 @@ Manager.Wrap(function()
 				local TouchGui = PlayerGui:WaitForChild("TouchGui", math.huge)
 				local TouchFrame = TouchGui:WaitForChild("TouchControlFrame", math.huge)
 				Jump = TouchFrame:WaitForChild("JumpButton", math.huge)
-				Manager:WaitForCharacter(Player)
+				Manager.WaitForCharacter(Player)
 				Size = UDim2.fromOffset(Jump.Size.X.Offset / 1.25, Jump.Size.Y.Offset / 1.25)
 			end
 
@@ -841,13 +772,12 @@ Manager.Wrap(function()
 				end
 			end
 
-			for index, button in ipairs(Container:GetChildren()) do
+			for _, button in ipairs(Container:GetChildren()) do
 				if table.find(Log, button) then
 					continue
 				end
 				table.insert(Log, button)
 				button.Size = Size
-				Input.Effects(button.Name)
 				Organize()
 			end
 
@@ -857,7 +787,6 @@ Manager.Wrap(function()
 				end
 				table.insert(Log, button)
 				button.Size = Size
-				Input.Effects(button.Name)
 				Organize()
 			end)
 		end
