@@ -5,7 +5,9 @@
 ]=]
 
 local Input = {}
-Input._InputCache = {}
+Input._Objects = {} -- keybind objects
+Input._BindCache = {} -- cache for keybind binds
+Input._InputCache = {} -- cache for keybind hooks
 Input._InputCallbacks = {}
 Input._InputTouchCallbacks = {}
 Input._Buttons = {}
@@ -87,7 +89,6 @@ function Input.GetPositioning(config: table): table
 
 	local extra_angle_x = math.asin(x_offset / radius)
 	local extra_angle_y = math.asin(y_offset / radius)
-	local total_angle = math.pi / 2 + extra_angle_x + extra_angle_y
 
 	local result = { list = {}, radius = radius }
 	for index = 1, config.N_BUTTONS do
@@ -116,121 +117,183 @@ end
 function Input.GetPositionsWithRows(buttons: table, config: table): table
 	local result = {}
 
-	local last_offset = config.MIN_RADIUS or 0
-	for index, n_buttons in ipairs(buttons) do
-		config.N_BUTTONS = n_buttons
-		config.MIN_RADIUS = last_offset
+	local lastOffset = config.MIN_RADIUS or 0
+	for _, nButtons in ipairs(buttons) do
+		config.N_BUTTONS = nButtons
+		config.MIN_RADIUS = lastOffset
 
 		local positions = Input.GetPositioning(config)
 		table.move(positions.list, 1, #positions.list, #result + 1, result)
 
-		last_offset = positions.radius
+		lastOffset = positions.radius
 	end
 
 	return result
 end
 
 --[=[
-	Create button effects on the generated ContextActionPosition button
-	
-	@param name string -- name of the button
-	@return nil
-	@private
-]=]
-function Input.Effects(name: string): nil
-	local button = Input:GetButton(name)
+	Creates a button object
 
-	if button then
-		Manager:ConnectKey(
-			name,
+	@param uid string -- the unique identifier for the keybind
+	@param name string -- the name derived from the uid
+	@param parent GuiObject? -- the container for a button if present
+]=]
+function Input.Button(uid: string, name: string, parent: GuiObject?): typeof(Input.Button())
+	local toggle = {
+		button = nil;
+	}
+
+	do
+		local button = Instance.new("ImageButton")
+		button.Name = name
+		button.BackgroundTransparency = 1
+		button.Image = "rbxassetid://3376854277"
+		button.ImageColor3 = Color3.fromRGB(0, 0, 0)
+		button.ImageTransparency = 0.5
+		button.Visible = false
+		local icon = Instance.new("ImageLabel")
+		icon.Name = "Icon"
+		icon.BackgroundTransparency = 1
+		icon.Image = ""
+		icon.ImageColor3 = Color3.fromRGB(0, 0, 0)
+		icon.ImageTransparency = 0.5
+		icon.AnchorPoint = Vector2.new(0.5, 0.5)
+		icon.Position = UDim2.new(0.5, 0, 0.5, 0)
+		icon.Size = UDim2.new(0.8, 0, 0.8, 0)
+		icon.ZIndex = 10
+		icon.Parent = button
+		local title = Instance.new("TextLabel")
+		title.Name = "Title"
+		title.BackgroundTransparency = 1
+		title.Position = UDim2.fromScale(0.5, 0.5)
+		title.AnchorPoint = Vector2.new(0.5, 0.5)
+		title.Size = UDim2.fromScale(0.8, 0.8)
+		title.TextScaled = true
+		title.Font = Enum.Font.SourceSansBold
+		title.TextColor3 = Color3.fromRGB(0, 0, 0)
+		title.ZIndex = 5
+		title.Text = ""
+		title.Parent = button
+
+		toggle.button = button
+		if parent then
+			button.Parent = parent
+		end
+
+		Manager.ConnectKey(
+			uid,
 			button.MouseButton1Down:Connect(function()
 				button.ImageColor3 = Color3.fromRGB(255, 255, 255)
 				button.ImageTransparency = 0.75
 			end)
 		)
 
-		Manager:ConnectKey(
-			name,
+		Manager.ConnectKey(
+			uid,
 			button.MouseButton1Up:Connect(function()
 				button.ImageColor3 = Color3.fromRGB(0, 0, 0)
 				button.ImageTransparency = 0.5
 			end)
 		)
 
-		Manager:ConnectKey(
-			name,
+		Manager.ConnectKey(
+			uid,
 			button.MouseLeave:Connect(function()
 				button.ImageColor3 = Color3.fromRGB(0, 0, 0)
 				button.ImageTransparency = 0.5
 			end)
 		)
 
-		Manager:ConnectKey(
-			name,
+		Manager.ConnectKey(
+			uid,
 			button.InputBegan:Connect(function(obj)
-				if not typeof(Input._InputCache[name]) == "table" then
-					return
-				end
-				if not Input._InputCache[name]["Enabled"] or not Input._InputCache[name]["Function"] or not Input._InputCache[name]["Verify"] then
+				local data = Input._Objects[uid]
+
+				if not data then
 					return
 				end
 
-				Input._InputCache[name]["Function"](obj)
+				if not data._enabled then
+					return
+				end
+
+				if data._hook then
+					Manager.Wrap(data._hook, obj)
+				end
+
+				if data._bind then
+					Manager.Wrap(data._bind, Enum.UserInputState.Begin, obj)
+				end
+			end)
+		)
+
+		Manager.ConnectKey(
+			uid,
+			button.InputChanged:Connect(function(obj)
+				local data = Input._Objects[uid]
+
+				if not data then
+					return
+				end
+
+				if not data._enabled then
+					return
+				end
+
+				if data._bind then
+					Manager.Wrap(data._bind, Enum.UserInputState.Change, obj)
+				end
+			end)
+		)
+
+		Manager.ConnectKey(
+			uid,
+			button.InputEnded:Connect(function(obj)
+				local data = Input._Objects[uid]
+
+				if not data then
+					return
+				end
+
+				if not data._enabled then
+					return
+				end
+
+				if data._bind then
+					Manager.Wrap(data._bind, Enum.UserInputState.End, obj)
+				end
 			end)
 		)
 	end
-end
 
---[=[
-	Get a button from the cache
-	
-	@param name string -- name of the button
-	@return GuiObject?
-	@private
-]=]
-function Input:GetButton(name: string): GuiObject?
-	return Input._Buttons[name]
-end
-
---[=[
-	Create a button & optionally parent it; this is for mobile
-	
-	@param name string -- name of the button
-	@param parent? GuiObject -- the optional parent
-	@return GuiObject
-	@private
-]=]
-function Input:CreateButton(name: string, parent: GuiObject?): GuiObject
-	if Input:GetButton(name) then
-		return Input:GetButton(name)
+	function toggle:Get(): ImageButton?
+		if self.button.Parent ~= nil then
+			return self.button
+		end
 	end
 
-	local button = Instance.new("ImageButton")
-	button.Name = name
-	button.BackgroundTransparency = 1
-	button.Image = "rbxassetid://3376854277"
-	button.ImageColor3 = Color3.fromRGB(0, 0, 0)
-	button.ImageTransparency = 0.5
-	button.Visible = false
-	local icon = Instance.new("ImageLabel")
-	icon.Name = "Icon"
-	icon.BackgroundTransparency = 1
-	icon.Image = ""
-	icon.ImageColor3 = Color3.fromRGB(0, 0, 0)
-	icon.ImageTransparency = 0.5
-	icon.AnchorPoint = Vector2.new(0.5, 0.5)
-	icon.Position = UDim2.new(0.5, 0, 0.5, 0)
-	icon.Size = UDim2.new(0.8, 0, 0.8, 0)
-	icon.ZIndex = 10
-	icon.Parent = button
-
-	Input._Buttons[name] = button
-
-	if parent then
-		button.Parent = parent
+	function toggle:Set(container: GuiObject?): ImageButton?
+		if container then
+			self.button.Parent = container
+			return self.button
+		end
 	end
 
-	return button
+	function toggle:Enable(state: boolean): nil
+		local button = self.button
+
+		if state then
+			button.Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+			button.Icon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			button.Icon.ImageTransparency = 0
+		else
+			button.Title.TextColor3 = Color3.fromRGB(0, 0, 0)
+			button.Icon.ImageColor3 = Color3.fromRGB(0, 0, 0)
+			button.Icon.ImageTransparency = 0.5
+		end
+	end
+
+	return toggle
 end
 
 --[=[
@@ -241,8 +304,8 @@ end
 	@return nil
 	@private
 ]=]
-function Input:EnableButton(name: string, state: boolean): nil
-	local button = Input:GetButton(name)
+function Input.EnableButton(name: string, state: boolean): nil
+	local button = Input.GetButton(name)
 	local data = Input._InputCache[name]
 
 	if not button or not data then
@@ -263,16 +326,26 @@ if Manager.IsClient then
 		if processed then
 			return
 		end
-		for name, data in pairs(Input._InputCache) do
-			if data["Verify"] and data["Enabled"] and data["Function"] and data["Keys"] then
-				if table.find(data["Keys"], obj.KeyCode) or table.find(data["Keys"], obj.UserInputType) then
-					local code = data["Function"]
-					Manager.Wrap(code, obj)
-				end
+
+		for _, data in pairs(Input._Objects) do
+			if not data._enabled then
+				continue
+			end
+
+			if not table.find(data._keys, obj.KeyCode) and not table.find(data._keys, obj.UserInputType) then
+				continue
+			end
+			
+			if data._hook then
+				Manager.Wrap(data._hook, obj)
+			end
+
+			if data._bind then
+				Manager.Wrap(data._bind, Enum.UserInputState.Begin, obj)
 			end
 		end
 
-		for index, data in pairs(Input._InputCallbacks) do
+		for _, data in pairs(Input._InputCallbacks) do
 			if data["Type"] == "Began" then
 				if table.find(data["Keys"], obj.KeyCode) or table.find(data["Keys"], obj.UserInputType) then
 					local code = data["Code"]
@@ -282,11 +355,46 @@ if Manager.IsClient then
 		end
 	end)
 
+	UserInputService.InputChanged:Connect(function(obj, processed)
+		if processed then
+			return
+		end
+
+		for _, data in pairs(Input._Objects) do
+			if not data._enabled then
+				continue
+			end
+
+			if not table.find(data._keys, obj.KeyCode) and not table.find(data._keys, obj.UserInputType) then
+				continue
+			end
+
+			if data._bind then
+				Manager.Wrap(data._bind, Enum.UserInputState.Change, obj)
+			end
+		end
+	end)
+
 	UserInputService.InputEnded:Connect(function(obj, processed)
 		if processed then
 			return
 		end
-		for index, data in pairs(Input._InputCallbacks) do
+
+		for _, data in pairs(Input._Objects) do
+			if not data._enabled then
+				continue
+			end
+
+			if not table.find(data._keys, obj.KeyCode) and not table.find(data._keys, obj.UserInputType) then
+				continue
+			end
+
+			if data._bind then
+				Manager.Wrap(data._bind, Enum.UserInputState.End, obj)
+			end
+		end
+
+		for _, data in pairs(Input._InputCallbacks) do
 			if data["Type"] == "Ended" then
 				if table.find(data["Keys"], obj.KeyCode) or table.find(data["Keys"], obj.UserInputType) then
 					local code = data["Code"]
@@ -300,7 +408,7 @@ if Manager.IsClient then
 		if processed then
 			return
 		end
-		for index, data in pairs(Input._InputTouchCallbacks) do
+		for _, data in pairs(Input._InputTouchCallbacks) do
 			local code = data["Code"]
 			Manager.Wrap(code, obj)
 		end
