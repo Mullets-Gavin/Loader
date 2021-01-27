@@ -22,7 +22,7 @@ local DataStoreService = game:GetService("DataStoreService")
 ]=]
 function Methods.LoadData(key: string, index: string, file: table): table & boolean
 	assert(Manager.IsServer, "'LoadData' can only be used on the server")
-	index = tonumber(index) and "Player_" .. index or "Data_" .. index
+	index = tostring(index)
 
 	if Methods._Occupants[key .. index] then
 		return "__OCCUPIED"
@@ -122,7 +122,7 @@ end
 ]=]
 function Methods.WipeData(key: string, index: string): table & boolean
 	assert(Manager.IsServer, "'WipeData' can only be used on the server")
-	index = tonumber(index) and "Player_" .. index or "Data_" .. index
+	index = tostring(index)
 
 	if Methods._Occupants[key .. index] then
 		return false, false
