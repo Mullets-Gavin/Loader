@@ -17,6 +17,7 @@ A significantly large change that passes all of selene's lints! This change cont
 **Changes:**
 - Component system in Interface. I've decided against combining MCS into Interface in favor of declarative UI with Roact, which has official support and backing by Roblox.
 - "FPS" parameter in `Manager.Loop`
+- DataSync index value has changed from adding a prefix of "Player_" or "Data_"
 - New API for the `Interface.Keybind` object! The following API was updated:
 	- `Keybind:Mobile` - this can now take `false` as a second parameter to disable a displayed icon in favor of text
 	- `Keybind:Bind` - this is a superior method to `Keybind:Hook`, which fires at Began/Changed/Ended and provides the UserInputState as its first parameter in the function, and the object follows as second.
