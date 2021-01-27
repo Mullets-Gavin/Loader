@@ -110,10 +110,12 @@ Interface._AssignSizesOveride = false
 local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
 local Manager = require("Manager")
 local Input = require(script:WaitForChild("Input"))
+
 local Workspace = game:GetService("Workspace")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+
 local Camera = Workspace.CurrentCamera
 local Container
 
@@ -472,7 +474,7 @@ end
 	@outline Keybind
 ]=]
 function Interface.Keybind(name: string): typeof(Interface.Keybind())
-	local uid = "KEYBIND_"..name
+	local uid = "KEYBIND_" .. name
 
 	if Input._Objects[uid] then
 		return Input._Objects[uid]
@@ -514,7 +516,7 @@ function Interface.Keybind(name: string): typeof(Interface.Keybind())
 		@return self
 	]=]
 	function keybind:Keybinds(...): keybind
-		local keys = {...}
+		local keys = { ... }
 		keys = typeof(keys[1]) == "table" and keys[1] or keys
 
 		for _, key in ipairs(keys) do
@@ -562,9 +564,9 @@ function Interface.Keybind(name: string): typeof(Interface.Keybind())
 	]=]
 	function keybind:Hook(code: (InputObject) -> nil): keybind
 		assert(typeof(code) == "function", "'Hook' requires a function parameter")
-		
+
 		self._hook = code
-		
+
 		Input._Objects[uid] = self
 		return self
 	end
@@ -579,7 +581,7 @@ function Interface.Keybind(name: string): typeof(Interface.Keybind())
 		assert(typeof(code) == "function", "'Bind' requires a function parameter")
 
 		self._bind = code
-		
+
 		Input._Objects[uid] = self
 		return self
 	end

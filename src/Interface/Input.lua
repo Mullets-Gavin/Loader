@@ -5,9 +5,9 @@
 ]=]
 
 local Input = {}
-Input._Objects = {} -- keybind objects
-Input._BindCache = {} -- cache for keybind binds
-Input._InputCache = {} -- cache for keybind hooks
+Input._Objects = {}
+Input._BindCache = {}
+Input._InputCache = {}
 Input._InputCallbacks = {}
 Input._InputTouchCallbacks = {}
 Input._Buttons = {}
@@ -140,7 +140,7 @@ end
 ]=]
 function Input.Button(uid: string, name: string, parent: GuiObject?): typeof(Input.Button())
 	local toggle = {
-		button = nil;
+		button = nil,
 	}
 
 	do
@@ -335,7 +335,7 @@ if Manager.IsClient then
 			if not table.find(data._keys, obj.KeyCode) and not table.find(data._keys, obj.UserInputType) then
 				continue
 			end
-			
+
 			if data._hook then
 				Manager.Wrap(data._hook, obj)
 			end

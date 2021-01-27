@@ -211,7 +211,11 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		_ready = false,
 	}
 
-	if (not DataSync._Defaults[data._key] and Manager.IsServer) or DataSync._Files[index] or DataSync._Sessions[index].lock then
+	if
+		(not DataSync._Defaults[data._key] and Manager.IsServer)
+		or DataSync._Files[index]
+		or DataSync._Sessions[index].lock
+	then
 		while not DataSync._Files[index] do
 			Manager.Wait()
 		end

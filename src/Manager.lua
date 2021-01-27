@@ -177,7 +177,7 @@ end
 ]=]
 function Manager.Wait(clock: number?): number
 	local start = os.clock()
-	
+
 	if clock then
 		local current = os.clock()
 

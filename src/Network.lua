@@ -99,7 +99,8 @@ local Manager = require("Manager")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Container = ReplicatedStorage:FindFirstChild(Network._Name .. "_FOLDER") do
+local Container = ReplicatedStorage:FindFirstChild(Network._Name .. "_FOLDER")
+do
 	if Manager.IsServer and not Container then
 		local Folder = Instance.new("Folder")
 		Folder.Name = Network._Name .. "_FOLDER"
