@@ -12,6 +12,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 A significantly large change that passes all of selene's lints! This change contains a large change in the API as well as new API and the removal of it as well.
 
+⚠ USING THIS VERSION OF LOADER MAY ERASE ANY CURRENT DATA AS THE INDEX HAS CHANGED. USE PRIOR VERSIONS IF YOU DEPEND ON THE INDEX. ⚠
+
 **Changes:**
 - Component system in Interface. I've decided against combining MCS into Interface in favor of declarative UI with Roact, which has official support and backing by Roblox.
 - "FPS" parameter in `Manager.Loop`
