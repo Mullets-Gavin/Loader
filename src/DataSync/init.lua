@@ -363,17 +363,19 @@ end
 --[=[
 	Update a given value with any type of data
 	
-	@param value string -- the specific value in a DataFile
+	@param value string | table -- the specific value in a DataFile, provide a table to override a file
 	@param data any? -- any valid type can be provided to a value
 	@return DataFileObject
 	@outline UpdateData
 ]=]
-function DataSync:UpdateData(value: string, data: any?): typeof(DataSync:GetFile())
+function DataSync:UpdateData(value: string | table, data: any?): typeof(DataSync:GetFile())
 	assert(self._file, "':UpdateData' can only be used with a data file")
 
+	local default = DataSync._Defaults[self._key][value]
 	local file = DataSync._Cache[self._key][self._file]
-	if data == nil and DataSync._Defaults[self._key][value] ~= nil then
-		data = DataSync._Defaults[self._key][value]
+
+	if data == nil and default ~= nil then
+		data = default
 	end
 
 	if file == nil and Manager.IsServer then
@@ -384,11 +386,7 @@ function DataSync:UpdateData(value: string, data: any?): typeof(DataSync:GetFile
 		file = DataSync._Cache[self._key][self._file]
 	end
 
-	if file[value] ~= nil then
-		file[value] = data
-	elseif DataSync._Defaults[self._key][value] ~= nil then
-		file[value] = data
-	elseif typeof(value) == "table" then
+	if typeof(value) == "table" then
 		file = value
 	else
 		file[value] = data
@@ -434,11 +432,11 @@ end
 	@return DataFileObject
 	@outline SaveData
 ]=]
-function DataSync:SaveData(override: boolean?): typeof(DataSync:GetFile())
+function DataSync:SaveData(_override: boolean?): typeof(DataSync:GetFile())
 	assert(self._file, "':SaveData' can only be used with a data file")
 	assert(Manager.IsServer, "':SaveData' only works on the server")
 
-	if (DataSync._ShuttingDown and not override) or self._sesh then
+	if (DataSync._ShuttingDown and not _override) or self._sesh then
 		return self
 	end
 
@@ -482,13 +480,13 @@ end
 	@return DestroyedDataFileObject
 	@outline RemoveData
 ]=]
-function DataSync:RemoveData(override: boolean?): typeof(DataSync:RemoveData())
+function DataSync:RemoveData(_override: boolean?): typeof(DataSync:RemoveData())
 	assert(self._file, "':RemoveData' can only be used with a data file")
 	if self._sesh then
 		return self
 	end
 
-	if DataSync._ShuttingDown and not override then
+	if DataSync._ShuttingDown and not _override then
 		return self
 	end
 
