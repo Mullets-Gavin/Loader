@@ -6,6 +6,7 @@
 local Methods = {}
 Methods._Occupants = {}
 Methods._MaxRetries = 5
+Methods._Private = "__"
 
 local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loader"))
 local Manager = require("Manager")
@@ -25,7 +26,7 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 	index = tostring(index)
 
 	if Methods._Occupants[key .. index] then
-		return "__OCCUPIED"
+		return Methods._Private .. "OCCUPIED"
 	end
 
 	Methods._Occupants[key .. index] = true
@@ -55,9 +56,9 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 				end
 			end
 
-			last["__CanSave"] = true
-			last["__HasChanged"] = false
-			last["__IsReady"] = false
+			last[Methods._Private .. "CanSave"] = true
+			last[Methods._Private .. "HasChanged"] = false
+			last[Methods._Private .. "IsReady"] = false
 			return last
 		end)
 	end)
@@ -66,9 +67,9 @@ function Methods.LoadData(key: string, index: string, file: table): table & bool
 		warn(data)
 
 		data = Manager.DeepCopy(file)
-		data["__CanSave"] = false
-		data["__HasChanged"] = false
-		data["__IsReady"] = false
+		data[Methods._Private .. "CanSave"] = false
+		data[Methods._Private .. "HasChanged"] = false
+		data[Methods._Private .. "IsReady"] = false
 	end
 
 	Methods._Occupants[key .. index] = nil
@@ -89,8 +90,13 @@ function Methods.SaveData(key: string, index: string, file: table): table & bool
 	assert(Manager.IsServer, "'SaveData' can only be used on the server")
 	index = tostring(index)
 
-	if file == nil or Methods._Occupants[key .. index] or not file["__HasChanged"] or not file["__CanSave"] then
-		return file or "__OCCUPIED", true
+	if
+		file == nil
+		or Methods._Occupants[key .. index]
+		or not file[Methods._Private .. "HasChanged"]
+		or not file[Methods._Private .. "CanSave"]
+	then
+		return file or Methods._Private .. "OCCUPIED", true
 	end
 
 	Methods._Occupants[key .. index] = true
@@ -101,7 +107,7 @@ function Methods.SaveData(key: string, index: string, file: table): table & bool
 
 	local success, data = Manager.Rerun(Methods._MaxRetries, function()
 		return store:UpdateAsync(index, function()
-			file["__HasChanged"] = false
+			file[Methods._Private .. "HasChanged"] = false
 			file = Manager.Encode(file)
 			return file
 		end)

@@ -76,7 +76,6 @@ local DataSync = {}
 DataSync.__index = DataSync
 DataSync._Name = string.upper(script.Name)
 DataSync._ShuttingDown = false
-DataSync._Private = "__"
 DataSync._Cache = {}
 DataSync._Stores = {}
 DataSync._Files = {}
@@ -229,7 +228,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 
 		local load, success = Methods.LoadData(data._key, index, DataSync._Defaults[data._key])
 		if not success then
-			if load == "__OCCUPIED" then
+			if load == Methods._Private .. "OCCUPIED" then
 				while not DataSync._Files[index] do
 					Manager.Wait()
 				end
@@ -260,7 +259,7 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		local cache = download or {}
 		DataSync._Cache[data._key][index] = cache
 
-		if cache["__CanSave"] then
+		if cache[Methods._Private .. "CanSave"] then
 			data._loaded = true
 		else
 			data._loaded = false
@@ -293,8 +292,8 @@ function DataSync:GetFile(index: string | number | nil): typeof(DataSync:GetFile
 		end)
 	end
 
-	data:UpdateData("__IsReady", true)
-	data:UpdateData("__HasChanged", false)
+	data:UpdateData(Methods._Private .. "IsReady", true)
+	data:UpdateData(Methods._Private .. "HasChanged", false)
 
 	DataSync._Files[index] = data
 	DataSync._Sessions[index].lock = false
@@ -392,9 +391,9 @@ function DataSync:UpdateData(value: string | table, data: any?): typeof(DataSync
 		file[value] = data
 	end
 
-	if string.sub(tostring(value), 1, #DataSync._Private) ~= DataSync._Private then
-		if not file["__HasChanged"] then
-			file["__HasChanged"] = true
+	if string.sub(tostring(value), 1, #Methods._Private) ~= Methods._Private then
+		if not file[Methods._Private .. "HasChanged"] then
+			file[Methods._Private .. "HasChanged"] = true
 		end
 	end
 
@@ -466,7 +465,7 @@ function DataSync:SaveData(_override: boolean?): typeof(DataSync:GetFile())
 	end
 
 	if DataSync._Cache[self._key][self._file] then
-		DataSync._Cache[self._key][self._file]["__HasChanged"] = false
+		DataSync._Cache[self._key][self._file][Methods._Private .. "HasChanged"] = false
 	end
 
 	self._sesh = false
