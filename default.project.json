@@ -8,6 +8,12 @@
 			"Loader": {
 				"$ignoreUnknownInstances": true,
 				"$path": "src"
+			},
+			"rbxts_include": {
+				"$path": "include",
+				"node_modules": {
+					"$path": "node_modules/@rbxts"
+				}
 			}
 		}
 	}
