@@ -367,14 +367,12 @@ end
 	@return DataFileObject
 	@outline UpdateData
 ]=]
-function DataSync:UpdateData(value: string | table, data: any?): typeof(DataSync:GetFile())
+function DataSync:UpdateData(value: string, data: any?): typeof(DataSync:GetFile())
 	assert(self._file, "':UpdateData' can only be used with a data file")
 
-	local default = DataSync._Defaults[self._key][value]
 	local file = DataSync._Cache[self._key][self._file]
-
-	if data == nil and default ~= nil then
-		data = default
+	if data == nil and DataSync._Defaults[self._key][value] ~= nil then
+		data = DataSync._Defaults[self._key][value]
 	end
 
 	if file == nil and Manager.IsServer then
@@ -392,8 +390,8 @@ function DataSync:UpdateData(value: string | table, data: any?): typeof(DataSync
 	end
 
 	if string.sub(tostring(value), 1, #Methods._Private) ~= Methods._Private then
-		if not file[Methods._Private .. "HasChanged"] then
-			file[Methods._Private .. "HasChanged"] = true
+		if not file["__HasChanged"] then
+			file["__HasChanged"] = true
 		end
 	end
 
@@ -585,7 +583,7 @@ end
 	@outline _FireSubscriptions
 ]=]
 function DataSync:_FireSubscriptions(index: string, value: string, data: any?): nil
-	if string.sub(tostring(tostring(value)), 1, #DataSync._Private) == DataSync._Private then
+	if string.sub(tostring(tostring(value)), 1, #Methods._Private) == Methods._Private then
 		return true
 	end
 
