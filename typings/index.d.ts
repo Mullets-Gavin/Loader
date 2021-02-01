@@ -29,7 +29,33 @@ interface DataSync {
 }
 
 interface Manager {
+	Set: (properties: Map<string, Array<unknown>>) => void;
 	Wait: (clock: number) => number;
+	Wrap: (code: () => void) => void;
+	Spawn: (code: () => void, ...args: unknown[]) => void;
+	Loop: (code: () => void, ...args: unknown[]) => void;
+	Delay: (clock: number, code: () => void, ...args: unknown[]) => void;
+	Garbage: (clock: number, obj: Instance) => void;
+	Retry: (clock: number, code: () => void, ...args: unknown[]) => boolean & unknown;
+	Rerun: (times: number, code: () => void, ...args: unknown[]) => boolean & unknown;
+	Debounce: (key: any, code: () => void, ...args: unknown[]) => boolean & unknown;
+	Debug: (label?: string) => void;
+	Round: (input: number, decimal?: number): number;
+
+	FormatCounter: (input: number, decimal: number) => string;
+	FormatValue: (input: number) => string;
+	FormatMoney: (input: number) => string;
+	FormatClock: (input: number) => string;
+	Format24H: (input: number) => string;
+	FormatDate: (input: number) => string;
+
+	Tween: (object: Instance, properties: Map<string, Array<unknown>>, goals: unknown | Array<unknown>, duration?: number, style?: EnumItem, direction?: EnumItem): TweenObject;
+	Count: (master: Map<unknown, unknown> | Array<unknown>) => number;
+	Copy: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
+	DeepCopy: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
+	Shuffle: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
+	Encode: (data: unknown) => unknown?;
+	Decode: (text: string) => unknown?;
 }
 
 interface Network {
