@@ -54,7 +54,7 @@ interface Manager {
 	Rerun: (times: number, code: () => void, ...args: unknown[]) => boolean & unknown;
 	Debounce: (key: any, code: () => void, ...args: unknown[]) => boolean & unknown;
 	Debug: (label?: string) => void;
-	Round: (input: number, decimal?: number): number;
+	Round: (input: number, decimal?: number) => number;
 
 	FormatCounter: (input: number, decimal: number) => string;
 	FormatValue: (input: number) => string;
@@ -63,7 +63,15 @@ interface Manager {
 	Format24H: (input: number) => string;
 	FormatDate: (input: number) => string;
 
-	Tween: (object: Instance, properties: Map<string, Array<unknown>>, goals: unknown | Array<unknown>, duration?: number, style?: EnumItem, direction?: EnumItem): TweenObject;
+	Tween: (
+		object: Instance,
+		properties: Map<string, Array<unknown>>,
+		goals: unknown | Array<unknown>,
+		duration?: number,
+		style?: EnumItem,
+		direction?: EnumItem
+	) => TweenObject;
+
 	Count: (master: Map<unknown, unknown> | Array<unknown>) => number;
 	Copy: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
 	DeepCopy: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
