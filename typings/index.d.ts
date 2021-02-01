@@ -20,7 +20,7 @@ declare class DataSyncStore {
 	Subscribe(
 		index: string | number | Player,
 		value: string | Array<unknown>,
-		code: (data: Array<unknown>) => void,
+		code: (data: Array<unknown>) => void
 	): Subscription;
 }
 
@@ -45,7 +45,11 @@ interface Network {
 
 	FireServer: (name: string, ...args: unknown[]) => void;
 	FireClient: (name: string, client: Player, ...args: unknown[]) => void;
-	FireClients: (name: string, clients: Array<Player>, ...args: unknown[]) => void;
+	FireClients: (
+		name: string,
+		clients: Array<Player>,
+		...args: unknown[]
+	) => void;
 	FireAllClients: (name: string, ...args: unknown[]) => void;
 
 	InvokeServer(name: string, ...args: unknown[]): unknown[];
@@ -121,7 +125,10 @@ interface Roblox {
 	GetBlocked(): unknown | boolean;
 	GetRankInGroup(player: Player, group: number): unknown | boolean;
 	GetFriendsOnline(player: Player, num: number | void): unknown | boolean;
-	GetUserHeadshot(userId: number, enumSize: EnumItem | void): unknown | boolean;
+	GetUserHeadshot(
+		userId: number,
+		enumSize: EnumItem | void
+	): unknown | boolean;
 	GetUserBust(userId: number, enumSize: EnumItem | void): unknown | boolean;
 	GetUserAvatar(userId: number, enumSize: EnumItem | void): unknown | boolean;
 	GetUserTeleportInfo(userId: number): unknown | boolean;
@@ -132,13 +139,20 @@ interface Roblox {
 
 	CanSendGameInviteAsync(player: Player): boolean;
 
-	FilterText(text: string, userId: number, context: EnumItem | void): unknown | boolean;
+	FilterText(
+		text: string,
+		userId: number,
+		context: EnumItem | void
+	): unknown | boolean;
 	FilterChatForUser(filter: Instance, toUserId: number): unknown | boolean;
 	FilterStringForUser(filter: Instance, toUserId: number): unknown | boolean;
 	FilterStringForBroadcast(filter: Instance): unknown | boolean;
 
 	PostNotification(properties: Array<unknown>): unknown | boolean;
-	PostNotification(assets: Array<Instance>, code: () => void | void): unknown | boolean;
+	PostNotification(
+		assets: Array<Instance>,
+		code: () => void | void
+	): unknown | boolean;
 }
 
 interface Loader {
