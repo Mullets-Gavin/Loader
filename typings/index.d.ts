@@ -28,6 +28,20 @@ interface DataSync {
 	GetStore: (key: string, data: Array<unknown> | void) => DataSyncStore;
 }
 
+interface Connection {
+	Disconnect(): this;
+	Fire(...args: unknown[]): this;
+}
+
+interface Scheduler {
+	Enabled(): boolean;
+	Pause(): number;
+	Resume(): number;
+	Wait(): number;
+	Disconnect(): this;
+	Queue(code: () => void): void;
+}
+
 interface Manager {
 	Set: (properties: Map<string, Array<unknown>>) => void;
 	Wait: (clock: number) => number;
@@ -56,6 +70,15 @@ interface Manager {
 	Shuffle: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
 	Encode: (data: unknown) => unknown?;
 	Decode: (text: string) => unknown?;
+
+	WaitForTag: (tag: string) => Array<unknown>;
+	WaitForCharacter: (player: Player) => Instance;
+
+	Connect: (code: RBXScriptConnection | Array<unknown> | () => void) => Connection;
+	ConnectKey: (code: RBXScriptConnection | Array<unknown> | () => void) => Connection;
+	FireKey: (key: unknown, ...args: unknown[]) => void;
+	DisconnectKey: (key: unknown) => void;
+	Task: (targetFPS?: number) => Scheduler;
 }
 
 interface Network {
