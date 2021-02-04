@@ -10,7 +10,7 @@
 
 ## [Read the documentation!](https://mullets-gavin.github.io/Loader/)
 
-Loader is, at it’s finest, a Roblox Luau library loader with some sweet built-in libraries. Loader aims to replace the require function within your game. By doing so, this allows you to lazy load modules, which means you can require modules by name like `require('Module')` & deep search your DataModel for that script.
+Loader is, at it’s finest, a Roblox Luau library loader with some sweet built-in libraries. Loader aims to replace the require function within your game. By doing so, this allows you to lazy load modules, which means you can require modules by name like `require("Module")` & deep search your DataModel for that script.
 
 ## License
 
