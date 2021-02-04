@@ -32,6 +32,16 @@ You can install Loader with three methods, though it is recommended that if you 
 * Set Loader in `ReplicatedStorage`
 * You're all set!
 
+### Method 4, Filesystem for Roblox-TS:
+
+* Download the `src` of this repository
+* Copy over the contents of the `src` folder into your Roblox-TS project
+* Rename `src` to `Loader`
+* Copy the `typings` folders contents into `Loader`
+* Set Loader in `ReplicatedStorage`
+* You can now use Loader, DataSync, Manager, Interface, Network, and Roblox with type support!
+* You're all set!
+
 ## Hierarchy
 
 Loader should be installed in the following hierarchy:
@@ -43,7 +53,8 @@ ReplicatedStorage
    ├─ Interface
    ├─ Manager
    ├─ Network
-   └─ Roblox
+   ├─ Roblox
+   └─ index.d.ts* - only for Roblox-TS
 ```
 
 ## Initialize
@@ -54,7 +65,6 @@ local require = require(game:GetService("ReplicatedStorage"):WaitForChild("Loade
 ```
 
 It's recommended to set Loader as a `require` replacement since it works the same, with added perks of diagnosing problems.
-
 
 ## More
 
