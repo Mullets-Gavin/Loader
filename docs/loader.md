@@ -8,7 +8,7 @@ Loader caches all loaded modules. This optimization allows you to only run the d
 
 # API
 
-* ## **require**
+## **require**
 ```lua
 Loader.require(string | number | ModuleScript): RequiredModule?
 ```
@@ -30,7 +30,7 @@ The main `require` replacement. `require` does a deep search with the following 
 3. Backpack
 4. ReplicatedFirst
 
-* ## **server**
+## **server**
 ```lua
 Loader.server(string | number | ModuleScript): RequiredModule?
 ```
@@ -41,7 +41,7 @@ The `server` only-search if you want to keep the search inexpensive, great for l
 1. ServerStorage
 2. ServerScriptService
 
-* ## **client**
+## **client**
 ```lua
 Loader.server(string | ModuleScript): RequiredModule?
 ```
@@ -54,14 +54,14 @@ The `client` only-search if you want to keep the search inexpensive, great for l
 3. Backpack
 4. ReplicatedFirst
 
-* ## **__call**
+## **__call**
 ```lua
 require(string | number | ModuleScript): RequiredModule?
 ```
 
 This callback returns what `require` returns, allowing you to replace the Lua `require` function with Loaders custom `require` which allows text and scripts to be loaded.
 
-* ## **enum**
+## **enum**
 ```lua
 Loader.enum(string, table): table
 ```
