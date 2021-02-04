@@ -116,12 +116,12 @@ Loader.Filter = false
 --[=[
 	Safely require a module like the Roblox require function works
 	
-	@param module Instance -- required module
+	@param module ModuleScript -- required module
 	@param requirer Instance -- the source script requiring this
 	@return table?
 	@private
 ]=]
-local function SafeRequire(module: ModuleScript, requirer: Script): table?
+local function SafeRequire(module: ModuleScript, requirer: Script): any?
 	local time = os.clock()
 	local event
 	event = RunService.Stepped:Connect(function()
@@ -192,7 +192,7 @@ end
 	@private
 	@outline ___require
 ]=]
-function Loader.__require(module: ModuleScript, requirer: Script): table?
+function Loader.__require(module: ModuleScript | string | number, requirer: Script): any?
 	local clock = os.clock()
 	local name = string.lower(typeof(module) == "Instance" and module.Name or module)
 
@@ -250,13 +250,13 @@ end
 --[=[
 	The internal require function for filtering the server containers
 	
-	@param module string | number | Instance -- the module to require
+	@param module string | number | ModuleScript -- the module to require
 	@param requirer Instance -- the script that required this function to simulate require()
 	@return RequiredModule?
 	@private
 	@outline ___server
 ]=]
-function Loader.__server(module: ModuleScript, requirer: Script): table?
+function Loader.__server(module: ModuleScript | numnber | string, requirer: Script): any?
 	local name = string.lower(typeof(module) == "Instance" and module.Name or module)
 
 	if Loader._ModuleCache[name] then
@@ -278,13 +278,13 @@ end
 --[=[
 	The internal require function for filtering the client containers
 	
-	@param module string | number | Instance -- the module to require
+	@param module string | ModuleScript -- the module to require
 	@param requirer Instance -- the script that required this function to simulate require()
 	@return RequiredModule?
 	@private
 	@outline ___client
 ]=]
-function Loader.__client(module: ModuleScript, requirer: Script, __disabled: boolean?): table?
+function Loader.__client(module: ModuleScript | string, requirer: Script, __disabled: boolean?): any?
 	local clock = os.clock()
 	local name = string.lower(typeof(module) == "Instance" and module.Name or module)
 
@@ -332,7 +332,7 @@ end
 	@return RequiredModule?
 	@outline require
 ]=]
-function Loader.require(module: ModuleScript | string | number): table?
+function Loader.require(module: ModuleScript | string | number): any?
 	local requirer = getfenv(2).script
 	return Loader.__require(module, requirer)
 end
@@ -340,11 +340,11 @@ end
 --[=[
 	Require a module instance or search server containers for a module with a string
 	
-	@param module string | number | Instance -- the module type to require
+	@param module string | number | ModuleScript -- the module type to require
 	@return RequiredModule?
 	@outline server
 ]=]
-function Loader.server(module: ModuleScript | string | number): table?
+function Loader.server(module: ModuleScript | string | number): any?
 	assert(IsServer, "Attempted to access .server from the client")
 
 	local requirer = getfenv(2).script
@@ -354,11 +354,11 @@ end
 --[=[
 	Require a module instance or search client containers for a module with a string
 	
-	@param module string | number | Instance -- the module type to require
+	@param module string | ModuleScript -- the module type to require
 	@return RequiredModule?
 	@outline client
 ]=]
-function Loader.client(module: ModuleScript | string | number): table?
+function Loader.client(module: ModuleScript | string): any?
 	assert(IsClient, "Attempted to access .client from the server")
 
 	local requirer = getfenv(2).script
