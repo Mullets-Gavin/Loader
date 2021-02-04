@@ -35,7 +35,7 @@ local SomeServer = require.server("SomeServer") -- Loader.server("SomeServer")
 -- Enumerator Example --
 ------------------------
 
-local Enums = Loader.enum("Example",{"this","is","a","test"})
+local Enums = Loader.enum("Example", {"this","is","a","test"})
 print(shared.Example.this) --> this
 print(shared.Example.is == shared.Example.a) --> false
 print(shared.Example.test == shared.Example.test) --> true
@@ -55,12 +55,12 @@ local DataSync = require("DataSync")
 -- Store Example --
 -------------------
 
-local Store = DataSync.GetStore("DataStoreKey",{
-    ["Cash"] = 0;
-    ["Banned"] = false;
+local Store = DataSync.GetStore("DataStoreKey", {
+    ["Cash"] = 0,
+    ["Banned"] = false,
     ["Inventory"] = {
-        ["Apple"] = 3;
-    }
+        ["Apple"] = 3,
+    },
 })
 
 Store:FilterKeys("Banned")
@@ -77,11 +77,10 @@ print(File:GetData("Cash"))
 --------------------------
 
 local Subscription;
-Subscription = Store:Subscribe(player.UserId,"all",function(new,old)
-    print(new.Stat,"updated:",new.Value)
-    print("Previously",old.Value)
+Subscription = Store:Subscribe(player.UserId, { "all" },function(data)
+    print(data.Stat .. ":", data.Value)
 
-    if new.Value >= 10 then
+    if data.Stat == "Cash" and data.Value >= 10 then
         Subscription:Disconnect()
     end
 end)
