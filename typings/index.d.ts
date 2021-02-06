@@ -70,20 +70,20 @@ interface Manager {
 		duration?: number,
 		style?: EnumItem,
 		direction?: EnumItem
-	) => TweenObject;
+	) => Tween;
 
 	Count: (master: Map<unknown, unknown> | Array<unknown>) => number;
 	Copy: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
 	DeepCopy: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
 	Shuffle: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
-	Encode: (data: unknown) => unknown?;
-	Decode: (text: string) => unknown?;
+	Encode: (data: unknown) => unknown | void;
+	Decode: (text: string) => unknown | void;
 
 	WaitForTag: (tag: string) => Array<unknown>;
 	WaitForCharacter: (player: Player) => Instance;
 
-	Connect: (code: RBXScriptConnection | Array<unknown> | () => void) => Connection;
-	ConnectKey: (code: RBXScriptConnection | Array<unknown> | () => void) => Connection;
+	Connect: (code: RBXScriptConnection | Array<unknown> | (() => void)) => Connection;
+	ConnectKey: (code: RBXScriptConnection | Array<unknown> | (() => void)) => Connection;
 	FireKey: (key: unknown, ...args: unknown[]) => void;
 	DisconnectKey: (key: unknown) => void;
 	Task: (targetFPS?: number) => Scheduler;
