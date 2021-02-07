@@ -176,17 +176,13 @@ end
 	@outline Wait
 ]=]
 function Manager.Wait(clock: number?): number
+	clock = clock or 0
+
 	local start = os.clock()
-
-	if clock then
-		local current = os.clock()
-
-		while clock > os.clock() - current do
-			RunService[Settings.RunService]:Wait()
-		end
-	else
-		RunService[Settings.RunService]:Wait()
-	end
+	local delta = 0
+	repeat
+		delta += RunService[Settings.RunService]:Wait()
+	until delta >= clock
 
 	return os.clock() - start
 end
@@ -892,7 +888,10 @@ function Manager.Task(targetFPS: number?): typeof(Manager.Task())
 					break
 				end
 			else
-				local fps = (((os.clock() - start) >= 1 and #self.UpdateTable) or (#self.UpdateTable / (os.clock() - start)))
+				local fps = (
+						((os.clock() - start) >= 1 and #self.UpdateTable)
+						or (#self.UpdateTable / (os.clock() - start))
+					)
 				if fps >= targetFPS and (os.clock() - self.UpdateTable[1]) < (1 / targetFPS) then
 					if #self.CodeQueue > 0 then
 						self.CodeQueue[1]()
