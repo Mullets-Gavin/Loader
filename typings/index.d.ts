@@ -14,13 +14,17 @@ declare class DataSyncFile {
 	WipeData(): this;
 }
 
+declare class SubscriptionContents {
+	Value: any;
+}
+
 declare class DataSyncStore {
 	FilterKeys(keys: Array<string>, filter: boolean | void): this;
 	GetFile(index: string | number | void): DataSyncFile;
 	Subscribe(
 		index: string | number | Player,
-		value: string | Array<unknown>,
-		code: (data: Array<unknown>) => void
+		value: string | Array<string>,
+		code: (data: SubscriptionContents) => void
 	): Subscription;
 }
 
@@ -43,6 +47,11 @@ interface Scheduler {
 }
 
 interface Manager {
+	IsStudio: boolean;
+	IsServer: boolean;
+	IsClient: boolean;
+	IsRunMode: boolean;
+
 	Set: (properties: Map<string, Array<unknown>>) => void;
 	Wait: (clock: number) => number;
 	Wrap: (code: () => void) => void;
@@ -50,9 +59,21 @@ interface Manager {
 	Loop: (code: () => void, ...args: unknown[]) => void;
 	Delay: (clock: number, code: () => void, ...args: unknown[]) => void;
 	Garbage: (clock: number, obj: Instance) => void;
-	Retry: (clock: number, code: () => void, ...args: unknown[]) => boolean & unknown;
-	Rerun: (times: number, code: () => void, ...args: unknown[]) => boolean & unknown;
-	Debounce: (key: any, code: () => void, ...args: unknown[]) => boolean & unknown;
+	Retry: (
+		clock: number,
+		code: () => void,
+		...args: unknown[]
+	) => boolean & unknown;
+	Rerun: (
+		times: number,
+		code: () => void,
+		...args: unknown[]
+	) => boolean & unknown;
+	Debounce: (
+		key: any,
+		code: () => void,
+		...args: unknown[]
+	) => boolean & unknown;
 	Debug: (label?: string) => void;
 	Round: (input: number, decimal?: number) => number;
 
@@ -73,17 +94,27 @@ interface Manager {
 	) => Tween;
 
 	Count: (master: Map<unknown, unknown> | Array<unknown>) => number;
-	Copy: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
-	DeepCopy: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
-	Shuffle: (master: Map<unknown, unknown> | Array<unknown>) => Map<unknown, unknown> | Array<unknown>;
+	Copy: (
+		master: Map<unknown, unknown> | Array<unknown>
+	) => Map<unknown, unknown> | Array<unknown>;
+	DeepCopy: (
+		master: Map<unknown, unknown> | Array<unknown>
+	) => Map<unknown, unknown> | Array<unknown>;
+	Shuffle: (
+		master: Map<unknown, unknown> | Array<unknown>
+	) => Map<unknown, unknown> | Array<unknown>;
 	Encode: (data: unknown) => unknown | void;
 	Decode: (text: string) => unknown | void;
 
 	WaitForTag: (tag: string) => Array<unknown>;
 	WaitForCharacter: (player: Player) => Instance;
 
-	Connect: (code: RBXScriptConnection | Array<unknown> | (() => void)) => Connection;
-	ConnectKey: (code: RBXScriptConnection | Array<unknown> | (() => void)) => Connection;
+	Connect: (
+		code: RBXScriptConnection | Array<unknown> | (() => void)
+	) => Connection;
+	ConnectKey: (
+		code: RBXScriptConnection | Array<unknown> | (() => void)
+	) => Connection;
 	FireKey: (key: unknown, ...args: unknown[]) => void;
 	DisconnectKey: (key: unknown) => void;
 	Task: (targetFPS?: number) => Scheduler;
@@ -95,8 +126,11 @@ interface Network {
 	CreateBindableEvent: (name: string) => BindableEvent;
 	CreateBindableFunction: (name: string) => BindableFunction;
 
-	HookEvent(name: string, code: () => void): RemoteEvent;
-	HookFunction(name: string, code: () => void): RemoteFunction;
+	HookEvent(name: string, code: (...args: unknown[]) => void): RemoteEvent;
+	HookFunction(
+		name: string,
+		code: (...args: unknown[]) => void
+	): RemoteFunction;
 	UnhookEvent(): boolean;
 	UnhookFunction(): boolean;
 
