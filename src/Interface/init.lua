@@ -1,5 +1,5 @@
 --[=[
-	@Author: Gavin "Mullets" Rosenthal
+	@Author: Gavin Rosenthal - Mullets
 	@Desc: An Interface library with various functionality for Gui and Inputs
 ]=]
 
@@ -79,7 +79,7 @@
 [LICENSE]:
 	MIT License
 	
-	Copyright (c) 2020 Gavin "Mullets" Rosenthal
+	Copyright (c) 2020 - 2021 Gavin Rosenthal
 	
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal

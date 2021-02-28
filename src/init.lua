@@ -1,6 +1,6 @@
 --[=[
-	@Author: Gavin "Mullets" Rosenthal
-	@Desc: Loader, a custom Roblox Luau Library Loader by Mullet Mafia Dev
+	@Author: Gavin Rosenthal - Mullets
+	@Desc: Loader, a custom Roblox Luau Library Loader
 	@Notes: Loader & it's library modules are completely documented. All API is listed out within each script.
 	@Libraries:
 	- DataSync
@@ -51,7 +51,7 @@
 [LICENSE]:
 	MIT License
 	
-	Copyright (c) 2020 Mullet Mafia Dev
+	Copyright (c) 2020 - 2021 Gavin Rosenthal
 	
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal

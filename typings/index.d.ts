@@ -19,8 +19,8 @@ declare class DataSyncStore {
 	GetFile(index: string | number | void): DataSyncFile;
 	Subscribe(
 		index: string | number | Player,
-		value: string | Array<unknown>,
-		code: (data: Array<unknown>) => void,
+		value: string | Array<string>,
+		code: (data: Array<unknown>) => void
 	): Subscription;
 }
 
@@ -29,6 +29,12 @@ interface DataSync {
 }
 
 interface Manager {
+	IsStudio: boolean;
+	IsServer: boolean;
+	IsClient: boolean;
+	IsRunMode: boolean;
+
+	Set: (properties: Map<string, Array<unknown>>) => void;
 	Wait: (clock: number) => number;
 }
 

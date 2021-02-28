@@ -1,6 +1,6 @@
 --[=[
-	@Author: Gavin "Mullets" Rosenthal
-	@Author: Lucas Wolschick (codes4breakfast)
+	@Author: Gavin Rosenthal - Mullets
+	@Author: Lucas Wolschick - codes4breakfast
 	@Desc: Internal input functions
 ]=]
 

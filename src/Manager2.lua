@@ -93,7 +93,22 @@
 	   ├─ :Wait()
 	   ├─ :Enabled()
 	   └─ :Disconnect()
-	
+
+.wait()
+.wrap()
+.spawn()
+.timeout()
+.retry()
+.rerun()
+.debounce()
+.round()
+.copy()
+.shuffle()
+.encode()
+.decode()
+
+
+
 [LICENSE]:
 	MIT License
 	
@@ -176,17 +191,13 @@ end
 	@outline Wait
 ]=]
 function Manager.Wait(clock: number?): number
+	clock = clock or 0
+
 	local start = os.clock()
-
-	if clock then
-		local current = os.clock()
-
-		while clock > os.clock() - current do
-			RunService[Settings.RunService]:Wait()
-		end
-	else
-		RunService[Settings.RunService]:Wait()
-	end
+	local delta = 0
+	repeat
+		delta += RunService[Settings.RunService]:Wait()
+	until delta >= clock
 
 	return os.clock() - start
 end
@@ -219,31 +230,6 @@ end
 ]=]
 function Manager.Spawn(code: (any) -> nil, ...): nil
 	coroutine.resume(coroutine.create(code), ...)
-end
-
---[=[
-	Create an infinite loop at a 60fps
-	
-	@param code function -- the function to callback
-	@param ...? any -- optional parameters to pass in the function
-	@return RBXScriptConnection
-	@outline Loop
-]=]
-function Manager.Loop(code: (any) -> nil, ...): RBXScriptConnection
-	local data = { ... }
-	local rate = 1 / 60
-	local logged = 0
-	local event
-	event = RunService[Settings.RunService]:Connect(function(delta)
-		logged = logged + delta
-
-		while logged >= rate do
-			logged = logged - rate
-			code(table.unpack(data))
-		end
-	end)
-
-	return event
 end
 
 --[=[
@@ -523,6 +509,18 @@ function Manager.FormatDate(input: number): string
 	local seconds = math.floor(math.fmod(input, 60))
 
 	return string.format("%d:%02d:%02d:%02d", days, hours, minutes, seconds)
+end
+
+local Rubbish = {} do
+	Rubbish.__index = Rubbish
+
+	function Rubbish.new()
+		
+	end
+
+	function Rubbish:__call()
+
+	end
 end
 
 --[=[
@@ -892,7 +890,10 @@ function Manager.Task(targetFPS: number?): typeof(Manager.Task())
 					break
 				end
 			else
-				local fps = (((os.clock() - start) >= 1 and #self.UpdateTable) or (#self.UpdateTable / (os.clock() - start)))
+				local fps = (
+						((os.clock() - start) >= 1 and #self.UpdateTable)
+						or (#self.UpdateTable / (os.clock() - start))
+					)
 				if fps >= targetFPS and (os.clock() - self.UpdateTable[1]) < (1 / targetFPS) then
 					if #self.CodeQueue > 0 then
 						self.CodeQueue[1]()

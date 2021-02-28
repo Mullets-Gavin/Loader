@@ -1,5 +1,5 @@
 --[=[
-	@Author: Gavin "Mullets" Rosenthal
+	@Author: Gavin Rosenthal - Mullets
 	@Desc: A custom PlayerClass object
 ]=]
 
